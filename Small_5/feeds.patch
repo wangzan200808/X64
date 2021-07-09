@@ -601,7 +601,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/fatedier/frp.git
-+PKG_SOURCE_VERSION:=df5859b5f78b897c03be3bc3510c012ee6217e59
++PKG_SOURCE_VERSION:=2a68c1152f4d20b07f112cdcd4ee84151a859a1f
 +
  PKG_NAME:=frp
 -PKG_VERSION:=0.37.0
