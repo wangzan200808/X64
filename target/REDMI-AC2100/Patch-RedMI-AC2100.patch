@@ -7,32 +7,46 @@
 +	option hw '1'
  
 
---- /dev/null
-+++ b/target/linux/ramips/base-files/etc/uci-defaults/04_led_migration
-@@ -1,8 +0,0 @@
--. /lib/functions.sh
--. /lib/functions/migrations.sh
--
--remove_devicename_leds "rt2800soc-phy0" "rt2800pci-phy0"
--
--migrations_apply system
--
--exit 0
-
 --- a/target/linux/ramips/dts/mt7621.dtsi
 +++ b/target/linux/ramips/dts/mt7621.dtsi
-@@ -37,10 +37,6 @@
+@@ -37,6 +37,21 @@
  		compatible = "mti,cpu-interrupt-controller";
  	};
  
--	chosen {
--		bootargs = "console=ttyS0,57600";
--	};
--
- 	pll: pll {
- 		compatible = "mediatek,mt7621-pll", "syscon";
++	reserved-memory {
++		#address-cells = <0x1>;
++		#size-cells = <0x1>;
++		ranges;
++
++		ramoops@3f00000 {
++			compatible = "ramoops";
++			reg = <0x3f00000 0x80000>;
++
++			record-size = <0x10000>;
++			console-size = <0x10000>;
++			ftrace-size = <0x20000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs = "console=ttyS0,57600";
+ 	};
+@@ -438,6 +453,14 @@
+ 		clock-names = "nfi_clk";
+ 	};
  
-@@ -463,6 +459,9 @@
++	crypto@1e004000 {
++		compatible = "mediatek,mtk-eip93";
++		reg = <0x1e004000 0x1000>;
++
++		interrupt-parent = <&gic>;
++		interrupts = <GIC_SHARED 19 IRQ_TYPE_LEVEL_HIGH>;
++	};
++
+ 	ethsys: syscon@1e000000 {
+ 		compatible = "mediatek,mt7621-ethsys",
+ 			     "syscon";
+@@ -463,6 +486,9 @@
  
  		mediatek,ethsys = <&ethsys>;
  
@@ -43,56 +57,9 @@
  			compatible = "mediatek,eth-mac";
  			reg = <0>;
 
---- a/target/linux/ramips/dts/mt7621_xiaomi_nand_128m.dtsi
-+++ b/target/linux/ramips/dts/mt7621_xiaomi_nand_128m.dtsi
-@@ -32,7 +32,6 @@
- 		partition@0 {
- 			label = "Bootloader";
- 			reg = <0x0 0x80000>;
--			read-only;
- 		};
- 
- 		partition@80000 {
-@@ -68,20 +67,6 @@
- 			read-only;
- 		};
- 
--		/* uboot expects to find kernels at 0x200000 & 0x600000
--		 * referred to as system 1 & system 2 respectively.
--		 * a kernel is considered suitable for handing control over
--		 * if its linux magic number exists & uImage CRC are correct.
--		 * If either of those conditions fail, a matching sys'n'_fail flag
--		 * is set in uboot env & a restart performed in the hope that the
--		 * alternate kernel is okay.
--		 * if neither kernel checksums ok and both are marked failed, system 2
--		 * is booted anyway.
--		 *
--		 * Note uboot's tftp flash install writes the transferred
--		 * image to both kernel partitions.
--		 */
--
- 		/* We keep stock xiaomi firmware (kernel0) here */
- 		partition@200000 {
- 			label = "kernel_stock";
-@@ -93,14 +78,6 @@
- 			reg = <0x600000 0x400000>;
- 		};
- 
--		/* ubi partition is the result of squashing
--		 * next consecutive stock partitions:
--		 * - rootfs0 (rootfs partition for stock kernel0),
--		 * - rootfs1 (rootfs partition for stock failsafe kernel1),
--		 * - overlay (used as ubi overlay in stock fw)
--		 * resulting 117,5MiB space for packages.
--		 */
--
- 		partition@a00000 {
- 			label = "ubi";
- 			reg = <0xa00000 0x7580000>;
-
 --- a/target/linux/ramips/dts/mt7621_xiaomi_redmi-router-ac2100.dts
 +++ b/target/linux/ramips/dts/mt7621_xiaomi_redmi-router-ac2100.dts
-@@ -11,29 +11,29 @@
+@@ -11,7 +11,7 @@
  		led-failsafe = &led_status_amber;
  		led-running = &led_status_white;
  		led-upgrade = &led_status_white;
@@ -101,36 +68,101 @@
  	};
  
  	leds {
- 		compatible = "gpio-leds";
- 
- 		led_status_amber: status_amber {
--			label = "amber:status";
-+			label = "redmi-router-ac2100:amber:status";
- 			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
- 		};
- 
- 		led_status_white: status_white {
--			label = "white:status";
-+			label = "redmi-router-ac2100:white:status";
- 			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
- 		};
- 
- 		wan_amber {
--			label = "amber:wan";
-+			label = "redmi-router-ac2100:amber:wan";
- 			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
- 		};
- 
- 		wan_white {
--			label = "white:wan";
-+			label = "redmi-router-ac2100:white:wan";
- 			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
- 		};
- 	};
 
 --- a/target/linux/ramips/dts/mt7621_xiaomi_router-ac2100.dtsi
 +++ b/target/linux/ramips/dts/mt7621_xiaomi_router-ac2100.dtsi
-@@ -24,33 +24,19 @@
+@@ -1,6 +1,89 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+ 
+-#include "mt7621_xiaomi_nand_128m.dtsi"
++#include "mt7621.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++
++/ {
++	chosen {
++		bootargs = "console=ttyS0,115200n8";
++	};
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++	};
++};
++
++&nand {
++	status = "okay";
++
++	partitions {
++		compatible = "fixed-partitions";
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		partition@0 {
++			label = "Bootloader";
++			reg = <0x0 0x80000>;
++		};
++
++		partition@80000 {
++			label = "Config";
++			reg = <0x80000 0x40000>;
++		};
++
++		partition@c0000 {
++			label = "Bdata";
++			reg = <0xc0000 0x40000>;
++			read-only;
++		};
++
++		factory: partition@100000 {
++			label = "factory";
++			reg = <0x100000 0x40000>;
++			read-only;
++		};
++
++		partition@140000 {
++			label = "crash";
++			reg = <0x140000 0x40000>;
++		};
++
++		partition@180000 {
++			label = "crash_syslog";
++			reg = <0x180000 0x40000>;
++		};
++
++		partition@1c0000 {
++			label = "reserved0";
++			reg = <0x1c0000 0x40000>;
++			read-only;
++		};
++
++		/* We keep stock xiaomi firmware (kernel0) here */
++		partition@200000 {
++			label = "kernel_stock";
++			reg = <0x200000 0x400000>;
++		};
++
++		partition@600000 {
++			label = "kernel";
++			reg = <0x600000 0x400000>;
++		};
++
++		partition@a00000 {
++			label = "ubi";
++			reg = <0xa00000 0x7580000>;
++		};
++	};
++};
+ 
+ &pcie {
+ 	status = "okay";
+@@ -24,33 +107,19 @@
  	};
  };
  
@@ -3398,6 +3430,46 @@
  	.pdma_glo_cfg = FE_PDMA_SIZE_8DWORDS,
  	.rx_int = FE_RX_DONE_INT,
 
+--- a/target/linux/ramips/image/mt7621.mk
++++ b/target/linux/ramips/image/mt7621.mk
+@@ -1538,6 +1538,24 @@
+ endef
+ TARGET_DEVICES += xiaomi_mi-router-4a-gigabit
+ 
++define Device/xiaomi-ac2100
++  $(Device/uimage-lzma-loader)
++  BLOCKSIZE := 128k
++  PAGESIZE := 2048
++  KERNEL_SIZE := 4096k
++  IMAGE_SIZE := 120320k
++  UBINIZE_OPTS := -E 5
++  IMAGES += kernel1.bin rootfs0.bin factory.bin breed-factory.bin
++  IMAGE/kernel1.bin := append-kernel
++  IMAGE/rootfs0.bin := append-ubi | check-size
++  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
++  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size
++  IMAGE/breed-factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | \
++			     append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size
++  DEVICE_VENDOR := Xiaomi
++  DEVICE_PACKAGES := kmod-mt7603e kmod-mt7615d luci-app-mtwifi uboot-envtools
++endef
++
+ define Device/xiaomi_mi-router-ac2100
+   $(Device/xiaomi_nand_separate)
+   DEVICE_MODEL := Mi Router AC2100
+@@ -1547,10 +1565,8 @@
+ TARGET_DEVICES += xiaomi_mi-router-ac2100
+ 
+ define Device/xiaomi_redmi-router-ac2100
+-  $(Device/xiaomi_nand_separate)
++  $(Device/xiaomi-ac2100)
+   DEVICE_MODEL := Redmi Router AC2100
+-  IMAGE_SIZE := 120320k
+-  DEVICE_PACKAGES += kmod-mt7603 kmod-mt7615e kmod-mt7615-firmware
+ endef
+ TARGET_DEVICES += xiaomi_redmi-router-ac2100
+ 
+
 --- a/target/linux/ramips/mt7621/base-files/etc/board.d/01_leds
 +++ b/target/linux/ramips/mt7621/base-files/etc/board.d/01_leds
 @@ -110,7 +110,7 @@
@@ -3405,7 +3477,7 @@
  	;;
  xiaomi,redmi-router-ac2100)
 -	ucidef_set_led_netdev "wan" "wan" "white:wan" "wan"
-+	ucidef_set_led_switch "wan" "wan" "${board##*,}:white:wan" "switch0" "0x1"
++	ucidef_set_led_switch "wan" "wan" "white:wan" "switch0" "0x1"
  	;;
  youhua,wr1200js)
  	ucidef_set_led_netdev "internet" "INTERNET" "green:wan" "wan"
@@ -3417,22 +3489,22 @@
  	xiaomi,mi-router-ac2100|\
  	xiaomi,redmi-router-ac2100)
 -		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" "wan"
-+		ucidef_add_switch "switch0" "0:wan" "2:lan:1" "3:lan:2" "4:lan:3" "6t@eth0"
-+		ucidef_set_interface_lan "eth0.2 ra0 rai0"
++		ucidef_add_switch "switch0" "2:lan:1" "3:lan:2" "4:lan:3" "0:wan" "6t@eth0"
++		ucidef_set_interface_lan "eth0.1 ra0 rai0"
  		;;
  	asiarf,ap7621-001|\
  	winstars,ws-wn583a6)
-@@ -67,6 +68,10 @@
- 	ubnt,edgerouter-x-sfp)
- 		ucidef_set_interfaces_lan_wan "eth1 eth2 eth3 eth4 eth5" "eth0"
+@@ -156,6 +157,10 @@
+ 		wan_mac=$label_mac
+ 		lan_mac=$(macaddr_add $label_mac 1)
  		;;
 +	xiaomi,redmi-router-ac2100)
 +		lan_mac=$(cat /sys/class/net/eth0/address)
 +		wan_mac=$(mtd_get_mac_binary factory 0xe000)
 +		;;
- 	zyxel,nr7101)
- 		ucidef_set_interfaces_lan_wan "lan" "wan"
- 		;;
+ 	esac
+ 
+ 	[ -n "$lan_mac" ] && ucidef_set_interface_macaddr "lan" $lan_mac
 
 --- a/target/linux/ramips/mt7621/config-5.4
 +++ b/target/linux/ramips/mt7621/config-5.4
