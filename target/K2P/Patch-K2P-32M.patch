@@ -92,7 +92,7 @@
 +++ b/.config
 @@ -46,3 +46,8 @@
  CONFIG_LIBCURL_MBEDTLS=y
- #CONFIG_LIBCURL_WOLFSSL is not set
+ # CONFIG_LIBCURL_WOLFSSL is not set
  CONFIG_LIBCURL_NGHTTP2=y
 +CONFIG_PACKAGE_automount=y
 +CONFIG_PACKAGE_kmod-usb2=y
