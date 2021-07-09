@@ -1,0 +1,1296 @@
+--- a/feeds/luci/applications/luci-app-aria2/luasrc/controller/aria2.lua
++++ b/feeds/luci/applications/luci-app-aria2/luasrc/controller/aria2.lua
+@@ -14,26 +14,26 @@
+ 		return
+ 	end
+ 
+-	local e = entry({"admin", "services", "aria2"}, firstchild(), _("Aria2"))
++	local e = entry({"admin", "nas", "aria2"}, firstchild(), _("Aria2"))
+ 	e.dependent = false
+ 	e.acl_depends = { "luci-app-aria2" }
+ 
+-	entry({"admin", "services", "aria2", "config"},
++	entry({"admin", "nas", "aria2", "config"},
+ 		cbi("aria2/config"), _("Configuration"), 1)
+ 
+-	entry({"admin", "services", "aria2", "file"},
++	entry({"admin", "nas", "aria2", "file"},
+ 		form("aria2/files"), _("Files"), 2)
+ 
+-	entry({"admin", "services", "aria2", "log"},
++	entry({"admin", "nas", "aria2", "log"},
+ 		firstchild(), _("Log"), 3)
+ 
+-	entry({"admin", "services", "aria2", "log", "view"},
++	entry({"admin", "nas", "aria2", "log", "view"},
+ 		template("aria2/log_template"))
+ 
+-	entry({"admin", "services", "aria2", "log", "read"},
++	entry({"admin", "nas", "aria2", "log", "read"},
+ 		call("action_log_read"))
+ 
+-	entry({"admin", "services", "aria2", "status"},
++	entry({"admin", "nas", "aria2", "status"},
+ 		call("action_status"))
+ 
+ end
+
+--- a/feeds/luci/applications/luci-app-aria2/luasrc/view/aria2/log_template.htm
++++ b/feeds/luci/applications/luci-app-aria2/luasrc/view/aria2/log_template.htm
+@@ -24,7 +24,7 @@
+ 
+ <script type="text/javascript" src="<%=resource%>/cbi.js"></script>
+ <script type="text/javascript">//<![CDATA[
+-	XHR.poll(10, '<%=url("admin/services/aria2/log/read")%>', null,
++	XHR.poll(10, '<%=url("admin/nas/aria2/log/read")%>', null,
+ 		function(x, data) {
+ 			var logElm = document.getElementById('log_text');
+ 			if (logElm) {
+
+--- a/feeds/luci/applications/luci-app-aria2/luasrc/view/aria2/settings_header.htm
++++ b/feeds/luci/applications/luci-app-aria2/luasrc/view/aria2/settings_header.htm
+@@ -39,7 +39,7 @@
+ </fieldset>
+ 
+ <script type="text/javascript">//<![CDATA[
+-XHR.poll(5, '<%=url("admin/services/aria2/status")%>', null,
++XHR.poll(5, '<%=url("admin/nas/aria2/status")%>', null,
+ 	function(x, data) {
+ 		var tb = document.getElementById('aria2_status');
+ 		if (data && tb) {
+
+--- a/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
++++ b/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
+@@ -120,7 +120,7 @@
+ 					next_update = epoch2date(epoch + force_seconds + check_seconds)
+ 				end
+ 
+-				if pid > 0 and ( last_update + force_seconds - uptime ) <= 0 then
++				if pid > 0 and ( last_update + force_seconds + check_seconds - uptime ) <= 0 then
+ 					next_update = "Verify"
+ 
+ 				-- run once
+
+--- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
++++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+@@ -167,6 +167,10 @@
+ 			return null;
+ 		};
+ 
++		o = s.taboption('general', form.Flag, 'fullcone', _('Full Cone'));
++		o.editable = true;
++		o.depends('masq', '1');
++
+ 		o = s.taboption('general', form.Flag, 'mtu_fix', _('MSS clamping'));
+ 		o.modalonly = true;
+ 
+
+--- a/feeds/luci/modules/luci-base/root/etc/config/luci
++++ b/feeds/luci/modules/luci-base/root/etc/config/luci
+@@ -1,5 +1,5 @@
+ config core main
+-	option lang auto
++	option lang zh_cn
+ 	option mediaurlbase /luci-static/bootstrap
+ 	option resourcebase /luci-static/resources
+ 	option ubuspath /ubus/
+
+--- a/feeds/luci/modules/luci-base/root/usr/libexec/rpcd/luci
++++ b/feeds/luci/modules/luci-base/root/usr/libexec/rpcd/luci
+@@ -43,6 +43,13 @@
+ 		end
+ 	},
+ 
++	getCPUInfo = {
++		call = function()
++			local sys = require "luci.sys"
++			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'") }
++		end
++	},
++
+ 	setLocaltime = {
+ 		args = { localtime = 0 },
+ 		call = function(args)
+
+--- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
++++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
+@@ -684,6 +684,7 @@
+ 						so.default = so.enabled;
+ 
+ 						ss.taboption('advanced', form.Flag, 'force', _('Force'), _('Force DHCP on this network even if another server is detected.'));
++						ss.default = ss.enabled;
+ 
+ 						// XXX: is this actually useful?
+ 						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
+@@ -916,6 +917,7 @@
+ 				ifc.renderFormOptions(s);
+ 
+ 				// Common interface options
++				if (protoval != 'n2n') {
+ 				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
+ 				o.default = o.enabled;
+ 
+@@ -1007,6 +1009,7 @@
+ 				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
+ 				o.datatype = 'uinteger';
+ 				o.placeholder = '0';
++				}
+ 
+ 				for (var i = 0; i < s.children.length; i++) {
+ 					o = s.children[i];
+
+--- a/feeds/luci/modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json
++++ b/feeds/luci/modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json
+@@ -102,7 +102,8 @@
+ 			},
+ 			"ubus": {
+ 				"file": [ "list", "read" ],
+-				"system": [ "board", "info" ]
++				"system": [ "board", "info" ],
++				"luci": [ "getCPUInfo" ]
+ 			}
+ 		},
+ 		"write": {
+
+--- a/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
++++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
+@@ -13,6 +13,11 @@
+ 	method: 'info'
+ });
+ 
++var callCPUInfo = rpc.declare({
++	object: 'luci',
++	method: 'getCPUInfo'
++});
++
+ return baseclass.extend({
+ 	title: _('System'),
+ 
+@@ -20,6 +25,7 @@
+ 		return Promise.all([
+ 			L.resolveDefault(callSystemBoard(), {}),
+ 			L.resolveDefault(callSystemInfo(), {}),
++			L.resolveDefault(callCPUInfo(), {}),
+ 			fs.lines('/usr/lib/lua/luci/version.lua')
+ 		]);
+ 	},
+@@ -27,7 +33,8 @@
+ 	render: function(data) {
+ 		var boardinfo   = data[0],
+ 		    systeminfo  = data[1],
+-		    luciversion = data[2];
++		    cpuinfo     = data[2],
++		    luciversion = data[3];
+ 
+ 		luciversion = luciversion.filter(function(l) {
+ 			return l.match(/^\s*(luciname|luciversion)\s*=/);
+@@ -62,7 +69,8 @@
+ 				systeminfo.load[0] / 65535.0,
+ 				systeminfo.load[1] / 65535.0,
+ 				systeminfo.load[2] / 65535.0
+-			) : null
++			) : null,
++			_('CPU usage (%)'),    cpuinfo.result
+ 		];
+ 
+ 		var table = E('table', { 'class': 'table' });
+
+--- a/feeds/packages/net/openvpn/files/etc/hotplug.d/openvpn/01-user
++++ b/feeds/packages/net/openvpn/files/etc/hotplug.d/openvpn/01-user
+@@ -1,9 +1,9 @@
+ #!/bin/sh
+ 
+-[ -e "/etc/openvpn.user" ] && {
++[ -e /etc/openvpn/openvpn.user ] && {
+ 	env -i ACTION="$ACTION" INSTANCE="$INSTANCE" \
+ 		/bin/sh \
+-		/etc/openvpn.user \
++		/etc/openvpn/openvpn.user \
+ 		$*
+ }
+ 
+
+--- a/feeds/packages/net/openvpn/files/openvpn.init
++++ b/feeds/packages/net/openvpn/files/openvpn.init
+@@ -42,8 +42,8 @@
+ 		config_get v "$s" "$p"
+ 		IFS="$LIST_SEP"
+ 		for v in $v; do
+-			[ -n "$v" ] && [ "$p" != "push" ] && append_param "$s" "$p" && echo " $v" >> "/var/etc/openvpn-$s.conf"
+-			[ -n "$v" ] && [ "$p" = "push" ] && append_param "$s" "$p" && echo " \"$v\"" >> "/var/etc/openvpn-$s.conf"
++			[ -n "$v" ] && [ "$p" != push ] && append_param "$s" "$p" && echo " $v" >> "/var/etc/openvpn-$s.conf"
++			[ -n "$v" ] && [ "$p" = push ] && append_param "$s" "$p" && echo " \"$v\"" >> "/var/etc/openvpn-$s.conf"
+ 		done
+ 		unset IFS
+ 	done
+@@ -69,14 +69,6 @@
+ 	[ $enable -gt 0 ] || [ $enabled -gt 0 ]
+ }
+ 
+-create_temp_file() {
+-	mkdir -p "$(dirname "$1")"
+-	rm -f "$1"
+-	touch "$1"
+-	chown root "$1"
+-	chmod 0600 "$1"
+-}
+-
+ openvpn_get_dev() {
+ 	local dev dev_type
+ 	local name="$1"
+@@ -111,38 +103,10 @@
+ 	echo "--dev-type $dev_type --dev $dev"
+ }
+ 
+-openvpn_get_credentials() {
+-	local name="$1"
+-	local ret=""
+-
+-	config_get cert_password "$name" cert_password
+-	config_get password "$name" password
+-	config_get username "$name" username
+-
+-	if [ -n "$cert_password" ]; then
+-		create_temp_file /var/run/openvpn.$name.pass
+-		echo "$cert_password" > /var/run/openvpn.$name.pass
+-		ret=" --askpass /var/run/openvpn.$name.pass "
+-	fi
+-
+-	if [ -n "$username" ]; then
+-		create_temp_file /var/run/openvpn.$name.userpass
+-		echo "$username" > /var/run/openvpn.$name.userpass
+-		echo "$password" >> /var/run/openvpn.$name.userpass
+-		ret=" --auth-user-pass /var/run/openvpn.$name.userpass "
+-	fi
+-
+-	# Return overrides
+-	echo "$ret"
+-}
+-
+ openvpn_add_instance() {
+ 	local name="$1"
+ 	local dir="$2"
+ 	local conf="$3"
+-	local security="$4"
+-	local up="$5"
+-	local down="$6"
+ 
+ 	procd_open_instance "$name"
+ 	procd_set_param command "$PROG"	\
+@@ -152,11 +116,8 @@
+ 		--config "$conf" \
+ 		--up "/usr/libexec/openvpn-hotplug up $name" \
+ 		--down "/usr/libexec/openvpn-hotplug down $name" \
+-		${up:+--setenv user_up "$up"} \
+-		${down:+--setenv user_down "$down"} \
+-		--script-security "${security:-2}" \
+-		$(openvpn_get_dev "$name" "$conf") \
+-		$(openvpn_get_credentials "$name" "$conf")
++		--script-security 2 \
++		$(openvpn_get_dev "$name" "$conf")
+ 	procd_set_param file "$dir/$conf"
+ 	procd_set_param term_timeout 15
+ 	procd_set_param respawn
+@@ -177,28 +138,22 @@
+ 		return 1
+ 	}
+ 
+-	local up down script_security
+-	config_get up "$s" up
+-	config_get down "$s" down
+-	config_get script_security "$s" script_security
+-
+ 	[ ! -d "/var/run" ] && mkdir -p "/var/run"
+ 
+ 	if [ ! -z "$config" ]; then
+ 		append UCI_STARTED "$config" "$LIST_SEP"
+-		[ -n "$up" ] || get_openvpn_option "$config" up up
+-		[ -n "$down" ] || get_openvpn_option "$config" down down
+-		openvpn_add_instance "$s" "${config%/*}" "$config" "$script_security" "$up" "$down"
++		openvpn_add_instance "$s" "${config%/*}" "$config"
+ 		return
+ 	fi
+ 
+-	create_temp_file "/var/etc/openvpn-$s.conf"
++	[ ! -d "/var/etc" ] && mkdir -p "/var/etc"
++	[ -f "/var/etc/openvpn-$s.conf" ] && rm "/var/etc/openvpn-$s.conf"
+ 
+ 	append_bools "$s" $OPENVPN_BOOLS
+ 	append_params "$s" $OPENVPN_PARAMS
+ 	append_list "$s" $OPENVPN_LIST
+ 
+-	openvpn_add_instance "$s" "/var/etc" "openvpn-$s.conf" "$script_security" "$up" "$down"
++	openvpn_add_instance "$s" "/var/etc" "openvpn-$s.conf"
+ }
+ 
+ start_service() {
+@@ -215,7 +170,6 @@
+ 		fi
+ 	}
+ 
+-	. /lib/functions/openvpn.sh
+ 	. /usr/share/openvpn/openvpn.options
+ 	config_load 'openvpn'
+ 
+@@ -225,7 +179,7 @@
+ 	else
+ 		config_foreach start_instance 'openvpn'
+ 
+-		local path name up down
++		local path name
+ 		for path in /etc/openvpn/*.conf; do
+ 			if [ -f "$path" ]; then
+ 				name="${path##*/}"; name="${name%.conf}"
+@@ -240,9 +194,7 @@
+ 					continue
+ 				fi
+ 
+-				get_openvpn_option "$path" up up || up=""
+-				get_openvpn_option "$path" down down || down=""
+-				openvpn_add_instance "$name" "${path%/*}" "$path" "" "$up" "$down"
++				openvpn_add_instance "$name" "${path%/*}" "$path"
+ 			fi
+ 		done
+ 	fi
+
+--- a/feeds/packages/net/openvpn/files/openvpn.options
++++ b/feeds/packages/net/openvpn/files/openvpn.options
+@@ -23,6 +23,7 @@
+ connect_retry_max
+ connect_timeout
+ crl_verify
++data_ciphers
+ data_ciphers_fallback
+ dev
+ dev_node
+@@ -197,7 +198,6 @@
+ '
+ 
+ OPENVPN_LIST='
+-data_ciphers
+ ncp_ciphers
+ tls_cipher
+ tls_ciphersuites
+
+--- a/feeds/packages/net/openvpn/Makefile
++++ b/feeds/packages/net/openvpn/Makefile
+@@ -93,20 +93,13 @@
+ 	)
+ endef
+ 
+-define Package/openvpn-$(BUILD_VARIANT)/conffiles
+-/etc/config/openvpn
+-/etc/openvpn.user
+-endef
+-
+ define Package/openvpn-$(BUILD_VARIANT)/install
+ 	$(INSTALL_DIR) \
+ 		$(1)/usr/sbin \
+ 		$(1)/usr/share/openvpn \
+ 		$(1)/etc/init.d \
+-		$(1)/etc/config \
+ 		$(1)/etc/openvpn \
+ 		$(1)/lib/functions \
+-		$(1)/lib/upgrade/keep.d \
+ 		$(1)/usr/libexec \
+ 		$(1)/etc/hotplug.d/openvpn
+ 
+@@ -132,18 +125,11 @@
+ 
+ 	$(INSTALL_DATA) \
+ 		files/etc/openvpn.user \
+-		$(1)/etc/openvpn.user
++		$(1)/etc/openvpn/openvpn.user
+ 
+ 	$(INSTALL_DATA) \
+ 		files/openvpn.options \
+ 		$(1)/usr/share/openvpn/openvpn.options
+-
+-	$(INSTALL_CONF) files/openvpn.config \
+-		$(1)/etc/config/openvpn
+-
+-	$(INSTALL_DATA) \
+-		files/openvpn.upgrade \
+-		$(1)/lib/upgrade/keep.d/openvpn
+ endef
+ 
+ $(eval $(call BuildPackage,openvpn-openssl))
+
+--- a/feeds/packages/net/smartdns/Makefile
++++ b/feeds/packages/net/smartdns/Makefile
+@@ -1,18 +1,12 @@
+-#
+-# Copyright (c) 2018-2020 Nick Peng (pymumu@gmail.com)
+-# This is free software, licensed under the GNU General Public License v3.
+-#
+-
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=smartdns
+-PKG_VERSION:=1.2020.30
+-PKG_RELEASE:=1
++PKG_VERSION:=1.2021.02.06
++PKG_RELEASE:=1
+ 
+ PKG_SOURCE_PROTO:=git
+ PKG_SOURCE_URL:=https://www.github.com/pymumu/smartdns.git
+-PKG_SOURCE_VERSION:=a6fe329105c7275d4683d17e95ab9d9f93a9c863
+-PKG_MIRROR_HASH:=d5affc45a533e38ee04f3ce47b441aecf316cb9cb68ff410eede67090ec0fcc7
++PKG_SOURCE_VERSION:=e5eb562deeb93d74d2f60f38bc83acce5882344b
+ 
+ PKG_MAINTAINER:=Nick Peng <pymumu@gmail.com>
+ PKG_LICENSE:=GPL-3.0-or-later
+@@ -29,7 +23,7 @@
+   SECTION:=net
+   CATEGORY:=Network
+   TITLE:=smartdns server
+-  DEPENDS:=+libpthread +libopenssl
++  DEPENDS:=+libc +libpthread +libopenssl
+   URL:=https://www.github.com/pymumu/smartdns/
+ endef
+ 
+@@ -39,21 +33,9 @@
+ Unlike dnsmasq's all-servers, smartdns returns the fastest IP. 
+ endef
+ 
+-define Package/smartdns/conffiles
+-/etc/config/smartdns
+-/etc/smartdns/address.conf
+-/etc/smartdns/blacklist-ip.conf
+-/etc/smartdns/custom.conf
+-endef
+-
+ define Package/smartdns/install
+-	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/config $(1)/etc/init.d $(1)/etc/smartdns
+-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/smartdns $(1)/usr/sbin/smartdns
+-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/package/openwrt/files/etc/init.d/smartdns $(1)/etc/init.d/smartdns
+-	$(INSTALL_CONF) $(PKG_BUILD_DIR)/package/openwrt/address.conf $(1)/etc/smartdns/address.conf
+-	$(INSTALL_CONF) $(PKG_BUILD_DIR)/package/openwrt/blacklist-ip.conf $(1)/etc/smartdns/blacklist-ip.conf
+-	$(INSTALL_CONF) $(PKG_BUILD_DIR)/package/openwrt/custom.conf $(1)/etc/smartdns/custom.conf
+-	$(INSTALL_CONF) $(PKG_BUILD_DIR)/package/openwrt/files/etc/config/smartdns $(1)/etc/config/smartdns
++	$(INSTALL_DIR) $(1)/usr/bin
++	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/smartdns $(1)/usr/bin/smartdns
+ endef
+ 
+ $(eval $(call BuildPackage,smartdns))
+
+--- a/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
++++ b/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
+@@ -13,10 +13,11 @@
+ 	[widgets.GroupSelect, 'group', _('Run daemon as group')],
+ 	[form.Flag, 'respawn', _('Respawn when crashed')],
+ 	[form.DynamicList, 'env', _('Environment variable'), _('OS environments pass to frp for config file template, see <a href="https://github.com/fatedier/frp#configuration-file-template">frp README</a>'), {placeholder: 'ENV_NAME=value'}],
+-	[form.DynamicList, 'conf_inc', _('Additional configs'), _('Config files include in temporary config file'), {placeholder: '/etc/frp/frpc.d/frpc_full.ini'}]
++	[form.DynamicList, 'conf_inc', _('Additional configs'), _('Config files include in temporary config file')]
+ ];
+ 
+ var commonConf = [
++	[form.Flag, 'enabled', _('Enable'), {datatype: 'bool'}],
+ 	[form.Value, 'server_addr', _('Server address'), _('ServerAddr specifies the address of the server to connect to.<br>By default, this value is "0.0.0.0".'), {datatype: 'host'}],
+ 	[form.Value, 'server_port', _('Server port'), _('ServerPort specifies the port to connect to the server on.<br>By default, this value is 7000.'), {datatype: 'port'}],
+ 	[form.Value, 'http_proxy', _('HTTP proxy'), _('HttpProxy specifies a proxy address to connect to the server through. If this value is "", the server will be connected to directly.<br>By default, this value is read from the "http_proxy" environment variable.')],
+@@ -30,7 +31,7 @@
+ 	[form.Value, 'assets_dir', _('Assets dir'), _('AssetsDir specifies the local directory that the admin server will load resources from. If this value is "", assets will be loaded from the bundled executable using statik.<br>By default, this value is "".')],
+ 	[form.Flag, 'tcp_mux', _('TCP mux'), _('TcpMux toggles TCP stream multiplexing. This allows multiple requests from a client to share a single TCP connection. If this value is true, the server must have TCP multiplexing enabled as well.<br>By default, this value is true.'), {datatype: 'bool', default: 'true'}],
+ 	[form.Value, 'user', _('User'), _('User specifies a prefix for proxy names to distinguish them from other clients. If this value is not "", proxy names will automatically be changed to "{user}.{proxy_name}".<br>By default, this value is "".')],
+-	[form.Flag, 'login_fail_exit', _('Exit when login fail'), _('LoginFailExit controls whether or not the client should exit after a failed login attempt. If false, the client will retry until a login attempt succeeds.<br>By default, this value is true.'), {datatype: 'bool', default: 'true'}],
++	[form.Flag, 'login_fail_exit', _('Exit when login fail'), _('LoginFailExit controls whether or not the client should exit after a failed login attempt. If false, the client will retry until a login attempt succeeds.<br>By default, this value is false.'), {datatype: 'bool'}],
+ 	[form.ListValue, 'protocol', _('Protocol'), _('Protocol specifies the protocol to use when interacting with the server. Valid values are "tcp", "kcp", and "websocket".<br>By default, this value is "tcp".'), {values: ['tcp', 'kcp', 'websocket']}],
+ 	[form.Flag, 'tls_enable', _('TLS'), _('TLSEnable specifies whether or not TLS should be used when communicating with the server.'), {datatype: 'bool'}],
+ 	[form.Value, 'heartbeat_interval', _('Heartbeat interval'), _('HeartBeatInterval specifies at what interval heartbeats are sent to the server, in seconds. It is not recommended to change this value.<br>By default, this value is 30.'), {datatype: 'uinteger'}],
+
+--- a/feeds/luci/applications/luci-app-frpc/po/zh_Hans/frpc.po
++++ b/feeds/luci/applications/luci-app-frpc/po/zh_Hans/frpc.po
+@@ -231,10 +231,10 @@
+ msgid ""
+ "LoginFailExit controls whether or not the client should exit after a failed "
+ "login attempt. If false, the client will retry until a login attempt "
+-"succeeds.<br>By default, this value is true."
++"succeeds.<br>By default, this value is false."
+ msgstr ""
+ "LoginFailExit 控制客户端在尝试登录失败后是否应退出。如果为 false，客户端将重"
+-"试，直到登录成功。<br>默认情况下，此值为 true。"
++"试，直到登录成功。<br>默认情况下，此值为 false。"
+ 
+ #: applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js:143
+ msgid "NOT RUNNING"
+
+--- a/feeds/packages/net/frp/files/frpc.config
++++ b/feeds/packages/net/frp/files/frpc.config
+@@ -1,23 +1,13 @@
++
+ config init
+-	option stdout 1
+-	option stderr 1
+-	option user frpc
+-	option group frpc
+-	option respawn 1
+-#	OS environments pass to frp for config file template, see
+-#	https://github.com/fatedier/frp#configuration-file-template
+-#	list env 'ENV_NAME=value'
+-#	Config files include in temporary config file.
+-#	list conf_inc '/etc/frp/frpc.d/frpc_full.ini'
++	option stdout '1'
++	option stderr '1'
++	option respawn '1'
++	option user 'root'
++	option group 'root'
+ 
+ config conf 'common'
+-	option server_addr 127.0.0.1
+-	option server_port 7000
+-#	List options with name="_" will be directly appended to config file
+-#	list _ '# Key-A=Value-A'
++	option server_addr '127.0.0.1'
++	option server_port '7000'
++	option tls_enable 'false'
+ 
+-config conf 'ssh'
+-	option type tcp
+-	option local_ip 127.0.0.1
+-	option local_port 22
+-	option remote_port 6000
+
+--- a/feeds/packages/net/frp/files/frpc.init
++++ b/feeds/packages/net/frp/files/frpc.init
+@@ -13,7 +13,6 @@
+ 
+ config_cb() {
+ 	[ $# -eq 0 ] && return
+-
+ 	local type="$1"
+ 	local name="$2"
+ 	if [ "$type" = "conf" ]; then
+@@ -21,6 +20,7 @@
+ 		option_cb() {
+ 			local option="$1"
+ 			local value="$2"
++			[ "$1" = enabled ] && return 0
+ 			echo "$option = $value" >> "$conf_file"
+ 		}
+ 		list_cb() {
+@@ -35,7 +35,12 @@
+ 	fi
+ }
+ 
++service_triggers(){
++	procd_add_reload_trigger 'frpc'
++}
++
+ start_service() {
++	[ "$(uci -q get frpc.common.enabled)" = 1 ] || return 0
+ 	local init_cfg=" "
+ 	local conf_file="/var/etc/$NAME.ini"
+ 
+@@ -70,3 +75,11 @@
+ 	[ -n "$env" ] && config_list_foreach "$init_cfg" env "procd_append_param env"
+ 	procd_close_instance
+ }
++
++stop_service(){
++	rm -f /var/etc/$NAME.ini
++}
++
++reload_service(){
++	restart
++}
+
+--- a/feeds/packages/net/frp/Makefile
++++ b/feeds/packages/net/frp/Makefile
+@@ -1,16 +1,19 @@
+ include $(TOPDIR)/rules.mk
+ 
++PKG_SOURCE_URL:=https://github.com/fatedier/frp.git
++PKG_SOURCE_VERSION:=df5859b5f78b897c03be3bc3510c012ee6217e59
++
+ PKG_NAME:=frp
+-PKG_VERSION:=0.37.0
+-PKG_RELEASE:=$(AUTORELEASE)
++PKG_VERSION:=0.37.0_git-$(PKG_SOURCE_VERSION)
++PKG_RELEASE:=1
++PKG_LICENSE:=Apache-2.0
++PKG_LICENSE_FILES:=LICENSE
+ 
++PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+-PKG_SOURCE_URL:=https://codeload.github.com/fatedier/frp/tar.gz/v${PKG_VERSION}?
+-PKG_HASH:=fa82c81c81a7cab28e3f7dd749889be683050274cf5edda7735a93596987fa53
++PKG_SOURCE_PROTO:=git
+ 
+ PKG_MAINTAINER:=Richard Yu <yurichard3839@gmail.com>
+-PKG_LICENSE:=Apache-2.0
+-PKG_LICENSE_FILES:=LICENSE
+ 
+ PKG_BUILD_DEPENDS:=golang/host
+ PKG_BUILD_PARALLEL:=1
+@@ -27,8 +30,6 @@
+ 
+ 	$(INSTALL_DIR) $(1)/usr/bin/
+ 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/$(2) $(1)/usr/bin/
+-	$(INSTALL_DIR) $(1)/etc/frp/$(2).d/
+-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/conf/$(2)_full.ini $(1)/etc/frp/$(2).d/
+ 	$(INSTALL_DIR) $(1)/etc/config/
+ 	$(INSTALL_CONF) ./files/$(2).config $(1)/etc/config/$(2)
+ 	$(INSTALL_DIR) $(1)/etc/init.d/
+
+--- a/feeds/packages/net/https-dns-proxy/Makefile
++++ b/feeds/packages/net/https-dns-proxy/Makefile
+@@ -1,14 +1,12 @@
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=https-dns-proxy
+-PKG_VERSION:=2021-06-03
++PKG_VERSION:=2021-07-02
+ PKG_RELEASE:=1
+ 
+ PKG_SOURCE_PROTO:=git
+-PKG_SOURCE_URL:=https://github.com/aarond10/https_dns_proxy
+-PKG_SOURCE_DATE:=2021-06-03
+-PKG_SOURCE_VERSION:=5651b984f770a8bcecb14aeffc224703f8f82586
+-PKG_MIRROR_HASH:=b65161936269aa3117debad0fcfce157024726b78d7e7da77c226f7aa8da5b4d
++PKG_SOURCE_URL:=https://github.com/aarond10/https_dns_proxy.git
++PKG_SOURCE_VERSION:=6908457e1e61665fc35b5c52bd2860d50d7ba52c
+ PKG_MAINTAINER:=Stan Grishin <stangri@melmac.net>
+ PKG_LICENSE:=MIT
+ PKG_LICENSE_FILES:=LICENSE
+@@ -33,16 +31,9 @@
+ Please see https://docs.openwrt.melmac.net/https-dns-proxy/ for more information.
+ endef
+ 
+-define Package/https-dns-proxy/conffiles
+-/etc/config/https-dns-proxy
+-endef
+-
+ define Package/https-dns-proxy/install
+-	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/init.d ${1}/etc/config
++	$(INSTALL_DIR) $(1)/usr/sbin
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/https_dns_proxy $(1)/usr/sbin/https-dns-proxy
+-	$(INSTALL_BIN) ./files/https-dns-proxy.init $(1)/etc/init.d/https-dns-proxy
+-	$(SED) "s|^\(PKG_VERSION\).*|\1='$(PKG_VERSION)-$(PKG_RELEASE)'|" $(1)/etc/init.d/https-dns-proxy
+-	$(INSTALL_CONF) ./files/https-dns-proxy.config $(1)/etc/config/https-dns-proxy
+ endef
+ 
+ $(eval $(call BuildPackage,https-dns-proxy))
+
+--- a/feeds/packages/net/kcptun/Makefile
++++ b/feeds/packages/net/kcptun/Makefile
+@@ -1,13 +1,15 @@
+ include $(TOPDIR)/rules.mk
+ 
++PKG_SOURCE_URL:=https://github.com/xtaci/kcptun.git
++PKG_SOURCE_VERSION:=9a5b31b4706aba4c67bcb6ebfe108fdb564a9053
++
+ PKG_NAME:=kcptun
+-PKG_VERSION:=20201010
++PKG_VERSION:=git-$(PKG_SOURCE_VERSION)
+ PKG_RELEASE:=1
+ 
++PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+-PKG_SOURCE_URL:=https://codeload.github.com/xtaci/kcptun/tar.gz/v${PKG_VERSION}?
+-PKG_SOURCE_DATE:=2020-10-10
+-PKG_HASH:=afab2a087b787e59e129c7d4fbc578e1131d264c0da1ce23cd1282321fc3c189
++PKG_SOURCE_PROTO:=git
+ 
+ PKG_MAINTAINER:=Dengfeng Liu <liudf0716@gmail.com>, Chao Liu <expiron18@gmail.com>
+ PKG_LICENSE:=MIT
+@@ -25,26 +27,6 @@
+ include $(INCLUDE_DIR)/package.mk
+ include ../../lang/golang/golang-package.mk
+ 
+-define Package/kcptun-config
+-  SECTION:=net
+-  CATEGORY:=Network
+-  SUBMENU:=Web Servers/Proxies
+-  TITLE:=Kcptun Config Scripts
+-  URL:=https://github.com/xtaci/kcptun
+-  DEPENDS:=$(GO_ARCH_DEPENDS)
+-endef
+-
+-define Package/kcptun-config/conffiles
+-/etc/config/kcptun
+-endef
+-
+-define Package/kcptun-config/install
+-	$(INSTALL_DIR) $(1)/etc/config
+-	$(INSTALL_CONF) ./files/kcptun.config $(1)/etc/config/kcptun
+-	$(INSTALL_DIR) $(1)/etc/init.d
+-	$(INSTALL_BIN) ./files/kcptun.init $(1)/etc/init.d/kcptun
+-endef
+-
+ define Package/kcptun/Default
+   define Package/kcptun-$(1)
+     SECTION:=net
+@@ -52,7 +34,6 @@
+     SUBMENU:=Web Servers/Proxies
+     TITLE:=KCP-based Secure Tunnel $(1)
+     URL:=https://github.com/xtaci/kcptun
+-    DEPENDS:=+kcptun-config
+   endef
+ 
+   define Package/kcptun-$(1)/description
+@@ -68,7 +49,6 @@
+   endef
+ endef
+ 
+-$(eval $(call BuildPackage,kcptun-config))
+ KCPTUN_COMPONENTS:=server client
+ $(foreach component,$(KCPTUN_COMPONENTS), \
+   $(eval $(call Package/kcptun/Default,$(component))) \
+
+--- a/feeds/packages/net/miniupnpd/files/upnpd.config
++++ b/feeds/packages/net/miniupnpd/files/upnpd.config
+@@ -1,28 +1,26 @@
+-config upnpd config
+-	option enabled		0
+-	option enable_natpmp	1
+-	option enable_upnp	1
+-	option secure_mode	1
+-	option log_output	0
+-	option download		1024
+-	option upload		512
+-#by default, looked up dynamically from ubus
+-#	option external_iface	wan
+-	option internal_iface	lan
+-	option port		5000
+-	option upnp_lease_file	/var/run/miniupnpd.leases
+-	option igdv1		1
++
++config upnpd 'config'
++	option enabled '1'
++	option igdv1 '1'
++	option download '1024'
++	option upload '512'
++	option internal_iface 'lan'
++	option port '5000'
++	option clean_ruleset_threshold '20'
++	option clean_ruleset_interval '600'
++	option upnp_lease_file '/var/run/miniupnpd.leases'
+ 
+ config perm_rule
+-	option action		allow
+-	option ext_ports	1024-65535
+-	option int_addr		0.0.0.0/0	# Does not override secure_mode
+-	option int_ports	1024-65535
+-	option comment		"Allow high ports"
++	option action 'allow'
++	option ext_ports '1024-65535'
++	option int_addr '0.0.0.0/0'
++	option int_ports '1024-65535'
++	option comment 'Allow high ports'
+ 
+ config perm_rule
+-	option action		deny
+-	option ext_ports	0-65535
+-	option int_addr		0.0.0.0/0
+-	option int_ports	0-65535
+-	option comment		"Default deny"
++	option action 'deny'
++	option ext_ports '0-65535'
++	option int_addr '0.0.0.0/0'
++	option int_ports '0-65535'
++	option comment 'Default deny'
++
+
+--- a/feeds/packages/net/shadowsocks-libev/Makefile
++++ b/feeds/packages/net/shadowsocks-libev/Makefile
+@@ -12,19 +12,21 @@
+ # - update cipher list by checking src/crypto.c:crypto_init()
+ # - check if default mode has changed from being tcp_only
+ #
++PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
++PKG_SOURCE_VERSION:=4bbbe212eb65e356be97a11bb98dbebb2e7923fc
++
+ PKG_NAME:=shadowsocks-libev
+-PKG_VERSION:=3.3.5
++PKG_VERSION:=3.3.5_git-$(PKG_SOURCE_VERSION)
+ PKG_RELEASE:=1
+-
+-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+-PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev/releases/download/v$(PKG_VERSION)
+-PKG_HASH:=cfc8eded35360f4b67e18dc447b0c00cddb29cc57a3cec48b135e5fb87433488
+-
+-PKG_MAINTAINER:=Yousong Zhou <yszhou4tech@gmail.com>
+-
+ PKG_LICENSE:=GPL-3.0-or-later
+ PKG_LICENSE_FILES:=LICENSE
+ 
++PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION)
++PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
++PKG_SOURCE_PROTO:=git
++
++PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)/$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION)
++
+ PKG_FIXUP:=autoreconf
+ PKG_INSTALL:=1
+ PKG_USE_MIPS16:=0
+@@ -33,27 +35,6 @@
+ 
+ include $(INCLUDE_DIR)/package.mk
+ 
+-
+-define Package/shadowsocks-libev-config
+-  SECTION:=net
+-  CATEGORY:=Network
+-  SUBMENU:=Web Servers/Proxies
+-  TITLE:=shadowsocks-libev config scripts
+-  URL:=https://github.com/shadowsocks/shadowsocks-libev
+-endef
+-
+-define Package/shadowsocks-libev-config/conffiles
+-/etc/config/shadowsocks-libev
+-endef
+-
+-define Package/shadowsocks-libev-config/install
+-	$(INSTALL_DIR) $(1)/etc/config
+-	$(INSTALL_DATA) ./files/shadowsocks-libev.config $(1)/etc/config/shadowsocks-libev
+-	$(INSTALL_DIR) $(1)/etc/init.d
+-	$(INSTALL_BIN) ./files/shadowsocks-libev.init $(1)/etc/init.d/shadowsocks-libev
+-endef
+-
+-
+ define Package/shadowsocks-libev/Default
+   define Package/shadowsocks-libev-$(1)
+     SECTION:=net
+@@ -61,7 +42,7 @@
+     SUBMENU:=Web Servers/Proxies
+     TITLE:=shadowsocks-libev $(1)
+     URL:=https://github.com/shadowsocks/shadowsocks-libev
+-    DEPENDS:=+libev +libmbedtls +libpthread +libsodium +shadowsocks-libev-config $(DEPENDS_$(1))
++    DEPENDS:=+libev +libmbedtls +libpthread +libsodium $(DEPENDS_$(1))
+   endef
+ 
+   define Package/shadowsocks-libev-$(1)/install
+@@ -82,34 +63,6 @@
+ endef
+ $(eval $(call shadowsocks-libev/templates))
+ 
+-
+-define Package/shadowsocks-libev-ss-rules
+-  SECTION:=net
+-  CATEGORY:=Network
+-  SUBMENU:=Web Servers/Proxies
+-  TITLE:=shadowsocks-libev ss-rules
+-  URL:=https://github.com/shadowsocks/shadowsocks-libev
+-  DEPENDS:=+ip +ipset +iptables-mod-tproxy +resolveip +shadowsocks-libev-ss-redir +shadowsocks-libev-config
+-endef
+-
+-define Package/shadowsocks-libev-ss-rules/install
+-	$(INSTALL_DIR) $(1)/usr/bin
+-	$(INSTALL_BIN) ./files/ss-rules $(1)/usr/bin
+-	$(INSTALL_DIR) $(1)/etc/uci-defaults
+-	$(INSTALL_DATA) ./files/firewall.ss-rules $(1)/etc
+-	$(INSTALL_BIN) ./files/ss-rules.defaults $(1)/etc/uci-defaults
+-endef
+-
+-define Package/shadowsocks-libev-ss-rules/prerm
+-#!/bin/sh
+-s=firewall.ss_rules
+-uci get "$$s" >/dev/null || exit 0
+-uci batch <<-EOF
+-	delete $$s
+-	commit firewall
+-EOF
+-endef
+-
+ define Build/Prepare
+ 	$(call Build/Prepare/Default)
+ 	$(FIND) $(PKG_BUILD_DIR) \
+@@ -129,8 +82,6 @@
+ TARGET_CFLAGS += -flto
+ TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
+ 
+-$(eval $(call BuildPackage,shadowsocks-libev-config))
+-$(eval $(call BuildPackage,shadowsocks-libev-ss-rules))
+ $(foreach component,$(SHADOWSOCKS_COMPONENTS), \
+   $(eval $(call BuildPackage,shadowsocks-libev-$(component))) \
+ )
+
+--- a/feeds/packages/net/sqm-scripts/Makefile
++++ b/feeds/packages/net/sqm-scripts/Makefile
+@@ -8,13 +8,12 @@
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=sqm-scripts
+-PKG_SOURCE_VERSION:=bb064ad6065dcfb4966662bfab15b9fcdbb48e5f
+-PKG_VERSION:=1.5.0
++PKG_SOURCE_VERSION:=5d7e7977e14e147d5bcfa8a5f01636c7ab230fa4
++PKG_VERSION:=1.5.0_git-$(PKG_SOURCE_VERSION)
+ PKG_RELEASE:=2
+ 
+ PKG_SOURCE_PROTO:=git
+ PKG_SOURCE_URL:=https://github.com/tohojo/sqm-scripts
+-PKG_MIRROR_HASH:=d41301ed1e318ea81c6c8f29c1847efdda3663573d12a3e0b855b4b8b8cf0610
+ 
+ PKG_MAINTAINER:=Toke Høiland-Jørgensen <toke@toke.dk>
+ PKG_LICENSE:=GPL-2.0-only
+
+--- /dev/null
++++ b/feeds/packages/net/sqm-scripts/patches/001-zh-cn.patch
+@@ -0,0 +1,42 @@
++--- a/src/layer_cake.qos.help
+++++ b/src/layer_cake.qos.help
++@@ -1,4 +1,4 @@
++-This uses the cake qdisc as a replacement for both htb as shaper and fq_codel as leaf qdisc.
++-This exercises cake's diffserv profile(s) as different "layers" of priority.
++-This script requires that cake is selected as qdisc, and forces its usage.
++-See: http://www.bufferbloat.net/projects/codel/wiki/Cake for more information
+++这个cake列队规则使用HTB作为过滤器，使用fq_codel作为叶列队规则。
+++这个cake规则将不同的文件分为不同的“层次”优先级。
+++该脚本需要将该cake选为列队规则。
+++请参阅：http://www.bufferbloat.net/projects/codel/wiki/Cake获取更多信息
++
++--- a/src/piece_of_cake.qos.help
+++++ b/src/piece_of_cake.qos.help
++@@ -1,4 +1,4 @@
++-This just uses the cake qdisc as a replacement for both htb as shaper and fq_codel as leaf qdisc.
++-It just does not come any simpler than this, in other words it truely is a "piece of cake".
++-This script requires that cake is selected as qdisc, and forces its usage.
++-See: http://www.bufferbloat.net/projects/codel/wiki/Cake for more information
+++这个cake列队规则使用HTB作为过滤器，使用fq_codel作为叶列队规则。
+++它不会比这更简单，换句话说，它真的是“小菜一碟”。
+++该脚本需要将cake选为列队规则。
+++请参阅：http://www.bufferbloat.net/projects/codel/wiki/Cake获取更多信息
++
++--- a/src/simple.qos.help
+++++ b/src/simple.qos.help
++@@ -1 +1 @@
++-BW-limited three-tier prioritisation scheme with your qdisc on each queue. (default)
+++使用fq_codel列队规则在每个列队上进行三层优先级的带宽控制。（默认）
++
++--- a/src/simplest.qos.help
+++++ b/src/simplest.qos.help
++@@ -1 +1 @@
++-Simplest possible configuration: HTB rate limiter with your qdisc attached.
+++最简单的配置：使用带有HTB过滤器的列队规则来进行速率限制。
++
++--- a/src/simplest_tbf.qos.help
+++++ b/src/simplest_tbf.qos.help
++@@ -1,2 +1 @@
++-Simplest possible configuration (TBF): TBF rate limiter with your qdisc attached.
++-TBF may give better performance than HTB on some architectures.
+++最简单的配置（TBF）：使用带有TBF过滤器的列队规则来进行速率限制。在某些架构上，TBF可能会比HTB提供更好的性能。
+
+--- a/feeds/packages/net/xray-core/Makefile
++++ b/feeds/packages/net/xray-core/Makefile
+@@ -1,18 +1,24 @@
+ include $(TOPDIR)/rules.mk
++PKG_SOURCE_URL:=https://github.com/XTLS/Xray-core.git
++PKG_SOURCE_VERSION:=d45298a10df50837aefbb7a1ec171fdd3fb767ab
+ 
+ PKG_NAME:=xray-core
+-PKG_VERSION:=1.4.2
+-PKG_RELEASE:=$(AUTORELEASE)
++PKG_VERSION:=1.4.2_git-$(PKG_SOURCE_VERSION)
++PKG_RELEASE:=1
+ 
++PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+-PKG_SOURCE_URL:=https://codeload.github.com/XTLS/Xray-core/tar.gz/v$(PKG_VERSION)?
+-PKG_HASH:=565255d8c67b254f403d498b9152fa7bc097d649c50cb318d278c2be644e92cc
++PKG_SOURCE_PROTO:=git
+ 
+ PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
+ PKG_LICENSE:=MPL-2.0
+ PKG_LICENSE_FILES:=LICENSE
+ 
+-PKG_BUILD_DIR:=$(BUILD_DIR)/Xray-core-$(PKG_VERSION)
++PKG_CONFIG_DEPENDS:= \
++	CONFIG_XRAY_CORE_PROVIDE_V2RAY_CORE \
++	CONFIG_XRAY_CORE_COMPRESS_GOPROXY \
++	CONFIG_XRAY_CORE_COMPRESS_UPX \
++
+ PKG_BUILD_DEPENDS:=golang/host
+ PKG_BUILD_PARALLEL:=1
+ PKG_USE_MIPS16:=0
+@@ -25,13 +31,13 @@
+ 	$(GO_PKG)/core.version=$(PKG_VERSION)
+ 
+ include $(INCLUDE_DIR)/package.mk
+-include ../../lang/golang/golang-package.mk
++include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
+ 
+ define Package/xray/template
+   TITLE:=A platform for building proxies to bypass network restrictions
+   SECTION:=net
+   CATEGORY:=Network
+-  URL:=https://xtls.github.io
++  URL:=https://github.com/XTLS/Xray-core
+ endef
+ 
+ define Package/xray-core
+@@ -39,20 +45,6 @@
+   DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle
+ endef
+ 
+-define Package/xray-example
+-  $(call Package/xray/template)
+-  TITLE+= (example configs)
+-  DEPENDS:=xray-core
+-  PKGARCH:=all
+-endef
+-
+-define Package/xray-geodata
+-  $(call Package/xray/template)
+-  TITLE+= (geodata files)
+-  DEPENDS:=xray-core
+-  PKGARCH:=all
+-endef
+-
+ define Package/xray/description
+   Xray, Penetrates Everything. It helps you to build your own computer network.
+   It secures your network connections and thus protects your privacy.
+@@ -62,48 +54,33 @@
+   $(call Package/xray/description)
+ endef
+ 
+-define Package/xray-example/description
+-  $(call Package/xray/description)
+-
+-  This includes example configuration files for xray-core.
+-endef
+-
+-define Package/xray-geodata/description
+-  $(call Package/xray/description)
+-
+-  This includes GEO datas used for xray-core.
+-endef
+-
+-define Package/xray-core/conffiles
+-/etc/xray/
+-/etc/config/xray
+-endef
+-
+-GEOIP_VER:=202106030115
+-GEOIP_FILE:=geoip.dat.$(GEOIP_VER)
+-
+-define Download/geoip
+-  URL:=https://github.com/v2fly/geoip/releases/download/$(GEOIP_VER)/
+-  URL_FILE:=geoip.dat
+-  FILE:=$(GEOIP_FILE)
+-  HASH:=acf231d7c6461d088ae479fe0c1cb143b5ee3cf7048a897c5a9b7807ab7005df
+-endef
+-
+-GEOSITE_VER:=20210531212831
+-GEOSITE_FILE:=dlc.dat.$(GEOSITE_VER)
+-
+-define Download/geosite
+-  URL:=https://github.com/v2fly/domain-list-community/releases/download/$(GEOSITE_VER)/
+-  URL_FILE:=dlc.dat
+-  FILE:=$(GEOSITE_FILE)
+-  HASH:=332bbe53af49582dbf89bda04ee5e60e474f9293fc368ab55b517fdcd4a78ed2
+-endef
++define Package/xray-core/config
++menu "Xray-core Configuration"
++	depends on PACKAGE_xray-core
++
++config XRAY_CORE_PROVIDE_V2RAY_CORE
++	bool "Provide V2Ray binary using XRay"
++	default n
++
++config XRAY_CORE_COMPRESS_GOPROXY
++	bool "Compiling with GOPROXY proxy"
++	default n
++
++config XRAY_CORE_COMPRESS_UPX
++	bool "Compress executable files with UPX"
++	default y
++endmenu
++endef
++
++ifneq ($(CONFIG_XRAY_CORE_COMPRESS_GOPROXY),)
++	export GO111MODULE=on
++	export GOPROXY=https://goproxy.io
++endif
+ 
+-define Build/Prepare
+-	$(call Build/Prepare/Default)
+-ifneq ($(CONFIG_PACKAGE_xray-geodata),)
+-	$(call Download,geoip)
+-	$(call Download,geosite)
++define Build/Compile
++	$(call GoPackage/Build/Compile)
++ifneq ($(CONFIG_XRAY_CORE_COMPRESS_UPX),)
++	$(STAGING_DIR_HOST)/bin/upx --lzma --best $(GO_PKG_BUILD_BIN_DIR)/main
+ endif
+ endef
+ 
+@@ -111,31 +88,9 @@
+ 	$(call GoPackage/Package/Install/Bin,$(PKG_INSTALL_DIR))
+ 	$(INSTALL_DIR) $(1)/usr/bin/
+ 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/main $(1)/usr/bin/xray
+-
+-	$(INSTALL_DIR) $(1)/etc/xray/
+-	$(INSTALL_DATA) $(CURDIR)/files/config.json.example $(1)/etc/xray/
+-
+-	$(INSTALL_DIR) $(1)/etc/config/
+-	$(INSTALL_CONF) $(CURDIR)/files/xray.conf $(1)/etc/config/xray
+-	$(INSTALL_DIR) $(1)/etc/init.d/
+-	$(INSTALL_BIN) $(CURDIR)/files/xray.init $(1)/etc/init.d/xray
+-
+-	$(INSTALL_DIR) $(1)/etc/capabilities/
+-	$(INSTALL_DATA) $(CURDIR)/files/xray.capabilities $(1)/etc/capabilities/xray.json
+-endef
+-
+-define Package/xray-example/install
+-	$(INSTALL_DIR) $(1)/etc/xray/
+-	$(INSTALL_DATA) $(CURDIR)/files/vpoint_socks_vmess.json $(1)/etc/xray/
+-	$(INSTALL_DATA) $(CURDIR)/files/vpoint_vmess_freedom.json $(1)/etc/xray/
+-endef
+-
+-define Package/xray-geodata/install
+-	$(INSTALL_DIR) $(1)/usr/share/xray/
+-	$(INSTALL_DATA) $(DL_DIR)/$(GEOIP_FILE) $(1)/usr/share/xray/geoip.dat
+-	$(INSTALL_DATA) $(DL_DIR)/$(GEOSITE_FILE) $(1)/usr/share/xray/geosite.dat
++ifneq ($(CONFIG_XRAY_CORE_PROVIDE_V2RAY_CORE),)
++	$(LN) xray $(1)/usr/bin/v2ray
++endif
+ endef
+ 
+ $(eval $(call BuildPackage,xray-core))
+-$(eval $(call BuildPackage,xray-example))
+-$(eval $(call BuildPackage,xray-geodata))
+
+--- a/feeds/packages/net/zerotier/files/etc/init.d/zerotier
++++ b/feeds/packages/net/zerotier/files/etc/init.d/zerotier
+@@ -1,18 +1,17 @@
+ #!/bin/sh /etc/rc.common
+ 
+ START=90
+-
+ USE_PROCD=1
+ 
+ PROG=/usr/bin/zerotier-one
+ CONFIG_PATH=/var/lib/zerotier-one
+ 
+-section_enabled() {
++section_enabled(){
+ 	config_get_bool enabled "$1" 'enabled' 0
+ 	[ $enabled -ne 0 ]
+ }
+ 
+-start_instance() {
++start_instance(){
+ 	local cfg="$1"
+ 	local port secret config_path local_conf path
+ 	local args=""
+@@ -79,33 +78,41 @@
+ 		ln -s "$local_conf" $path/local.conf
+ 	fi
+ 
+-	add_join() {
++	add_join(){
+ 		# an (empty) config file will cause ZT to join a network
+ 		touch $path/networks.d/$1.conf
+ 	}
+ 
+ 	config_list_foreach $cfg 'join' add_join
+-
+ 	procd_open_instance
+ 	procd_set_param command $PROG $args $path
+ 	procd_set_param stderr 1
+ 	procd_close_instance
+ }
+ 
+-start_service() {
++service_triggers(){
++	procd_add_reload_trigger 'zerotier'
++}
++
++start_service(){
+ 	config_load 'zerotier'
+ 	config_foreach start_instance 'zerotier'
+ }
+ 
+-stop_instance() {
++stop_instance(){
+ 	local cfg="$1"
+ 
+ 	# Remove existing link or folder
+ 	rm -rf ${CONFIG_PATH}_${cfg}
+ }
+ 
+-stop_service() {
++stop_service(){
+ 	config_load 'zerotier'
+ 	config_foreach stop_instance 'zerotier'
+ 	rm -f ${CONFIG_PATH}
+ }
++
++reload_service(){
++	stop
++	start
++}
+
+--- a/feeds/packages/net/zerotier/Makefile
++++ b/feeds/packages/net/zerotier/Makefile
+@@ -5,14 +5,14 @@
+ 
+ include $(TOPDIR)/rules.mk
+ 
++PKG_SOURCE_URL:=https://github.com/zerotier/ZeroTierOne.git
++PKG_SOURCE_VERSION:=6faca86bb424d0b9643b6efa50571f73310d8276
+ PKG_NAME:=zerotier
+-PKG_VERSION:=1.6.5
++PKG_VERSION:=1.6.5_git-$(PKG_SOURCE_VERSION)
+ PKG_RELEASE:=1
+-
++PKG_SOURCE_PROTO:=git
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+-PKG_SOURCE_URL:=https://codeload.github.com/zerotier/ZeroTierOne/tar.gz/$(PKG_VERSION)?
+-PKG_HASH:=a437ec9e8a4987ed48c0e5af3895a057dcc0307ab38af90dd7729a131097f222
+-PKG_BUILD_DIR:=$(BUILD_DIR)/ZeroTierOne-$(PKG_VERSION)
++PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+ 
+ PKG_MAINTAINER:=Moritz Warning <moritzwarning@web.de>
+ PKG_LICENSE:=BSL 1.1
+@@ -23,7 +23,7 @@
+ 
+ include $(INCLUDE_DIR)/package.mk
+ 
+-define Package/zerotier
++define Package/$(PKG_NAME)
+   SECTION:=net
+   CATEGORY:=Network
+   DEPENDS:=+libpthread +libstdcpp +kmod-tun +ip +libminiupnpc +libnatpmp
+@@ -32,11 +32,11 @@
+   SUBMENU:=VPN
+ endef
+ 
+-define Package/zerotier/description
++define Package/$(PKG_NAME)/description
+ 	ZeroTier creates a global provider-independent virtual private cloud network.
+ endef
+ 
+-define Package/zerotier/config
++define Package/$(PKG_NAME)/config
+ 	source "$(SOURCE)/Config.in"
+ endef
+ 
+@@ -58,11 +58,7 @@
+ TARGET_CFLAGS += -ffunction-sections -fdata-sections
+ TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
+ 
+-define Package/zerotier/conffiles
+-/etc/config/zerotier
+-endef
+-
+-define Package/zerotier/install
++define Package/$(PKG_NAME)/install
+ 	$(INSTALL_DIR) $(1)/usr/bin
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/zerotier-one $(1)/usr/bin/
+ 	$(LN) zerotier-one $(1)/usr/bin/zerotier-cli
+@@ -72,8 +68,10 @@
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/zerotier-selftest $(1)/usr/bin/
+ endif
+ 
+-	$(CP) ./files/* $(1)/
++	$(INSTALL_DIR) $(1)/etc/config
++	$(INSTALL_CONF) ./files/etc/config/zerotier $(1)/etc/config/zerotier
++	$(INSTALL_DIR) $(1)/etc/init.d/
++	$(INSTALL_BIN) ./files/etc/init.d/zerotier $(1)/etc/init.d/zerotier
+ endef
+ 
+-$(eval $(call BuildPackage,zerotier))
+-
++$(eval $(call BuildPackage,$(PKG_NAME)))

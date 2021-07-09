@@ -1,0 +1,67 @@
+--- a/feeds/luci/modules/luci-base/root/usr/libexec/rpcd/luci
++++ b/feeds/luci/modules/luci-base/root/usr/libexec/rpcd/luci
+@@ -46,7 +46,10 @@
+ 	getCPUInfo = {
+ 		call = function()
+ 			local sys = require "luci.sys"
+-			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'") }
++			local rv = {}
++			rv.cpufreq = sys.exec("echo $(expr $(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq) / 1000) MHz +$(awk '{printf(\"%.1f°C\",$0/1000)}' /sys/class/thermal/thermal_zone0/temp)")
++			rv.cpufree = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'")
++			return rv
+ 		end
+ 	},
+ 
+
+--- a/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
++++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
+@@ -61,6 +61,7 @@
+ 			_('Hostname'),         boardinfo.hostname,
+ 			_('Model'),            boardinfo.model,
+ 			_('Architecture'),     boardinfo.system,
++			_('CPU Info'),         cpuinfo.cpufreq,
+ 			_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),
+ 			_('Kernel Version'),   boardinfo.kernel,
+ 			_('Local Time'),       datestr,
+@@ -70,7 +71,7 @@
+ 				systeminfo.load[1] / 65535.0,
+ 				systeminfo.load[2] / 65535.0
+ 			) : null,
+-			_('CPU usage (%)'),    cpuinfo.result
++			_('CPU usage (%)'),    cpuinfo.cpufree
+ 		];
+ 
+ 		var table = E('table', { 'class': 'table' });
+
+--- a/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
++++ b/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
+@@ -1,2 +1,8 @@
+ 
+ config settings 'cpufreq'
++	option mode 'ondemand'
++	option min '384000'
++	option max '1725000'
++	option up '95'
++	option rate '1'
++
+
+--- /dev/null
++++ b/target/linux/ipq806x/base-files/etc/init.d/cpufreq
+@@ -1,17 +0,0 @@
+-#!/bin/sh /etc/rc.common
+-
+-START=15
+-
+-boot() {
+-  local governor
+-
+-  governor=$(cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor)
+-
+-  if [ "$governor" = "ondemand" ]; then
+-    # Effective only with ondemand
+-    echo 600000 > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
+-    echo 600000 > /sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq
+-    echo 10 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor
+-    echo 50 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold
+-  fi
+-}

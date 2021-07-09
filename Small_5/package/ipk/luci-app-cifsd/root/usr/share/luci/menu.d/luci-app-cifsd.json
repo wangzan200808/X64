@@ -1,0 +1,13 @@
+{
+	"admin/nas/cifsd": {
+		"title": "Network Shares",
+		"order": 2,
+		"action": {
+			"type": "view",
+			"path": "cifsd"
+		},
+		"depends": {
+			"acl": [ "luci-app-cifsd" ]
+		}
+	}
+}

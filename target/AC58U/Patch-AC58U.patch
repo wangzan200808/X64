@@ -1,0 +1,286 @@
+--- a/feeds/luci/modules/luci-base/root/usr/libexec/rpcd/luci
++++ b/feeds/luci/modules/luci-base/root/usr/libexec/rpcd/luci
+@@ -46,7 +46,10 @@
+ 	getCPUInfo = {
+ 		call = function()
+ 			local sys = require "luci.sys"
+-			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'") }
++			local rv = {}
++			rv.cpufreq = sys.exec("echo $(expr $(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq) / 1000) MHz +$(awk '{printf(\"%.1f°C \",$0/1000)}' /sys/class/ieee80211/phy*/device/hwmon/hwmon*/temp1_input)")
++			rv.cpufree = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'")
++			return rv
+ 		end
+ 	},
+ 
+
+--- a/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
++++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
+@@ -61,6 +61,7 @@
+ 			_('Hostname'),         boardinfo.hostname,
+ 			_('Model'),            boardinfo.model,
+ 			_('Architecture'),     boardinfo.system,
++			_('CPU Info'),         cpuinfo.cpufreq,
+ 			_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),
+ 			_('Kernel Version'),   boardinfo.kernel,
+ 			_('Local Time'),       datestr,
+@@ -70,7 +71,7 @@
+ 				systeminfo.load[1] / 65535.0,
+ 				systeminfo.load[2] / 65535.0
+ 			) : null,
+-			_('CPU usage (%)'),    cpuinfo.result
++			_('CPU usage (%)'),    cpuinfo.cpufree
+ 		];
+ 
+ 		var table = E('table', { 'class': 'table' });
+
+--- a/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
++++ b/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
+@@ -1,2 +1,8 @@
+ 
+ config settings 'cpufreq'
++	option mode 'ondemand'
++	option min '48000'
++	option max '896000'
++	option up '95'
++	option rate '1'
++
+
+--- a/target/linux/ipq40xx/base-files/lib/preinit/05_set_iface_mac_ipq40xx.sh
++++ b/target/linux/ipq40xx/base-files/lib/preinit/05_set_iface_mac_ipq40xx.sh
+@@ -7,6 +7,10 @@
+ 		ip link set dev eth0 address $(macaddr_add "$base_mac" 1)
+ 		ip link set dev eth1 address $(macaddr_add "$base_mac" 3)
+ 		;;
++	asus,rt-ac58u)
++		CI_UBIPART=UBI_DEV
++		ip link set dev eth0 address $(macaddr_add "$(mtd_get_mac_binary_ubi Factory 4102)" 1)
++		;;
+ 	ezviz,cs-w3-wd1200g-eup)
+ 		ip link set dev eth0 address $(mtd_get_mac_binary "ART" 0x6)
+ 		ip link set dev eth1 address $(mtd_get_mac_binary "ART" 0x0)
+
+--- a/target/linux/ipq40xx/base-files/lib/upgrade/platform.sh
++++ b/target/linux/ipq40xx/base-files/lib/upgrade/platform.sh
+@@ -4,28 +4,131 @@
+ RAMFS_COPY_BIN='fw_printenv fw_setenv'
+ RAMFS_COPY_DATA='/etc/fw_env.config /var/lock/fw_printenv.lock'
+ 
+-platform_check_image() {
+-	case "$(board_name)" in
+-	asus,rt-ac58u)
+-		CI_UBIPART="UBI_DEV"
+-		local ubidev=$(nand_find_ubi $CI_UBIPART)
+-		local asus_root=$(nand_find_volume $ubidev jffs2)
++ubi_kill_if_exist() {
++	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
++	local c_ubivol="$( nand_find_volume $ubidev $1 )"
++	umount -f /dev/$c_ubivol 2>/dev/null
++	[ "$c_ubivol" ] && ubirmvol /dev/$ubidev -N $1 || true
++	echo "Partition $1 removed."
++}
+ 
+-		[ -n "$asus_root" ] || return 0
++asus_nand_upgrade_tar() {
++	local kpart_size="$1"
++	local tar_file="$2"
+ 
+-		cat << EOF
+-jffs2 partition is still present.
+-There's probably no space left
+-to install the filesystem.
++	local board_dir=$(tar tf $tar_file | grep -m 1 '^sysupgrade-.*/$')
++	board_dir=${board_dir%/}
+ 
+-You need to delete the jffs2 partition first:
+-# ubirmvol /dev/ubi0 --name=jffs2
++	local kernel_length=`(tar xf $tar_file ${board_dir}/kernel -O | wc -c) 2> /dev/null`
++	local rootfs_length=`(tar xf $tar_file ${board_dir}/root -O | wc -c) 2> /dev/null`
+ 
+-Once this is done. Retry.
+-EOF
++	local mtdnum="$( find_mtd_index "$CI_UBIPART" )"
++	if [ ! "$mtdnum" ]; then
++		echo "cannot find ubi mtd partition $CI_UBIPART"
+ 		return 1
+-		;;
+-	esac
++	fi
++
++	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
++	if [ ! "$ubidev" ]; then
++		ubiattach -m "$mtdnum"
++		sync
++		ubidev="$( nand_find_ubi "$CI_UBIPART" )"
++	fi
++
++	if [ ! "$ubidev" ]; then
++		echo "cannot find ubi device $CI_UBIPART"
++		return 1
++	fi
++
++	local root_ubivol="$( nand_find_volume $ubidev rootfs )"
++	# remove ubiblock device of rootfs
++	local root_ubiblk="ubiblock${root_ubivol:3}"
++	if [ "$root_ubivol" -a -e "/dev/$root_ubiblk" ]; then
++		echo "removing $root_ubiblk"
++		if ! ubiblock -r /dev/$root_ubivol; then
++			echo "cannot remove $root_ubiblk"
++			return 1;
++		fi
++	fi
++
++	ubi_kill_if_exist rootfs_data
++	ubi_kill_if_exist rootfs
++	ubi_kill_if_exist jffs2
++	ubi_kill_if_exist linux2
++	ubi_kill_if_exist linux
++
++	ubimkvol /dev/$ubidev -N linux -s $kpart_size
++	ubimkvol /dev/$ubidev -N linux2 -s $kpart_size
++	ubimkvol /dev/$ubidev -N jffs2 -s 2539520
++	ubimkvol /dev/$ubidev -N rootfs -s $rootfs_length
++	ubimkvol /dev/$ubidev -N rootfs_data -m
++
++	local kern_ubivol="$(nand_find_volume $ubidev $CI_KERNPART)"
++	echo "Kernel at $kern_ubivol.Writing..."
++	tar xf $tar_file ${board_dir}/kernel -O | \
++		ubiupdatevol /dev/$kern_ubivol -s $kernel_length -
++	echo "Done."
++
++	local root_ubivol="$(nand_find_volume $ubidev rootfs)"
++	echo "Rootfs at $root_ubivol.Writing..."
++	tar xf $tar_file ${board_dir}/root -O | \
++		ubiupdatevol /dev/$root_ubivol -s $rootfs_length -
++	echo "Done."
++
++	nand_do_upgrade_success
++}
++
++asus_nand_upgrade_factory() {
++	local kpart_size="$1"
++	local fw_file="$2"
++
++	local mtdnum="$( find_mtd_index "$CI_UBIPART" )"
++	if [ ! "$mtdnum" ]; then
++		echo "cannot find ubi mtd partition $CI_UBIPART"
++		return 1
++	fi
++
++	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
++	if [ ! "$ubidev" ]; then
++		ubiattach -m "$mtdnum"
++		sync
++		ubidev="$( nand_find_ubi "$CI_UBIPART" )"
++	fi
++
++	if [ ! "$ubidev" ]; then
++		echo "cannot find ubi device $CI_UBIPART"
++		return 1
++	fi
++
++	local root_ubivol="$( nand_find_volume $ubidev rootfs )"
++	# remove ubiblock device of rootfs
++	local root_ubiblk="ubiblock${root_ubivol:3}"
++	if [ "$root_ubivol" -a -e "/dev/$root_ubiblk" ]; then
++		echo "removing $root_ubiblk"
++		if ! ubiblock -r /dev/$root_ubivol; then
++			echo "cannot remove $root_ubiblk"
++			return 1;
++		fi
++	fi
++
++	ubi_kill_if_exist rootfs_data
++	ubi_kill_if_exist rootfs
++	ubi_kill_if_exist jffs2
++	ubi_kill_if_exist linux2
++	ubi_kill_if_exist linux
++
++	ubimkvol /dev/$ubidev -N linux -s $kpart_size
++
++	local kern_ubivol="$(nand_find_volume $ubidev $CI_KERNPART)"
++	echo "Asus linux at $kern_ubivol.Writing..."
++	ubiupdatevol /dev/$kern_ubivol --skip=64 $fw_file
++	echo "Done."
++
++	umount -a
++	reboot -f
++}
++
++platform_check_image() {
+ 	return 0;
+ }
+ 
+@@ -92,9 +195,15 @@
+ 		nand_do_upgrade "$1"
+ 		;;
+ 	asus,rt-ac58u)
++		local magic=$(get_magic_long "$1")
+ 		CI_UBIPART="UBI_DEV"
+ 		CI_KERNPART="linux"
+-		nand_do_upgrade "$1"
++		if [ "$magic" == "27051956" ]; then
++			echo "Got Asus factory image."
++			asus_nand_upgrade_factory 50409472 "$1"
++		else
++			asus_nand_upgrade_tar 20951040 "$1"
++		fi
+ 		;;
+ 	cellc,rtl30vw)
+ 		CI_UBIPART="ubifs"
+
+--- /dev/null
++++ b/target/linux/ipq40xx/patches-5.4/999-ipq40xx-unlock-cpu-frequency.patch
+@@ -0,0 +1,53 @@
++From: William <gw826943555@qq.com>
++Subject: [PATCH] ipq40xx: improve CPU clock
++Date: Tue, 15 Dec 2020 15:26:35 +0800
++
++This patch will match the clock-latency-ns values in the device tree 
++for those found inside the OEM device tree and kernel source code and 
++unlock 896Mhz CPU operating points.
++
++Signed-off-by: William <gw826943555@qq.com>
++---
++--- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+++++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
++@@ -114,20 +114,24 @@
++ 
++ 		opp-48000000 {
++ 			opp-hz = /bits/ 64 <48000000>;
++-			clock-latency-ns = <256000>;
+++			clock-latency-ns = <100000>;
++ 		};
++ 		opp-200000000 {
++ 			opp-hz = /bits/ 64 <200000000>;
++-			clock-latency-ns = <256000>;
+++			clock-latency-ns = <100000>;
++ 		};
++ 		opp-500000000 {
++ 			opp-hz = /bits/ 64 <500000000>;
++-			clock-latency-ns = <256000>;
+++			clock-latency-ns = <100000>;
++ 		};
++ 		opp-716000000 {
++ 			opp-hz = /bits/ 64 <716000000>;
++-			clock-latency-ns = <256000>;
+++			clock-latency-ns = <100000>;
++  		};
+++		opp-896000000 {
+++			opp-hz = /bits/ 64 <896000000>;
+++			clock-latency-ns = <100000>;
+++		};
++ 	};
++ 
++ 	memory {
++--- a/drivers/clk/qcom/gcc-ipq4019.c
+++++ b/drivers/clk/qcom/gcc-ipq4019.c
++@@ -579,6 +579,9 @@ static const struct freq_tbl ftbl_gcc_ap
++ 	F(632000000, P_DDRPLLAPSS, 1, 0, 0),
++ 	F(672000000, P_DDRPLLAPSS, 1, 0, 0),
++ 	F(716000000, P_DDRPLLAPSS, 1, 0, 0),
+++	F(768000000, P_DDRPLLAPSS, 1, 0, 0),
+++	F(823000000, P_DDRPLLAPSS, 1, 0, 0),
+++	F(896000000, P_DDRPLLAPSS, 1, 0, 0),
++ 	{ }
++ };
++ 

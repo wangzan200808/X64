@@ -1,0 +1,5 @@
+
+config base
+	option enabled '0'
+	option port '1235'
+	option allowed '0'

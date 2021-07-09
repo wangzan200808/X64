@@ -1,0 +1,20 @@
+#!/bin/sh /etc/rc.common
+START=50
+
+NAME=cpufreq
+
+uci_get_by_type(){
+	z=$(uci -q get $NAME.@settings[0].$1)
+	echo ${z:=$2}
+}
+
+start(){
+	a=$(uci_get_by_type mode)
+	echo $a > /sys/devices/system/cpu/$NAME/policy0/scaling_governor
+	uci_get_by_type min > /sys/devices/system/cpu/$NAME/policy0/scaling_min_freq
+	uci_get_by_type max > /sys/devices/system/cpu/$NAME/policy0/scaling_max_freq
+	if [ $a = ondemand ];then
+		uci_get_by_type up 50 > /sys/devices/system/cpu/$NAME/ondemand/up_threshold
+		uci_get_by_type rate 10 > /sys/devices/system/cpu/$NAME/ondemand/sampling_down_factor
+	fi
+}

@@ -1,0 +1,5398 @@
+--- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/wireless.js
++++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/wireless.js
+@@ -939,7 +939,7 @@
+ 				o = ss.taboption('general', CBIWifiFrequencyValue, '_freq', '<br />' + _('Operating frequency'));
+ 				o.ucisection = s.section;
+ 
+-				if (hwtype == 'mac80211') {
++				if (hwtype == 'mt_dbdc') {
+ 					o = ss.taboption('general', form.Flag, 'legacy_rates', _('Allow legacy 802.11b rates'), _('Legacy or badly behaving devices may require legacy 802.11b rates to interoperate. Airtime efficiency may be significantly reduced where these are used. It is recommended to not allow 802.11b rates where possible.'));
+ 					o.depends({'_freq': '11g', '!contains': true});
+ 
+@@ -1067,7 +1067,7 @@
+ 					}, this));
+ 				};
+ 
+-				if (hwtype == 'mac80211') {
++				if (hwtype == 'mt_dbdc') {
+ 					var mode = ss.children[0],
+ 					    bssid = ss.children[5],
+ 					    encr;
+@@ -1246,141 +1246,10 @@
+ 
+ 
+ 				var crypto_modes = [];
+-
+-				if (hwtype == 'mac80211') {
+-					var has_supplicant = L.hasSystemFeature('wpasupplicant'),
+-					    has_hostapd = L.hasSystemFeature('hostapd');
+-
+-					// Probe EAP support
+-					var has_ap_eap = L.hasSystemFeature('hostapd', 'eap'),
+-					    has_sta_eap = L.hasSystemFeature('wpasupplicant', 'eap');
+-
+-					// Probe SAE support
+-					var has_ap_sae = L.hasSystemFeature('hostapd', 'sae'),
+-					    has_sta_sae = L.hasSystemFeature('wpasupplicant', 'sae');
+-
+-					// Probe OWE support
+-					var has_ap_owe = L.hasSystemFeature('hostapd', 'owe'),
+-					    has_sta_owe = L.hasSystemFeature('wpasupplicant', 'owe');
+-
+-					// Probe Suite-B support
+-					var has_ap_eap192 = L.hasSystemFeature('hostapd', 'suiteb192'),
+-					    has_sta_eap192 = L.hasSystemFeature('wpasupplicant', 'suiteb192');
+-
+-					// Probe WEP support
+-					var has_ap_wep = L.hasSystemFeature('hostapd', 'wep'),
+-					    has_sta_wep = L.hasSystemFeature('wpasupplicant', 'wep');
+-
+-					if (has_hostapd || has_supplicant) {
+-						crypto_modes.push(['psk2',      'WPA2-PSK',                    35]);
+-						crypto_modes.push(['psk-mixed', 'WPA-PSK/WPA2-PSK Mixed Mode', 22]);
+-						crypto_modes.push(['psk',       'WPA-PSK',                     21]);
+-					}
+-					else {
+-						encr.description = _('WPA-Encryption requires wpa_supplicant (for client mode) or hostapd (for AP and ad-hoc mode) to be installed.');
+-					}
+-
+-					if (has_ap_sae || has_sta_sae) {
+-						crypto_modes.push(['sae',       'WPA3-SAE',                     31]);
+-						crypto_modes.push(['sae-mixed', 'WPA2-PSK/WPA3-SAE Mixed Mode', 30]);
+-					}
+-
+-					if (has_ap_wep || has_sta_wep) {
+-						crypto_modes.push(['wep-open',   _('WEP Open System'), 11]);
+-						crypto_modes.push(['wep-shared', _('WEP Shared Key'),  10]);
+-					}
+-
+-					if (has_ap_eap || has_sta_eap) {
+-						if (has_ap_eap192 || has_sta_eap192) {
+-							crypto_modes.push(['wpa3', 'WPA3-EAP', 33]);
+-							crypto_modes.push(['wpa3-mixed', 'WPA2-EAP/WPA3-EAP Mixed Mode', 32]);
+-						}
+-
+-						crypto_modes.push(['wpa2', 'WPA2-EAP', 34]);
+-						crypto_modes.push(['wpa',  'WPA-EAP',  20]);
+-					}
+-
+-					if (has_ap_owe || has_sta_owe) {
+-						crypto_modes.push(['owe', 'OWE', 1]);
+-					}
+-
+-					encr.crypto_support = {
+-						'ap': {
+-							'wep-open': has_ap_wep || _('Requires hostapd with WEP support'),
+-							'wep-shared': has_ap_wep || _('Requires hostapd with WEP support'),
+-							'psk': has_hostapd || _('Requires hostapd'),
+-							'psk2': has_hostapd || _('Requires hostapd'),
+-							'psk-mixed': has_hostapd || _('Requires hostapd'),
+-							'sae': has_ap_sae || _('Requires hostapd with SAE support'),
+-							'sae-mixed': has_ap_sae || _('Requires hostapd with SAE support'),
+-							'wpa': has_ap_eap || _('Requires hostapd with EAP support'),
+-							'wpa2': has_ap_eap || _('Requires hostapd with EAP support'),
+-							'wpa3': has_ap_eap192 || _('Requires hostapd with EAP Suite-B support'),
+-							'wpa3-mixed': has_ap_eap192 || _('Requires hostapd with EAP Suite-B support'),
+-							'owe': has_ap_owe || _('Requires hostapd with OWE support')
+-						},
+-						'sta': {
+-							'wep-open': has_sta_wep || _('Requires wpa-supplicant with WEP support'),
+-							'wep-shared': has_sta_wep || _('Requires wpa-supplicant with WEP support'),
+-							'psk': has_supplicant || _('Requires wpa-supplicant'),
+-							'psk2': has_supplicant || _('Requires wpa-supplicant'),
+-							'psk-mixed': has_supplicant || _('Requires wpa-supplicant'),
+-							'sae': has_sta_sae || _('Requires wpa-supplicant with SAE support'),
+-							'sae-mixed': has_sta_sae || _('Requires wpa-supplicant with SAE support'),
+-							'wpa': has_sta_eap || _('Requires wpa-supplicant with EAP support'),
+-							'wpa2': has_sta_eap || _('Requires wpa-supplicant with EAP support'),
+-							'wpa3': has_sta_eap192 || _('Requires wpa-supplicant with EAP Suite-B support'),
+-							'wpa3-mixed': has_sta_eap192 || _('Requires wpa-supplicant with EAP Suite-B support'),
+-							'owe': has_sta_owe || _('Requires wpa-supplicant with OWE support')
+-						},
+-						'adhoc': {
+-							'wep-open': true,
+-							'wep-shared': true,
+-							'psk': has_supplicant || _('Requires wpa-supplicant'),
+-							'psk2': has_supplicant || _('Requires wpa-supplicant'),
+-							'psk-mixed': has_supplicant || _('Requires wpa-supplicant'),
+-						},
+-						'mesh': {
+-							'sae': has_sta_sae || _('Requires wpa-supplicant with SAE support')
+-						},
+-						'ahdemo': {
+-							'wep-open': true,
+-							'wep-shared': true
+-						},
+-						'wds': {
+-							'wep-open': true,
+-							'wep-shared': true
+-						}
+-					};
+-
+-					encr.crypto_support['ap-wds'] = encr.crypto_support['ap'];
+-					encr.crypto_support['sta-wds'] = encr.crypto_support['sta'];
+-
+-					encr.validate = function(section_id, value) {
+-						var modeopt = this.section.children.filter(function(o) { return o.option == 'mode' })[0],
+-						    modeval = modeopt.formvalue(section_id),
+-						    modetitle = modeopt.vallist[modeopt.keylist.indexOf(modeval)],
+-						    enctitle = this.vallist[this.keylist.indexOf(value)];
+-
+-						if (value == 'none')
+-							return true;
+-
+-						if (!L.isObject(this.crypto_support[modeval]) || !this.crypto_support[modeval].hasOwnProperty(value))
+-							return _('The selected %s mode is incompatible with %s encryption').format(modetitle, enctitle);
+-
+-						return this.crypto_support[modeval][value];
+-					};
+-				}
+-				else if (hwtype == 'broadcom') {
+-					crypto_modes.push(['psk2',     'WPA2-PSK',                    33]);
+-					crypto_modes.push(['psk+psk2', 'WPA-PSK/WPA2-PSK Mixed Mode', 22]);
+-					crypto_modes.push(['psk',      'WPA-PSK',                     21]);
+-					crypto_modes.push(['wep-open',   _('WEP Open System'),        11]);
+-					crypto_modes.push(['wep-shared', _('WEP Shared Key'),         10]);
+-				}
+-
++				crypto_modes.push(['psk2',     'WPA2-PSK',                    33]);
++				crypto_modes.push(['psk+psk2', 'WPA-PSK/WPA2-PSK Mixed Mode', 22]);
++				crypto_modes.push(['psk',      'WPA-PSK',                     21]);
+ 				crypto_modes.push(['none',       _('No Encryption'),   0]);
+-
+ 				crypto_modes.sort(function(a, b) { return b[2] - a[2] });
+ 
+ 				for (var i = 0; i < crypto_modes.length; i++) {
+@@ -1496,7 +1365,7 @@
+ 				}
+ 
+ 
+-				if (hwtype == 'mac80211') {
++				if (hwtype == 'mt_dbdc') {
+ 					// Probe 802.11r support (and EAP support as a proxy for Openwrt)
+ 					var has_80211r = L.hasSystemFeature('hostapd', '11r') || L.hasSystemFeature('hostapd', 'eap');
+ 
+@@ -1673,7 +1542,7 @@
+ 					o.password = true;
+ 
+ 
+-					if (hwtype == 'mac80211') {
++					if (hwtype == 'mt_dbdc') {
+ 						// ieee802.11w options
+ 						o = ss.taboption('encryption', form.ListValue, 'ieee80211w', _('802.11w Management Frame Protection'), _("Note: Some wireless drivers do not fully support 802.11w. E.g. mwlwifi may have problems"));
+ 						o.value('', _('Disabled'));
+@@ -1700,21 +1569,6 @@
+ 						o.datatype = 'uinteger';
+ 						o.placeholder = '201';
+ 						o.rmempty = true;
+-
+-						o = ss.taboption('encryption', form.Flag, 'wpa_disable_eapol_key_retries', _('Enable key reinstallation (KRACK) countermeasures'), _('Complicates key reinstallation attacks on the client side by disabling retransmission of EAPOL-Key frames that are used to install keys. This workaround might cause interoperability issues and reduced robustness of key negotiation especially in environments with heavy traffic load.'));
+-						add_dependency_permutations(o, { mode: ['ap', 'ap-wds'], encryption: ['psk2', 'psk-mixed', 'sae', 'sae-mixed', 'wpa2', 'wpa3', 'wpa3-mixed'] });
+-
+-						if (L.hasSystemFeature('hostapd', 'wps') && L.hasSystemFeature('wpasupplicant')) {
+-							o = ss.taboption('encryption', form.Flag, 'wps_pushbutton', _('Enable WPS pushbutton, requires WPA(2)-PSK/WPA3-SAE'))
+-							o.enabled = '1';
+-							o.disabled = '0';
+-							o.default = o.disabled;
+-							o.depends('encryption', 'psk');
+-							o.depends('encryption', 'psk2');
+-							o.depends('encryption', 'psk-mixed');
+-							o.depends('encryption', 'sae');
+-							o.depends('encryption', 'sae-mixed');
+-						}
+ 					}
+ 				}
+ 			});
+
+--- a/package/ipk/luci-app-flowoffload/root/etc/config/flowoffload
++++ b/package/ipk/luci-app-flowoffload/root/etc/config/flowoffload
+@@ -1,4 +1,5 @@
+ 
+ config flowoffload
+ 	option enabled '1'
++	option hw '1'
+ 
+
+--- a/package/ipk/luci-app-overwall/luasrc/model/cbi/overwall/client-config.lua
++++ b/package/ipk/luci-app-overwall/luasrc/model/cbi/overwall/client-config.lua
+@@ -2,8 +2,6 @@
+ local ov="overwall"
+ local sid=arg[1]
+ local uuid=luci.sys.exec("cat /proc/sys/kernel/random/uuid")
+-local A=luci.sys.call("which obfs-local >/dev/null")
+-local B=luci.sys.call("which xray-plugin >/dev/null")
+ 
+ local encrypt_methods={
+ "none",
+@@ -112,10 +110,8 @@
+ if luci.sys.call("which ssr-redir >/dev/null")==0 then
+ o:value("ssr",translate("ShadowsocksR"))
+ end
+-if luci.sys.call("which xray >/dev/null")==0 then
+ o:value("vmess",translate("VMess"))
+ o:value("vless",translate("VLESS"))
+-end
+ if luci.sys.call("which trojan-plus >/dev/null")==0 then
+ o:value("trojan",translate("Trojan"))
+ end
+@@ -180,17 +176,13 @@
+ for _,v in ipairs(encrypt_methods_ss) do o:value(v) end
+ o:depends("type","ss")
+ 
+-if A==0 or B==0 then
+ o=s:option(ListValue,"plugin",translate("Plugin"))
+ o:value("",translate("Disable"))
+-if A==0 then
++if luci.sys.call("which obfs-local >/dev/null")==0 then
+ o:value("obfs-local",translate("simple-obfs"))
+ end
+-if B==0 then
+ o:value("xray-plugin",translate("xray-plugin"))
+-end
+ o:depends("type","ss")
+-end
+ 
+ o=s:option(Value,"plugin_opts",translate("Plugin Opts"))
+ o:depends("plugin","obfs-local")
+
+--- a/package/ipk/luci-app-overwall/luasrc/model/cbi/overwall/server-config.lua
++++ b/package/ipk/luci-app-overwall/luasrc/model/cbi/overwall/server-config.lua
+@@ -1,8 +1,6 @@
+ local m,s,o
+ local ov="overwall"
+ local sid=arg[1]
+-local A=luci.sys.call("which obfs-server >/dev/null")
+-local B=luci.sys.call("which xray-plugin >/dev/null")
+ 
+ local encrypt_methods_ss={
+ "aes-128-gcm",
+@@ -112,17 +110,13 @@
+ for _,v in ipairs(encrypt_methods_ss) do o:value(v) end
+ o:depends("type","ss")
+ 
+-if A==0 or B==0 then
+ o=s:option(ListValue,"plugin",translate("Plugin"))
+ o:value("",translate("Disable"))
+-if A==0 then
++if luci.sys.call("which obfs-server >/dev/null")==0 then
+ o:value("obfs-server",translate("simple-obfs"))
+ end
+-if B==0 then
+ o:value("xray-plugin",translate("xray-plugin"))
+-end
+ o:depends("type","ss")
+-end
+ 
+ o=s:option(Value,"plugin_opts",translate("Plugin Opts"))
+ o:depends("plugin","obfs-server")
+
+--- a/package/ipk/luci-app-overwall/root/etc/init.d/overwall
++++ b/package/ipk/luci-app-overwall/root/etc/init.d/overwall
+@@ -84,7 +84,7 @@
+ 		ssr)ret=$(which ssr-redir);;
+ 		ssr-local)ret=$(which ssr-local);;
+ 		ssr-server)ret=$(which ssr-server);;
+-		vmess|vless)ret=$(which xray);;
++		vmess|vless)ret=$K/bin/xray;;
+ 		trojan)ret=$(which trojan-plus);;
+ 		naiveproxy)ret=$(which naive);;
+ 		socks5|tun)ret=$(which redsocks2);;
+@@ -123,8 +123,10 @@
+ }
+ EOF
+ 			plugin=$(uci_get_by_name $1 plugin)
+-			if which $plugin >/dev/null 2>&1;then
+-				sed -i "s@$hostip\",@$hostip\",\n\"plugin\":\"$plugin\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $config_file
++			if [ $plugin ];then
++				[ $plugin = obfs-local -a "$(which obfs-local)" ] && pat=$(which obfs-local)
++				[ $plugin = xray-plugin -a -x $K/bin/xray-plugin ] && pat=$K/bin/xray-plugin
++				[ $pat ] && sed -i "s@$hostip\",@$hostip\",\n\"plugin\":\"$pat\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $config_file
+ 			fi;;
+ 		ssr)
+ 			cat > $config_file <<EOF
+@@ -245,9 +247,9 @@
+ 	if ps -w | grep overwall-tcp | grep -qv grep;then
+ 		echo "Overwall has Started.";return 1
+ 	fi
+-	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status...\|Download IP/GFW files...' || gen_log
++	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status...\|Download IP/GFW files...\|Check IP/GFW files successful!' || gen_log
+ 	check_net
+-	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Download IP/GFW files...' || (log "Over Rules     : Check network status successful!";log "Over Rules     : Check IP/GFW files...")
++	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Download IP/GFW files...\|Check IP/GFW files successful!' || (log "Over Rules     : Check network status successful!";log "Over Rules     : Check IP/GFW files...")
+ 	mkdir -p /var/run /var/etc
+ 	if [ ! -s $K/china.txt ] || [ $run_mode = router -a ! -s $K/china_v6.txt ] || ([ $run_mode = gfw -o $gfw_mode = 1 ] && [ ! -s $K/gfw.list ]);then
+ 		log "Over Rules     : Download IP/GFW files..."
+@@ -281,6 +283,28 @@
+ 		[ "$NF_SERVER" -a "$TG_SERVER" = "$NF_SERVER" ] && TG_NF=1 && TG_SERVER=
+ 		[ "$CU_SERVER" -a "$TG_SERVER" = "$CU_SERVER" ] && TG_CU=1 && TG_SERVER=
+ 	fi
++	ttype=$(uci_get_by_name $GLOBAL_SERVER type)
++	utype=$(uci_get_by_name $UDP_RELAY_SERVER type)
++	ytype=$(uci_get_by_name $YB_SERVER type)
++	ntype=$(uci_get_by_name $NF_SERVER type)
++	ctype=$(uci_get_by_name $CU_SERVER type)
++	gtype=$(uci_get_by_name $TG_SERVER type)
++	stype=$(uci_get_by_name $SO_SERVER type)
++	E=0;F=0;G=0
++	if [ $ttype = vmess -o $ttype = vless -o "$utype" = vmess -o "$utype" = vless -o "$ytype" = vmess -o "$ytype" = vless -o "$ntype" = vmess -o "$ntype" = vless -o "$ctype" = vmess -o "$ctype" = vless -o "$gtype" = vmess -o "$gtype" = vless -o "$stype" = vmess -o "$stype" = vless ];then
++		[ ! -x $K/bin/xray ] && E=1 && F=1
++	fi
++	if [ $(uci_get_by_name $GLOBAL_SERVER plugin 0) = xray-plugin -o "$(uci_get_by_name $UDP_RELAY_SERVER plugin)" = xray-plugin -o "$(uci_get_by_name $YB_SERVER plugin)" = xray-plugin -o "$(uci_get_by_name $NF_SERVER plugin)" = xray-plugin -o "$(uci_get_by_name $SO_SERVER plugin)" = xray-plugin ];then
++		[ ! -x $K/bin/xray-plugin ] && E=1 && G=1
++	fi
++	if [ $E = 1 ];then
++		if [ -z "$switch_server" ];then
++			service_start $BIN_DIR/downbin --down $F $G 0
++			exit 1
++		else
++			$BIN_DIR/downbin --down $F $G 1
++		fi
++	fi
+ 	if ! echo $server | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$">/dev/null;then
+ 		if [ -f $LOCK ];then
+ 			r=1
+@@ -321,8 +345,6 @@
+ 		UDP=1
+ 	fi
+ 
+-	ttype=$(uci_get_by_name $GLOBAL_SERVER type)
+-	utype=$(uci_get_by_name $UDP_RELAY_SERVER type)
+ 	if [ $UDP ];then
+ 		[ $ttype = trojan -o $utype = trojan ] && [ $udp_local_port = $local_port ] && let udp_local_port=local_port+1;UDP="-S $udp_server -L $udp_local_port"
+ 	fi
+@@ -348,7 +370,6 @@
+ 			fi
+ 			yb_ip=$(echo "$A" | sed -n 1p)
+ 		fi
+-		ytype=$(uci_get_by_name $YB_SERVER type)
+ 		yb_local_port=$(uci_get_by_name $YB_SERVER local_port 1234)
+ 		[ $yb_local_port = $local_port ] && let yb_local_port=local_port+1
+ 		[ "$utype" = trojan -o $ytype = trojan ] && [ $yb_local_port = "$udp_local_port" ] && let yb_local_port=yb_local_port+1
+@@ -371,7 +392,6 @@
+ 			fi
+ 			nf_ip=$(echo "$A" | sed -n 1p)
+ 		fi
+-		ntype=$(uci_get_by_name $NF_SERVER type)
+ 		nf_local_port=$(uci_get_by_name $NF_SERVER local_port 1234)
+ 		[ $nf_local_port = $local_port ] && let nf_local_port=local_port+1
+ 		[ "$utype" = trojan -o $ntype = trojan ] && [ $nf_local_port = "$udp_local_port" ] && let nf_local_port=nf_local_port+1
+@@ -395,7 +415,6 @@
+ 			fi
+ 			cu_ip=$(echo "$A" | sed -n 1p)
+ 		fi
+-		ctype=$(uci_get_by_name $CU_SERVER type)
+ 		cu_local_port=$(uci_get_by_name $CU_SERVER local_port 1234)
+ 		[ $cu_local_port = $local_port ] && let cu_local_port=local_port+1
+ 		[ "$utype" = trojan -o $ctype = trojan ] && [ $cu_local_port = "$udp_local_port" ] && let cu_local_port=cu_local_port+1
+@@ -420,7 +439,6 @@
+ 			fi
+ 			tg_ip=$(echo "$A" | sed -n 1p)
+ 		fi
+-		gtype=$(uci_get_by_name $TG_SERVER type)
+ 		tg_local_port=$(uci_get_by_name $TG_SERVER local_port 1234)
+ 		[ $tg_local_port = $local_port ] && let tg_local_port=local_port+1
+ 		[ "$utype" = trojan -o $gtype = trojan ] && [ $tg_local_port = "$udp_local_port" ] && let tg_local_port=tg_local_port+1
+@@ -471,6 +489,7 @@
+ 		service_start $cmd -r $kcp_server:$kcp_port -l :$server_port $password $kcp_param
+ 	fi
+ 	threads=$(uci_get_by_type global threads 0)
++	[ $(uci_get_by_name $GLOBAL_SERVER plugin 0) = xray-plugin -o "$(uci_get_by_name $UDP_RELAY_SERVER plugin)" = xray-plugin -o "$(uci_get_by_name $YB_SERVER plugin)" = xray-plugin -o "$(uci_get_by_name $NF_SERVER plugin)" = xray-plugin -o "$(uci_get_by_name $CU_SERVER plugin)" = xray-plugin -o "$(uci_get_by_name $TG_SERVER plugin)" = xray-plugin -o "$(uci_get_by_name $SO_SERVER plugin)" = xray-plugin ] && threads=1
+ 	[ $threads = 0 ] && threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
+ 	cmd=$(f_bin $ttype)
+ 	[ ! $cmd ] && log "Main Node      : Can't find $(echo $ttype | tr a-z A-Z) program, start failed!" && return 1
+@@ -1103,16 +1122,15 @@
+ }
+ 
+ start_local(){
+-	type=$(uci_get_by_name $SO_SERVER type)
+-	[ $type = ss -o $type = ssr ] && cmd=$(f_bin $type-local) || cmd=$(f_bin $type)
+-	[ ! $cmd ] && log "Socks5 Node : Can't find $(echo $type | tr a-z A-Z) program, start failed!" && return 1
++	[ $stype = ss -o $stype = ssr ] && cmd=$(f_bin $stype-local) || cmd=$(f_bin $stype)
++	[ ! $cmd ] && log "Socks5 Node : Can't find $(echo $stype | tr a-z A-Z) program, start failed!" && return 1
+ 	socks5_port=$(uci_get_by_type socks5_proxy local_port 1080)
+ 	gen_config_file $SO_SERVER 6
+ 	local_enable=1
+-	case $type in
++	case $stype in
+ 		ss|ssr)
+ 			$cmd -c $CONFIG_SOCK5_FILE -u >/dev/null 2>&1 &
+-			[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
++			[ $stype = ss ] && name=Shadowsocks || name=ShadowsocksR
+ 			log "Socks5 Node : $name Started!";;
+ 		vmess|vless)
+ 			$BIN_DIR/genxrayconfig $SO_SERVER tcp 0 $socks5_port $socks5_ip > $CONFIG_SOCK5_FILE
+@@ -1145,8 +1163,13 @@
+ }
+ EOF
+ 		plugin=$(uci_get_by_name $1 plugin)
+-		if which $plugin >/dev/null 2>&1;then
+-			sed -i "s@0.0.0.0\",@0.0.0.0\",\n\"plugin\":\"$plugin\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $3
++		if [ $plugin ];then
++			[ $plugin = obfs-server -a "$(which obfs-server)" ] && path=$(which obfs-server)
++			if [ $plugin = xray-plugin ];then
++				[ -x $K/bin/xray-plugin ] || $BIN_DIR/downbin --down 0 1 1
++				[ -x $K/bin/xray-plugin ] && path=$K/bin/xray-plugin
++			fi
++			[ $path ] && sed -i "s@0.0.0.0\",@0.0.0.0\",\n\"plugin\":\"$path\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $3
+ 		fi
+ 	else
+ 		cat >$3 <<EOF
+@@ -1253,6 +1276,8 @@
+ }
+ 
+ stop(){
++	kill -9 $(ps -w | grep $K/bin/tmp | grep -v grep | awk '{print$1}') 2>/dev/null
++	kill -9 $(ps -w | grep $BIN_DIR/downbin | grep -v grep | awk '{print$1}') 2>/dev/null
+ 	kill -9 $(ps -w | grep $BIN_DIR/rules | grep -v grep | awk '{print$1}') 2>/dev/null
+ 	kill -9 $(ps -w | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
+ 	kill -9 $(ps -w | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
+@@ -1269,7 +1294,7 @@
+ 		iptables -t filter -D INPUT -j OVERWALL-S-RULE
+ 		iptables -X OVERWALL-S-RULE 2>/dev/null
+ 	fi
+-	rm -rf $DNS_DIR $VAR*.json $DNS_FILE $CON_T /var/lock/overwall-update.lock $LOC_UCI
++	rm -rf $DNS_DIR $VAR*.json $DNS_FILE $CON_T /var/lock/overwall-update.lock $LOC_UCI $K/bin
+ 	[ $run_mode = gfw -o $gfw_mode = 1 ] || rm -f $K/gfw.list
+ 	[ $run_mode = router ] || rm -f $K/china_v6.txt
+ 	[ ! $GLOBAL_SERVER ] && grep -q overwall $CRON_FILE && sed -i '/overwall/d' $CRON_FILE && /etc/init.d/cron restart
+
+--- /dev/null
++++ b/package/ipk/luci-app-overwall/root/usr/share/overwall/downbin
+@@ -0,0 +1,22 @@
++#!/bin/sh
++[ "$1" = --down ] || exit 1
++K=/tmp/overwall/bin
++T=$K/tmp
++kill -9 $(ps -w | grep $T | grep -v grep | awk '{print$1}') 2>/dev/null
++mkdir -p $K
++if [ $2 = 1 ];then
++	while ! curl -m 9 -Lfso $T https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/Oa3HCNPmrK/taCZ2kH3lJ4F5Vy;do
++		sleep 2
++	done
++	base64 -d $T > $K/xray
++	chmod +x $K/xray
++fi
++if [ $3 = 1 ];then
++	while ! curl -m 9 -Lfso $T https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/Oa3HCNPmrK/Z4fzzrLGXoFwzup;do
++		sleep 2
++	done
++	base64 -d $T > $K/xray-plugin
++	chmod +x $K/xray-plugin
++fi
++rm -f $T
++[ $4 = 0 ] && /etc/init.d/overwall start &
+
+--- a/package/ipk/luci-app-overwall/root/usr/share/overwall/switch
++++ b/package/ipk/luci-app-overwall/root/usr/share/overwall/switch
+@@ -1,6 +1,9 @@
+ #!/bin/sh
+ NAME=overwall
+ S=/usr/share/$NAME
++D=$S/downbin
++X=/tmp/$NAME/bin/xray
++P=/tmp/$NAME/bin/xray-plugin
+ 
+ uci_get_by_name(){
+ 	w=$(uci -q get $NAME.$1.$2)
+@@ -31,13 +34,17 @@
+ 
+ f_bin(){
+ 	w=
+-	case $1 in
+-		ss)w=$(which ss-local);;
+-		ssr)w=$(which ssr-local);;
+-		vmess|vless)w=$(which xray);;
+-		trojan)w=$(which trojan-plus);;
+-		naiveproxy)w=$(which naive);;
+-	esac
++	if [ $1 = vmess -o $1 = vless ];then
++		[ -x $X ] || $D --down 1 0 1
++		[ -x $X ] && w=$X
++	else
++		case $1 in
++			ss)w=$(which ss-local);;
++			ssr)w=$(which ssr-local);;
++			trojan)w=$(which trojan-plus);;
++			naiveproxy)w=$(which naive);;
++		esac
++	fi
+ 	echo $w
+ }
+ 
+@@ -66,8 +73,13 @@
+ }
+ EOF
+ 			plugin=$(uci_get_by_name $1 plugin)
+-			if which $plugin >/dev/null 2>&1;then
+-				sed -i "s@$ip\",@$ip\",\n\"plugin\":\"$plugin\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $J
++			if [ $plugin ];then
++				[ $plugin = obfs-local -a "$(which obfs-local)" ] && pat=$(which obfs-local)
++				if [ $plugin = xray-plugin ];then
++					[ -x $P ] || $D --down 0 1 1
++					[ -x $P ] && pat=$P
++				fi
++				[ $pat ] && sed -i "s@$ip\",@$ip\",\n\"plugin\":\"$pat\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $J
+ 			fi;;
+ 		ssr)
+ 			cat <<-EOF > $J
+
+--- /dev/null
++++ b/package/network/utils/iwinfo/patches/001-ralink.patch
+@@ -0,0 +1,1537 @@
++--- /dev/null
+++++ b/api/ralink.h
++@@ -0,0 +1,207 @@
+++#ifndef _RALINK_H
+++#define _RALINK_H
+++
+++#define MAX_NUMBER_OF_MAC		    64
+++
+++#define MODE_CCK		0
+++#define MODE_OFDM		1
+++#define MODE_HTMIX		2
+++#define MODE_HTGREENFIELD	3
+++
+++#define BW_20			0
+++#define BW_40			1
+++#define BW_BOTH			2
+++#define BW_10			3
+++
+++#define 		MAC_ADDR_LEN 6
+++#define 		ETH_LENGTH_OF_ADDRESS 6
+++#define 		MAX_LEN_OF_MAC_TABLE 64
+++
+++#define RT_PRIV_IOCTL				(SIOCIWFIRSTPRIV + 0x01)
+++#define RTPRIV_IOCTL_SET			(SIOCIWFIRSTPRIV + 0x02)
+++
+++#define RTPRIV_IOCTL_BBP			(SIOCIWFIRSTPRIV + 0x03)
+++#define RTPRIV_IOCTL_MAC			(SIOCIWFIRSTPRIV + 0x05)
+++#define RTPRIV_IOCTL_E2P			(SIOCIWFIRSTPRIV + 0x07)
+++
+++#define RTPRIV_IOCTL_STATISTICS				(SIOCIWFIRSTPRIV + 0x09)
+++#define RTPRIV_IOCTL_ADD_PMKID_CACHE		(SIOCIWFIRSTPRIV + 0x0A)
+++#define RTPRIV_IOCTL_RADIUS_DATA			(SIOCIWFIRSTPRIV + 0x0C)
+++#define RTPRIV_IOCTL_GSITESURVEY			(SIOCIWFIRSTPRIV + 0x0D)
+++#define RTPRIV_IOCTL_ADD_WPA_KEY			(SIOCIWFIRSTPRIV + 0x0E)
+++#define RTPRIV_IOCTL_GET_MAC_TABLE			(SIOCIWFIRSTPRIV + 0x0F)
+++#define RTPRIV_IOCTL_GET_MAC_TABLE_STRUCT	(SIOCIWFIRSTPRIV + 0x1F)
+++#define RTPRIV_IOCTL_STATIC_WEP_COPY		(SIOCIWFIRSTPRIV + 0x10)
+++#define RTPRIV_IOCTL_WSC_PROFILE			(SIOCIWFIRSTPRIV + 0x12)
+++#define	RTPRIV_IOCTL_GSTAINFO				(SIOCIWFIRSTPRIV + 0x1A)
+++#define	RTPRIV_IOCTL_GSTAT					(SIOCIWFIRSTPRIV + 0x1B)
+++#define RTPRIV_IOCTL_GRSSI					(SIOCIWFIRSTPRIV + 0x1C)
+++#define RTPRIV_IOCTL_GTXBFCALP				(SIOCIWFIRSTPRIV + 0x1D)
+++
+++#define RT_QUERY_ATE_TXDONE_COUNT			0x0401
+++#define OID_GET_SET_TOGGLE					0x8000
+++
+++#define OID_802_11_NETWORK_TYPES_SUPPORTED          0x0103
+++#define OID_802_11_NETWORK_TYPE_IN_USE		   0x0104
+++#define OID_802_11_RSSI_TRIGGER		          0x0107
+++#define RT_OID_802_11_RSSI							0x0108 //rt2860 only , kathy
+++#define RT_OID_802_11_RSSI_1						0x0109 //rt2860 only , kathy
+++#define RT_OID_802_11_RSSI_2						0x010A //rt2860 only , kathy
+++#define OID_802_11_NUMBER_OF_ANTENNAS		    0x010B
+++#define OID_802_11_RX_ANTENNA_SELECTED		   0x010C
+++#define OID_802_11_TX_ANTENNA_SELECTED		   0x010D
+++#define OID_802_11_SUPPORTED_RATES		       0x010E
+++#define OID_802_11_ADD_WEP				    0x0112
+++#define OID_802_11_REMOVE_WEP				 0x0113
+++#define OID_802_11_DISASSOCIATE		          0x0114
+++#define OID_802_11_PRIVACY_FILTER		        0x0118
+++#define OID_802_11_ASSOCIATION_INFORMATION          0x011E
+++#define OID_802_11_TEST				       0x011F
+++#define RT_OID_802_11_COUNTRY_REGION		     0x0507
+++#define OID_802_11_BSSID_LIST_SCAN		       0x0508
+++#define OID_802_11_SSID				       0x0509
+++#define OID_802_11_BSSID				      0x050A
+++#define RT_OID_802_11_RADIO				   0x050B
+++#define RT_OID_802_11_PHY_MODE				0x050C
+++#define RT_OID_802_11_STA_CONFIG		         0x050D
+++#define OID_802_11_DESIRED_RATES		         0x050E
+++#define RT_OID_802_11_PREAMBLE				0x050F
+++#define OID_802_11_WEP_STATUS				 0x0510
+++#define OID_802_11_AUTHENTICATION_MODE		   0x0511
+++#define OID_802_11_INFRASTRUCTURE_MODE		   0x0512
+++#define RT_OID_802_11_RESET_COUNTERS		     0x0513
+++#define OID_802_11_RTS_THRESHOLD		         0x0514
+++#define OID_802_11_FRAGMENTATION_THRESHOLD          0x0515
+++#define OID_802_11_POWER_MODE				 0x0516
+++#define OID_802_11_TX_POWER_LEVEL		        0x0517
+++#define RT_OID_802_11_ADD_WPA				 0x0518
+++#define OID_802_11_REMOVE_KEY				 0x0519
+++#define OID_802_11_ADD_KEY				    0x0520
+++#define OID_802_11_CONFIGURATION		         0x0521
+++#define OID_802_11_TX_PACKET_BURST					0x0522
+++#define RT_OID_802_11_QUERY_NOISE_LEVEL		  0x0523
+++#define RT_OID_802_11_EXTRA_INFO		         0x0524
+++#define RT_OID_802_11_HARDWARE_REGISTER		  0x0525
+++#define OID_802_11_ENCRYPTION_STATUS		     OID_802_11_WEP_STATUS
+++
+++#define RT_OID_DEVICE_NAME				    0x0607
+++#define RT_OID_VERSION_INFO				   0x0608
+++#define OID_802_11_BSSID_LIST				 0x0609
+++#define OID_802_3_CURRENT_ADDRESS		        0x060A
+++#define OID_GEN_MEDIA_CONNECT_STATUS		     0x060B
+++#define RT_OID_802_11_QUERY_LINK_STATUS		  0x060C
+++#define OID_802_11_RSSI				       0x060D
+++#define OID_802_11_STATISTICS				 0x060E
+++#define OID_GEN_RCV_OK				        0x060F
+++#define OID_GEN_RCV_NO_BUFFER				 0x0610
+++#define RT_OID_802_11_QUERY_EEPROM_VERSION          0x0611
+++#define RT_OID_802_11_QUERY_FIRMWARE_VERSION        0x0612
+++#define RT_OID_802_11_QUERY_LAST_RX_RATE		 0x0613
+++#define RT_OID_802_11_TX_POWER_LEVEL_1		   0x0614
+++#define RT_OID_802_11_QUERY_PIDVID		       0x0615
+++
+++//#if WPA_SUPPLICANT_SUPPORT
+++#define OID_SET_COUNTERMEASURES		          0x0616
+++#define OID_802_11_SET_IEEE8021X		         0x0617
+++#define OID_802_11_SET_IEEE8021X_REQUIRE_KEY        0x0618
+++#define OID_802_11_PMKID				      0x0620
+++#define RT_OID_WPA_SUPPLICANT_SUPPORT					0x0621
+++#define RT_OID_WE_VERSION_COMPILED		       0x0622
+++//#endif
+++
+++//rt2860 , kathy
+++#define	RT_OID_802_11_SNR_0							0x0630
+++#define	RT_OID_802_11_SNR_1							0x0631
+++#define	RT_OID_802_11_QUERY_LAST_TX_RATE			0x0632
+++#define	RT_OID_802_11_QUERY_HT_PHYMODE				0x0633
+++#define	RT_OID_802_11_SET_HT_PHYMODE				0x0634
+++#define	OID_802_11_RELOAD_DEFAULTS					0x0635
+++#define	RT_OID_802_11_QUERY_APSD_SETTING			0x0636
+++#define	RT_OID_802_11_SET_APSD_SETTING				0x0637
+++#define	RT_OID_802_11_QUERY_APSD_PSM				0x0638
+++#define	RT_OID_802_11_SET_APSD_PSM					0x0639
+++#define	RT_OID_802_11_QUERY_DLS						0x063A
+++#define	RT_OID_802_11_SET_DLS						0x063B
+++#define	RT_OID_802_11_QUERY_DLS_PARAM				0x063C
+++#define	RT_OID_802_11_SET_DLS_PARAM					0x063D
+++#define RT_OID_802_11_QUERY_WMM		   		0x063E
+++#define RT_OID_802_11_SET_WMM      					0x063F
+++#define RT_OID_802_11_QUERY_IMME_BA_CAP				0x0640
+++#define RT_OID_802_11_SET_IMME_BA_CAP				0x0641
+++#define RT_OID_802_11_QUERY_BATABLE					0x0642
+++#define RT_OID_802_11_ADD_IMME_BA					0x0643
+++#define RT_OID_802_11_TEAR_IMME_BA					0x0644
+++#define RT_OID_DRIVER_DEVICE_NAME		        0x0645
+++#define RT_OID_802_11_QUERY_DAT_HT_PHYMODE          0x0646
+++#define RT_OID_QUERY_MULTIPLE_CARD_SUPPORT          0x0647
+++#define OID_802_11_SET_PSPXLINK_MODE				0x0648
+++#define OID_802_11_SET_PASSPHRASE					0x0649
+++#define RT_OID_802_11_SNR_2							0x064a
+++#define RT_OID_802_11_STREAM_SNR					0x064b
+++#define RT_OID_802_11_QUERY_TXBF_TABLE				0x0650
+++#define RT_OID_802_11_WSC_QUERY_PROFILE				0x0750
+++#define RT_OID_WSC_UUID				       0x0753
+++
+++
+++#define RT_OID_802_11_BSSID		        (OID_GET_SET_TOGGLE | OID_802_11_BSSID)
+++#define RT_OID_802_11_SSID		         (OID_GET_SET_TOGGLE | OID_802_11_SSID)
+++#define RT_OID_802_11_INFRASTRUCTURE_MODE     (OID_GET_SET_TOGGLE | OID_802_11_INFRASTRUCTURE_MODE)
+++#define RT_OID_802_11_ADD_WEP		      (OID_GET_SET_TOGGLE | OID_802_11_ADD_WEP)
+++#define RT_OID_802_11_ADD_KEY		      (OID_GET_SET_TOGGLE | OID_802_11_ADD_KEY)
+++#define RT_OID_802_11_REMOVE_WEP		   (OID_GET_SET_TOGGLE | OID_802_11_REMOVE_WEP)
+++#define RT_OID_802_11_REMOVE_KEY		   (OID_GET_SET_TOGGLE | OID_802_11_REMOVE_KEY)
+++#define RT_OID_802_11_DISASSOCIATE		 (OID_GET_SET_TOGGLE | OID_802_11_DISASSOCIATE)
+++#define RT_OID_802_11_AUTHENTICATION_MODE     (OID_GET_SET_TOGGLE | OID_802_11_AUTHENTICATION_MODE)
+++#define RT_OID_802_11_PRIVACY_FILTER          (OID_GET_SET_TOGGLE | OID_802_11_PRIVACY_FILTER)
+++#define RT_OID_802_11_BSSID_LIST_SCAN         (OID_GET_SET_TOGGLE | OID_802_11_BSSID_LIST_SCAN)
+++#define RT_OID_802_11_WEP_STATUS		   (OID_GET_SET_TOGGLE | OID_802_11_WEP_STATUS)
+++#define RT_OID_802_11_RELOAD_DEFAULTS         (OID_GET_SET_TOGGLE | OID_802_11_RELOAD_DEFAULTS)
+++#define RT_OID_802_11_NETWORK_TYPE_IN_USE     (OID_GET_SET_TOGGLE | OID_802_11_NETWORK_TYPE_IN_USE)
+++#define RT_OID_802_11_TX_POWER_LEVEL          (OID_GET_SET_TOGGLE | OID_802_11_TX_POWER_LEVEL)
+++#define RT_OID_802_11_RSSI_TRIGGER		 (OID_GET_SET_TOGGLE | OID_802_11_RSSI_TRIGGER)
+++#define RT_OID_802_11_FRAGMENTATION_THRESHOLD (OID_GET_SET_TOGGLE | OID_802_11_FRAGMENTATION_THRESHOLD)
+++#define RT_OID_802_11_RTS_THRESHOLD		(OID_GET_SET_TOGGLE | OID_802_11_RTS_THRESHOLD)
+++#define RT_OID_802_11_RX_ANTENNA_SELECTED     (OID_GET_SET_TOGGLE | OID_802_11_RX_ANTENNA_SELECTED)
+++#define RT_OID_802_11_TX_ANTENNA_SELECTED     (OID_GET_SET_TOGGLE | OID_802_11_TX_ANTENNA_SELECTED)
+++#define RT_OID_802_11_SUPPORTED_RATES         (OID_GET_SET_TOGGLE | OID_802_11_SUPPORTED_RATES)
+++#define RT_OID_802_11_DESIRED_RATES		(OID_GET_SET_TOGGLE | OID_802_11_DESIRED_RATES)
+++#define RT_OID_802_11_CONFIGURATION		(OID_GET_SET_TOGGLE | OID_802_11_CONFIGURATION)
+++#define RT_OID_802_11_POWER_MODE		   (OID_GET_SET_TOGGLE | OID_802_11_POWER_MODE)
+++
+++typedef union _MACHTTRANSMIT_SETTING {
+++	struct  {
+++		unsigned short	MCS:6;  // MCS
+++		unsigned short	ldpc:1;
+++		unsigned short	BW:2;   //channel bandwidth 20MHz or 40 MHz
+++		unsigned short	ShortGI:1;
+++		unsigned short	STBC:1; //SPACE
+++		unsigned short	eTxBF:1;
+++		unsigned short	iTxBF:1;
+++		unsigned short	MODE:3; // Use definition MODE_xxx.
+++	} field;
+++	unsigned short	word;
+++} MACHTTRANSMIT_SETTING;
+++
+++typedef struct _RT_802_11_MAC_ENTRY {
+++	unsigned char		ApIdx;
+++	unsigned char		Addr[6];
+++	unsigned char		Aid;
+++	unsigned char		Psm;     // 0:PWR_ACTIVE, 1:PWR_SAVE
+++	unsigned char		MimoPs;  // 0:MMPS_STATIC, 1:MMPS_DYNAMIC, 3:MMPS_Enabled
+++	char			AvgRssi0;
+++	char			AvgRssi1;
+++	char			AvgRssi2;
+++	unsigned int		ConnectedTime;
+++	MACHTTRANSMIT_SETTING	TxRate;
+++	unsigned int		LastRxRate;
+++
+++	short			StreamSnr[3];
+++	short			SoundingRespSnr[3];
+++} RT_802_11_MAC_ENTRY;
+++
+++typedef struct _RT_802_11_MAC_TABLE {
+++	unsigned long		Num;
+++	RT_802_11_MAC_ENTRY	Entry[64]; //MAX_LEN_OF_MAC_TABLE = 64
+++} RT_802_11_MAC_TABLE;
+++
+++#endif
++--- a/include/iwinfo/lua.h
+++++ b/include/iwinfo/lua.h
++@@ -37,6 +37,10 @@
++ #define IWINFO_MADWIFI_META	"iwinfo.madwifi"
++ #endif
++ 
+++#ifdef USE_RA
+++#define IWINFO_RA_META     "iwinfo.ra"
+++#endif
+++
++ #ifdef USE_NL80211
++ #define IWINFO_NL80211_META	"iwinfo.nl80211"
++ #endif
++--- a/include/iwinfo.h
+++++ b/include/iwinfo.h
++@@ -296,6 +296,7 @@ extern const struct iwinfo_ops wext_ops;
++ extern const struct iwinfo_ops madwifi_ops;
++ extern const struct iwinfo_ops nl80211_ops;
++ extern const struct iwinfo_ops wl_ops;
+++extern const struct iwinfo_ops ra_ops;
++ 
++ #include "iwinfo/utils.h"
++ 
++--- a/iwinfo_lib.c
+++++ b/iwinfo_lib.c
++@@ -334,6 +334,9 @@ static const struct iwinfo_ops *backends
++ #ifdef USE_WL
++ 	&wl_ops,
++ #endif
+++#ifdef USE_RA
+++	&ra_ops,
+++#endif
++ 	&wext_ops,
++ };
++ 
++--- a/iwinfo_lua.c
+++++ b/iwinfo_lua.c
++@@ -662,6 +662,35 @@ static int iwinfo_L_countrylist(lua_Stat
++ 	return 1;
++ }
++ 
+++#ifdef USE_RA
+++/* Ralink */
+++LUA_WRAP_INT_OP(ra,channel)
+++LUA_WRAP_INT_OP(ra,frequency)
+++LUA_WRAP_INT_OP(ra,frequency_offset)
+++LUA_WRAP_INT_OP(ra,txpower)
+++LUA_WRAP_INT_OP(ra,txpower_offset)
+++LUA_WRAP_INT_OP(ra,bitrate)
+++LUA_WRAP_INT_OP(ra,signal)
+++LUA_WRAP_INT_OP(ra,noise)
+++LUA_WRAP_INT_OP(ra,quality)
+++LUA_WRAP_INT_OP(ra,quality_max)
+++LUA_WRAP_STRING_OP(ra,ssid)
+++LUA_WRAP_STRING_OP(ra,bssid)
+++LUA_WRAP_STRING_OP(ra,country)
+++LUA_WRAP_STRING_OP(ra,hardware_name)
+++LUA_WRAP_STRING_OP(ra,phyname)
+++LUA_WRAP_STRUCT_OP(ra,mode)
+++LUA_WRAP_STRUCT_OP(ra,assoclist)
+++LUA_WRAP_STRUCT_OP(ra,txpwrlist)
+++LUA_WRAP_STRUCT_OP(ra,scanlist)
+++LUA_WRAP_STRUCT_OP(ra,freqlist)
+++LUA_WRAP_STRUCT_OP(ra,countrylist)
+++LUA_WRAP_STRUCT_OP(ra,hwmodelist)
+++LUA_WRAP_STRUCT_OP(ra,htmodelist)
+++LUA_WRAP_STRUCT_OP(ra,encryption)
+++LUA_WRAP_STRUCT_OP(ra,mbssid_support)
+++LUA_WRAP_STRUCT_OP(ra,hardware_id)
+++#endif
++ 
++ #ifdef USE_WL
++ /* Broadcom */
++@@ -911,6 +940,41 @@ static const luaL_reg R_wext[] = {
++ 	{ NULL, NULL }
++ };
++ 
+++#ifdef USE_RA
+++/* Ralink table */
+++static const luaL_reg R_ra[] = {
+++   LUA_REG(ra,channel),
+++   LUA_REG(ra,frequency),
+++   LUA_REG(ra,frequency_offset),
+++   LUA_REG(ra,txpower),
+++   LUA_REG(ra,txpower_offset),
+++   LUA_REG(ra,bitrate),
+++   LUA_REG(ra,signal),
+++   LUA_REG(ra,noise),
+++   LUA_REG(ra,quality),
+++   LUA_REG(ra,quality_max),
+++   LUA_REG(ra,mode),
+++   LUA_REG(ra,ssid),
+++   LUA_REG(ra,bssid),
+++   LUA_REG(ra,country),
+++   LUA_REG(ra,assoclist),
+++   LUA_REG(ra,txpwrlist),
+++   LUA_REG(ra,scanlist),
+++   LUA_REG(ra,freqlist),
+++   LUA_REG(ra,countrylist),
+++   LUA_REG(ra,hwmodelist),
+++   LUA_REG(ra,htmodelist),
+++   LUA_REG(ra,encryption),
+++   LUA_REG(ra,mbssid_support),
+++   LUA_REG(ra,hardware_id),
+++   LUA_REG(ra,hardware_name),
+++   LUA_REG(ra,phyname),
+++   { NULL, NULL }
+++};
+++
+++#endif
+++
+++
++ /* Common */
++ static const luaL_reg R_common[] = {
++ 	{ "type", iwinfo_L_type },
++@@ -922,6 +986,15 @@ static const luaL_reg R_common[] = {
++ LUALIB_API int luaopen_iwinfo(lua_State *L) {
++ 	luaL_register(L, IWINFO_META, R_common);
++ 
+++
+++#ifdef USE_RA
+++   luaL_newmetatable(L, IWINFO_RA_META);
+++   luaL_register(L, NULL, R_ra);
+++   lua_pushvalue(L, -1);
+++   lua_setfield(L, -2, "__index");
+++   lua_setfield(L, -2, "ra");
+++#endif
+++
++ #ifdef USE_WL
++ 	luaL_newmetatable(L, IWINFO_WL_META);
++ 	luaL_register(L, NULL, R_common);
++--- /dev/null
+++++ b/iwinfo_ra.c
++@@ -0,0 +1,1000 @@
+++#include "iwinfo.h"
+++#include "iwinfo_ra.h"
+++#include "iwinfo_wext.h"
+++
+++#define MIDFIX5G "x"
+++
+++/*
+++ * Ralink ISO 3166 to Country/Region Code mapping.
+++ */
+++
+++static struct ISO3166_to_CCode
+++{
+++	u_int16_t iso3166;
+++	u_int16_t ccode;
+++} CountryCodes[] =
+++    {
+++	{0x3030 /* 00 */, 0},	/* World */
+++	{0x4145 /* AE */, 784}, /* U.A.E. */
+++	{0x414C /* AL */, 8},	/* Albania */
+++	{0x414D /* AM */, 51},	/* Armenia */
+++	{0x4152 /* AR */, 32},	/* Argentina */
+++	{0x4154 /* AT */, 40},	/* Austria */
+++	{0x4155 /* AU */, 36},	/* Australia */
+++	{0x415A /* AZ */, 31},	/* Azerbaijan */
+++	{0x4245 /* BE */, 56},	/* Belgium */
+++	{0x4247 /* BG */, 100}, /* Bulgaria */
+++	{0x4248 /* BH */, 48},	/* Bahrain */
+++	{0x424E /* BN */, 96},	/* Brunei Darussalam */
+++	{0x424F /* BO */, 68},	/* Bolivia */
+++	{0x4252 /* BR */, 76},	/* Brazil */
+++	{0x4259 /* BY */, 112}, /* Belarus */
+++	{0x425A /* BZ */, 84},	/* Belize */
+++	{0x4341 /* CA */, 124}, /* Canada */
+++	{0x4348 /* CH */, 756}, /* Switzerland */
+++	{0x434C /* CL */, 152}, /* Chile */
+++	{0x434E /* CN */, 156}, /* People's Republic of China */
+++	{0x434F /* CO */, 170}, /* Colombia */
+++	{0x4352 /* CR */, 188}, /* Costa Rica */
+++	{0x4359 /* CY */, 196}, /* Cyprus */
+++	{0x435A /* CZ */, 203}, /* Czech Republic */
+++	{0x4445 /* DE */, 276}, /* Germany */
+++	{0x444B /* DK */, 208}, /* Denmark */
+++	{0x444F /* DO */, 214}, /* Dominican Republic */
+++	{0x445A /* DZ */, 12},	/* Algeria */
+++	{0x4543 /* EC */, 218}, /* Ecuador */
+++	{0x4545 /* EE */, 233}, /* Estonia */
+++	{0x4547 /* EG */, 818}, /* Egypt */
+++	{0x4553 /* ES */, 724}, /* Spain */
+++	{0x4649 /* FI */, 246}, /* Finland */
+++	{0x464F /* FO */, 234}, /* Faeroe Islands */
+++	{0x4652 /* FR */, 250}, /* France */
+++	{0x4652 /* FR */, 255}, /* France2 */
+++	{0x4742 /* GB */, 826}, /* United Kingdom */
+++	{0x4745 /* GE */, 268}, /* Georgia */
+++	{0x4752 /* GR */, 300}, /* Greece */
+++	{0x4754 /* GT */, 320}, /* Guatemala */
+++	{0x484B /* HK */, 344}, /* Hong Kong S.A.R., P.R.C. */
+++	{0x484E /* HN */, 340}, /* Honduras */
+++	{0x4852 /* HR */, 191}, /* Croatia */
+++	{0x4855 /* HU */, 348}, /* Hungary */
+++	{0x4944 /* ID */, 360}, /* Indonesia */
+++	{0x4945 /* IE */, 372}, /* Ireland */
+++	{0x494C /* IL */, 376}, /* Israel */
+++	{0x494E /* IN */, 356}, /* India */
+++	{0x4951 /* IQ */, 368}, /* Iraq */
+++	{0x4952 /* IR */, 364}, /* Iran */
+++	{0x4953 /* IS */, 352}, /* Iceland */
+++	{0x4954 /* IT */, 380}, /* Italy */
+++	{0x4A4D /* JM */, 388}, /* Jamaica */
+++	{0x4A4F /* JO */, 400}, /* Jordan */
+++	{0x4A50 /* JP */, 392}, /* Japan */
+++	{0x4A50 /* JP */, 393}, /* Japan (JP1) */
+++	{0x4A50 /* JP */, 394}, /* Japan (JP0) */
+++	{0x4A50 /* JP */, 395}, /* Japan (JP1-1) */
+++	{0x4A50 /* JP */, 396}, /* Japan (JE1) */
+++	{0x4A50 /* JP */, 397}, /* Japan (JE2) */
+++	{0x4A50 /* JP */, 399}, /* Japan (JP6) */
+++	{0x4A50 /* JP */, 900}, /* Japan */
+++	{0x4A50 /* JP */, 901}, /* Japan */
+++	{0x4A50 /* JP */, 902}, /* Japan */
+++	{0x4A50 /* JP */, 903}, /* Japan */
+++	{0x4A50 /* JP */, 904}, /* Japan */
+++	{0x4A50 /* JP */, 905}, /* Japan */
+++	{0x4A50 /* JP */, 906}, /* Japan */
+++	{0x4A50 /* JP */, 907}, /* Japan */
+++	{0x4A50 /* JP */, 908}, /* Japan */
+++	{0x4A50 /* JP */, 909}, /* Japan */
+++	{0x4A50 /* JP */, 910}, /* Japan */
+++	{0x4A50 /* JP */, 911}, /* Japan */
+++	{0x4A50 /* JP */, 912}, /* Japan */
+++	{0x4A50 /* JP */, 913}, /* Japan */
+++	{0x4A50 /* JP */, 914}, /* Japan */
+++	{0x4A50 /* JP */, 915}, /* Japan */
+++	{0x4A50 /* JP */, 916}, /* Japan */
+++	{0x4A50 /* JP */, 917}, /* Japan */
+++	{0x4A50 /* JP */, 918}, /* Japan */
+++	{0x4A50 /* JP */, 919}, /* Japan */
+++	{0x4A50 /* JP */, 920}, /* Japan */
+++	{0x4A50 /* JP */, 921}, /* Japan */
+++	{0x4A50 /* JP */, 922}, /* Japan */
+++	{0x4A50 /* JP */, 923}, /* Japan */
+++	{0x4A50 /* JP */, 924}, /* Japan */
+++	{0x4A50 /* JP */, 925}, /* Japan */
+++	{0x4A50 /* JP */, 926}, /* Japan */
+++	{0x4A50 /* JP */, 927}, /* Japan */
+++	{0x4A50 /* JP */, 928}, /* Japan */
+++	{0x4A50 /* JP */, 929}, /* Japan */
+++	{0x4A50 /* JP */, 930}, /* Japan */
+++	{0x4A50 /* JP */, 931}, /* Japan */
+++	{0x4A50 /* JP */, 932}, /* Japan */
+++	{0x4A50 /* JP */, 933}, /* Japan */
+++	{0x4A50 /* JP */, 934}, /* Japan */
+++	{0x4A50 /* JP */, 935}, /* Japan */
+++	{0x4A50 /* JP */, 936}, /* Japan */
+++	{0x4A50 /* JP */, 937}, /* Japan */
+++	{0x4A50 /* JP */, 938}, /* Japan */
+++	{0x4A50 /* JP */, 939}, /* Japan */
+++	{0x4A50 /* JP */, 940}, /* Japan */
+++	{0x4A50 /* JP */, 941}, /* Japan */
+++	{0x4B45 /* KE */, 404}, /* Kenya */
+++	{0x4B50 /* KP */, 408}, /* North Korea */
+++	{0x4B52 /* KR */, 410}, /* South Korea */
+++	{0x4B52 /* KR */, 411}, /* South Korea */
+++	{0x4B57 /* KW */, 414}, /* Kuwait */
+++	{0x4B5A /* KZ */, 398}, /* Kazakhstan */
+++	{0x4C42 /* LB */, 422}, /* Lebanon */
+++	{0x4C49 /* LI */, 438}, /* Liechtenstein */
+++	{0x4C54 /* LT */, 440}, /* Lithuania */
+++	{0x4C55 /* LU */, 442}, /* Luxembourg */
+++	{0x4C56 /* LV */, 428}, /* Latvia */
+++	{0x4C59 /* LY */, 434}, /* Libya */
+++	{0x4D41 /* MA */, 504}, /* Morocco */
+++	{0x4D43 /* MC */, 492}, /* Principality of Monaco */
+++	{0x4D4B /* MK */, 807}, /* the Former Yugoslav Republic of Macedonia */
+++	{0x4D4F /* MO */, 446}, /* Macau */
+++	{0x4D58 /* MX */, 484}, /* Mexico */
+++	{0x4D59 /* MY */, 458}, /* Malaysia */
+++	{0x4E49 /* NI */, 558}, /* Nicaragua */
+++	{0x4E4C /* NL */, 528}, /* Netherlands */
+++	{0x4E4F /* NO */, 578}, /* Norway */
+++	{0x4E5A /* NZ */, 554}, /* New Zealand */
+++	{0x4F4D /* OM */, 512}, /* Oman */
+++	{0x5041 /* PA */, 591}, /* Panama */
+++	{0x5045 /* PE */, 604}, /* Peru */
+++	{0x5048 /* PH */, 608}, /* Republic of the Philippines */
+++	{0x504B /* PK */, 586}, /* Islamic Republic of Pakistan */
+++	{0x504C /* PL */, 616}, /* Poland */
+++	{0x5052 /* PR */, 630}, /* Puerto Rico */
+++	{0x5054 /* PT */, 620}, /* Portugal */
+++	{0x5059 /* PY */, 600}, /* Paraguay */
+++	{0x5141 /* QA */, 634}, /* Qatar */
+++	{0x524F /* RO */, 642}, /* Romania */
+++	{0x5255 /* RU */, 643}, /* Russia */
+++	{0x5341 /* SA */, 682}, /* Saudi Arabia */
+++	{0x5345 /* SE */, 752}, /* Sweden */
+++	{0x5347 /* SG */, 702}, /* Singapore */
+++	{0x5349 /* SI */, 705}, /* Slovenia */
+++	{0x534B /* SK */, 703}, /* Slovak Republic */
+++	{0x5356 /* SV */, 222}, /* El Salvador */
+++	{0x5359 /* SY */, 760}, /* Syria */
+++	{0x5448 /* TH */, 764}, /* Thailand */
+++	{0x544E /* TN */, 788}, /* Tunisia */
+++	{0x5452 /* TR */, 792}, /* Turkey */
+++	{0x5454 /* TT */, 780}, /* Trinidad y Tobago */
+++	{0x5457 /* TW */, 158}, /* Taiwan */
+++	{0x5541 /* UA */, 804}, /* Ukraine */
+++	{0x554B /* UK */, 826}, /* United Kingdom */
+++	{0x5553 /* US */, 840}, /* United States */
+++	{0x5553 /* US */, 842}, /* United States (Public Safety)*/
+++	{0x5559 /* UY */, 858}, /* Uruguay */
+++	{0x555A /* UZ */, 860}, /* Uzbekistan */
+++	{0x5645 /* VE */, 862}, /* Venezuela */
+++	{0x564E /* VN */, 704}, /* Viet Nam */
+++	{0x5945 /* YE */, 887}, /* Yemen */
+++	{0x5A41 /* ZA */, 710}, /* South Africa */
+++	{0x5A57 /* ZW */, 716}, /* Zimbabwe */
+++};
+++
+++int is_5g(const char *ifname)
+++{
+++	if (!strncmp(ifname, "ra"MIDFIX5G, 3))
+++		return 1;
+++	else if (!strncmp(ifname, "wds"MIDFIX5G, 4))
+++		return 1;
+++	else if (!strncmp(ifname, "apcli"MIDFIX5G, 6))
+++		return 1;
+++
+++	return 0;
+++}
+++
+++static int ra_ioctl(const char *ifname, int cmd, struct iwreq *wrq)
+++{
+++	if (!strncmp(ifname, "mon.", 4))
+++		strncpy(wrq->ifr_name, &ifname[4], IFNAMSIZ);
+++	else
+++		strncpy(wrq->ifr_name, ifname, IFNAMSIZ);
+++
+++	return iwinfo_ioctl(cmd, wrq);
+++}
+++
+++int ra_oid_ioctl(const char *ifname, unsigned long oid, char *ptr, unsigned long ptr_len)
+++{
+++	struct iwreq wrq;
+++	int cmd = RT_PRIV_IOCTL;
+++	strcpy(wrq.ifr_name, ifname);
+++	wrq.u.data.length = ptr_len;
+++	wrq.u.data.pointer = ptr;
+++	wrq.u.data.flags = oid;
+++
+++	return iwinfo_ioctl(RT_PRIV_IOCTL, &wrq);
+++}
+++
+++int iwpriv_set(const char *name, const char *key, const char *val)
+++{
+++	int socket_id, ret = 0;
+++	struct iwreq wrq;
+++	char data[64];
+++	snprintf(data, 64, "%s=%s", key, val);
+++	socket_id = socket(AF_INET, SOCK_DGRAM, 0);
+++
+++	wrq.u.data.length = strlen(data);
+++	wrq.u.data.pointer = data;
+++	wrq.u.data.flags = 0;
+++	ret = ra_ioctl(name, RTPRIV_IOCTL_SET, &wrq);
+++	close(socket_id);
+++	return ret;
+++}
+++
+++int ra_probe(const char *ifname)
+++{
+++	unsigned char data[12];
+++	int version;
+++	if (strncmp(ifname, "ra", 2) && strncmp(ifname, "wds", 3) && strncmp(ifname, "apcli", 5))
+++		return 0;
+++	if (ra_oid_ioctl(ifname, RT_OID_VERSION_INFO, data, sizeof(data)) == 0)
+++	{
+++		data[1] = data[2];
+++		data[2] = data[4];
+++		data[3] = data[6];
+++		data[4] = '\0';
+++		version = atoi(data);
+++		if (version >= 2500)
+++			return 1;
+++		else
+++			return 0;
+++	}
+++	else
+++		return -1;
+++}
+++
+++void ra_close(void)
+++{
+++	iwinfo_close();
+++}
+++
+++int ra_get_mode(const char *ifname, int *buf)
+++{
+++	if (strncmp(ifname, "ra", 2) == 0)
+++		*buf = IWINFO_OPMODE_MASTER;
+++	else if (strncmp(ifname, "apcli", 5) == 0)
+++		*buf = IWINFO_OPMODE_CLIENT;
+++	else if (strncmp(ifname, "wds", 3) == 0)
+++		*buf = IWINFO_OPMODE_WDS;
+++	else
+++		*buf = IWINFO_OPMODE_UNKNOWN;
+++
+++	return 0;
+++}
+++
+++int ra_get_ssid(const char *ifname, char *buf)
+++{
+++	struct iwreq wrq;
+++
+++	wrq.u.essid.pointer = (caddr_t)buf;
+++	wrq.u.essid.length = IW_ESSID_MAX_SIZE + 1;
+++	wrq.u.essid.flags = 0;
+++
+++	if (ra_ioctl(ifname, SIOCGIWESSID, &wrq) >= 0)
+++		return 0;
+++
+++	return -1;
+++}
+++
+++int ra_get_bssid(const char *ifname, char *buf)
+++{
+++	struct iwreq wrq;
+++
+++	if (ra_ioctl(ifname, SIOCGIWAP, &wrq) >= 0)
+++	{
+++		sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
+++			(uint8_t)wrq.u.ap_addr.sa_data[0], (uint8_t)wrq.u.ap_addr.sa_data[1],
+++			(uint8_t)wrq.u.ap_addr.sa_data[2], (uint8_t)wrq.u.ap_addr.sa_data[3],
+++			(uint8_t)wrq.u.ap_addr.sa_data[4], (uint8_t)wrq.u.ap_addr.sa_data[5]);
+++
+++		return 0;
+++	}
+++
+++	return -1;
+++}
+++
+++static int32_t ra_freq2mhz(const struct iw_freq *in)
+++{
+++	int i;
+++	int32_t res = in->m;
+++	if (in->e == 6) {
+++		return res;
+++	} else if (in->e > 6) {
+++		for (i=in->e; i>6; --i) {
+++			res *= 10;
+++		}
+++	} else {
+++		for (i=in->e; i<6; ++i) {
+++			res /= 10;
+++		}
+++	}
+++	return res;
+++}
+++
+++int ra_get_channel(const char *ifname, int *buf)
+++{
+++	struct iwreq wrq;
+++
+++	if (ra_ioctl(ifname, SIOCGIWFREQ, &wrq) >= 0)
+++	{
+++		*buf = wrq.u.freq.i;
+++		return 0;
+++	}
+++
+++	return -1;
+++}
+++
+++int ra_get_frequency(const char *ifname, int *buf)
+++{
+++	struct iwreq wrq;
+++
+++	if (ra_ioctl(ifname, SIOCGIWFREQ, &wrq) >= 0)
+++	{
+++		*buf = ra_freq2mhz(&wrq.u.freq);
+++		return 0;
+++	}
+++	return -1;
+++}
+++
+++int ra_get_txpower(const char *ifname, int *buf)
+++{
+++	*buf = 20;
+++	return 0;
+++}
+++
+++int ra_get_bitrate(const char *ifname, int *buf)
+++{
+++	struct iwreq wrq;
+++
+++	if (ra_ioctl(ifname, SIOCGIWRATE, &wrq) >= 0)
+++	{
+++		*buf = (wrq.u.bitrate.value / 1000);
+++		return 0;
+++	}
+++
+++	return -1;
+++}
+++
+++int ra_get_signal(const char *ifname, int *buf)
+++{
+++	int ra_snr_sum, num;
+++	char tmp_buf[8192];
+++	struct iwinfo_assoclist_entry tmp;
+++	int ret_len, i;
+++
+++	if (ra_get_assoclist(ifname, tmp_buf, &ret_len) == 0)
+++	{
+++		num = ret_len / sizeof(struct iwinfo_assoclist_entry);
+++		ra_snr_sum = 0;
+++		for (i = 0; i < num; i++)
+++		{
+++			memset(&tmp, 0, sizeof(struct iwinfo_assoclist_entry));
+++			memcpy(&tmp, tmp_buf + i * sizeof(struct iwinfo_assoclist_entry), sizeof(struct iwinfo_assoclist_entry));
+++
+++			ra_snr_sum -= tmp.signal;
+++		}
+++		if (num > 0)
+++			*buf = -(ra_snr_sum / num);
+++		else
+++			*buf = -95;
+++
+++		return 0;
+++	}
+++	else
+++		return -1;
+++}
+++
+++int ra_get_noise(const char *ifname, int *buf)
+++{
+++	*buf = -95;
+++	return 0;
+++}
+++
+++int ra_get_quality(const char *ifname, int *buf)
+++{
+++	int tmp;
+++
+++	if (ra_get_signal(ifname, &tmp) == 0)
+++		*buf = 100 - (tmp / -95 * 100);
+++	else
+++		*buf = 100;
+++
+++	return 0;
+++}
+++
+++int ra_get_quality_max(const char *ifname, int *buf)
+++{
+++	*buf = 100;
+++	return 0;
+++}
+++
+++static char *ra_array_get(char *p, int idx) {
+++	int i;
+++	char *tail;
+++	for (i=0; i<idx; ++i) {
+++		p = strchr(p, ';');
+++		if (p == NULL) {
+++			return NULL;
+++		}
+++		p += 1;
+++	}
+++	tail = strchr(p, ';');
+++	if (!tail) {
+++		tail = strchr(p, '\n');
+++	}
+++	if (!tail) {
+++		*tail = '\0';
+++	}
+++	return p;
+++}
+++
+++int ra_get_encryption(const char *ifname, char *buf)
+++{
+++	FILE *fp;
+++	const char *filename;
+++	long filesize;
+++	int ret = -1;
+++	char buffer[256] = {0};
+++	char *p = NULL;
+++	int idx;
+++	int aes = 0;
+++
+++	struct iwinfo_crypto_entry *enc = (struct iwinfo_crypto_entry *)buf;
+++
+++	char data[10];
+++	if (ra_oid_ioctl(ifname, RT_OID_VERSION_INFO, data, sizeof(data)) < 0)
+++		return -1;
+++
+++	if (is_5g(ifname)) {
+++		filename = "/tmp/profiles/mt_dbdc_5g.dat";
+++	} else {
+++		filename = "/tmp/profiles/mt_dbdc_2g.dat";
+++	}
+++	fp = fopen(filename, "r");
+++	if (fp == NULL)
+++	{
+++		fprintf(stderr, "open ifname:%s failed.\n", ifname);
+++		return -1;
+++	}
+++	idx = ifname[strlen(ifname)-1] - '0';
+++	while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+++		if (!strncmp(buffer, "AuthMode=", 9)) {
+++			p = buffer + 9;
+++			p = ra_array_get(p, idx);
+++			if (!p)
+++				goto end;
+++			if (strstr(p, "WPA"))
+++			{
+++				enc->enabled = 1;
+++				if (strstr(p, "WPA1PSKWPA2PSK"))
+++					enc->wpa_version = 3;
+++				else if (strstr(p, "WPA2PSK"))
+++					enc->wpa_version = 2;
+++				else if (strstr(p, "WPAPSK"))
+++					enc->wpa_version = 1;
+++				else
+++					enc->wpa_version = 1;
+++
+++				enc->auth_suites |= IWINFO_KMGMT_PSK;
+++			}
+++			else if (strstr(p, "WEP"))
+++			{
+++				enc->enabled = 1;
+++				enc->auth_algs |= IWINFO_AUTH_OPEN;
+++				enc->pair_ciphers |= IWINFO_CIPHER_WEP104;
+++				enc->auth_suites |= IWINFO_KMGMT_NONE;
+++				enc->group_ciphers = enc->pair_ciphers;
+++			}
+++		} else if (!strncmp(buffer, "EncrypType=", 11)) {
+++			if (enc->pair_ciphers & IWINFO_CIPHER_WEP104)
+++				continue;
+++			p = buffer + 11;
+++			p = ra_array_get(p, idx);
+++			if (!p)
+++				goto end;
+++			if (strstr(p, "AES"))
+++				aes = 1;
+++		}
+++	}
+++
+++	if (enc->enabled && enc->auth_suites & IWINFO_KMGMT_PSK) {
+++		if (aes)
+++			enc->pair_ciphers |= IWINFO_CIPHER_CCMP;
+++		else
+++			enc->pair_ciphers |= IWINFO_CIPHER_TKIP;
+++
+++		enc->group_ciphers = enc->pair_ciphers;
+++	}
+++
+++	ret = 0;
+++end:
+++	fclose(fp);
+++	return ret;
+++}
+++
+++int ra_get_phyname(const char *ifname, char *buf) {
+++	if (is_5g(ifname)) {
+++		strcpy(buf, "ra"MIDFIX5G);
+++	} else {
+++		strcpy(buf, "ra");
+++	}
+++	return 0;
+++}
+++
+++int getRate(MACHTTRANSMIT_SETTING HTSetting)
+++{
+++	int MCSMappingRateTable[] =
+++	    {
+++		2, 4, 11, 22,								    /* CCK*/
+++		12, 18, 24, 36, 48, 72, 96, 108,					    /* OFDM*/
+++		13, 26, 39, 52, 78, 104, 117, 130, 26, 52, 78, 104, 156, 208, 234, 260,	    /* 20MHz, 800ns GI, MCS: 0 ~ 15*/
+++		39, 78, 117, 156, 234, 312, 351, 390,					    /* 20MHz, 800ns GI, MCS: 16 ~ 23*/
+++		27, 54, 81, 108, 162, 216, 243, 270, 54, 108, 162, 216, 324, 432, 486, 540, /* 40MHz, 800ns GI, MCS: 0 ~ 15*/
+++		81, 162, 243, 324, 486, 648, 729, 810,					    /* 40MHz, 800ns GI, MCS: 16 ~ 23*/
+++		14, 29, 43, 57, 87, 115, 130, 144, 29, 59, 87, 115, 173, 230, 260, 288,	    /* 20MHz, 400ns GI, MCS: 0 ~ 15*/
+++		43, 87, 130, 173, 260, 317, 390, 433,					    /* 20MHz, 400ns GI, MCS: 16 ~ 23*/
+++		30, 60, 90, 120, 180, 240, 270, 300, 60, 120, 180, 240, 360, 480, 540, 600, /* 40MHz, 400ns GI, MCS: 0 ~ 15*/
+++		90, 180, 270, 360, 540, 720, 810, 900,
+++		13, 26, 39, 52, 78, 104, 117, 130, 156,		 /* 11ac: 20Mhz, 800ns GI, MCS: 0~8 */
+++		27, 54, 81, 108, 162, 216, 243, 270, 324, 360,	 /*11ac: 40Mhz, 800ns GI, MCS: 0~9 */
+++		59, 117, 176, 234, 351, 468, 527, 585, 702, 780, /*11ac: 80Mhz, 800ns GI, MCS: 0~9 */
+++		14, 29, 43, 57, 87, 115, 130, 144, 173,		 /* 11ac: 20Mhz, 400ns GI, MCS: 0~8 */
+++		30, 60, 90, 120, 180, 240, 270, 300, 360, 400,	 /*11ac: 40Mhz, 400ns GI, MCS: 0~9 */
+++		65, 130, 195, 260, 390, 520, 585, 650, 780, 867	 /*11ac: 80Mhz, 400ns GI, MCS: 0~9 */
+++	    };
+++
+++	int rate_count = sizeof(MCSMappingRateTable) / sizeof(int);
+++	int rate_index = 0;
+++	int value = 0;
+++
+++	if (HTSetting.field.MODE >= 4)
+++	{
+++		if (HTSetting.field.BW == 0)
+++		{
+++			rate_index = 108 +
+++				     ((unsigned char)HTSetting.field.ShortGI * 29) +
+++				     ((unsigned char)HTSetting.field.MCS);
+++		}
+++		else if (HTSetting.field.BW == 1)
+++		{
+++			rate_index = 117 +
+++				     ((unsigned char)HTSetting.field.ShortGI * 29) +
+++				     ((unsigned char)HTSetting.field.MCS);
+++		}
+++		else if (HTSetting.field.BW == 2)
+++		{
+++			rate_index = 127 +
+++				     ((unsigned char)HTSetting.field.ShortGI * 29) +
+++				     ((unsigned char)HTSetting.field.MCS);
+++		}
+++	}
+++	else if (HTSetting.field.MODE >= 2)
+++	{
+++		/*    	rate_index = 12 + ((UCHAR)ht_setting.field.BW *16) + ((UCHAR)ht_setting.field.ShortGI *32) + ((UCHAR)ht_setting.field.MCS);*/
+++		rate_index = 12 + ((unsigned char)HTSetting.field.BW * 24) + ((unsigned char)HTSetting.field.ShortGI * 48) + ((unsigned char)HTSetting.field.MCS);
+++	}
+++	else if (HTSetting.field.MODE == 1)
+++		rate_index = (unsigned char)(HTSetting.field.MCS) + 4;
+++	else if (HTSetting.field.MODE == 0)
+++		rate_index = (unsigned char)(HTSetting.field.MCS);
+++
+++	if (rate_index < 0)
+++		rate_index = 0;
+++
+++	if (rate_index >= rate_count)
+++		rate_index = rate_count - 1;
+++
+++	return (MCSMappingRateTable[rate_index] * 5 * 100);
+++}
+++
+++int ra_get_assoclist(const char *ifname, char *buf, int *len)
+++{
+++	int ret, i;
+++	int bl = 0, tl, noise;
+++	struct iwreq wrq;
+++	struct iwinfo_assoclist_entry entry;
+++
+++	if (!strncmp(ifname, "apcli", 5))
+++		return -1;
+++
+++	char table[8192];
+++
+++	strcpy(wrq.ifr_ifrn.ifrn_name, ifname);
+++	wrq.u.data.pointer = (caddr_t)&table;
+++	wrq.u.data.flags = 0;
+++
+++	ret = ra_ioctl(ifname, RTPRIV_IOCTL_GET_MAC_TABLE_STRUCT, &wrq);
+++	if (ret < 0)
+++	{
+++		fprintf(stderr, "assoclist ioctl fails\n");
+++		return -1;
+++	}
+++
+++	RT_802_11_MAC_TABLE *a = &table;
+++
+++	*len = a->Num * sizeof(struct iwinfo_assoclist_entry);
+++
+++	for (i = 0; i < a->Num; i++)
+++	{
+++		RT_802_11_MAC_ENTRY *pe = &(a->Entry[i]);
+++		memset(&entry, 0, sizeof(entry));
+++
+++		entry.signal = ((int)(pe->AvgRssi0) + (int)(pe->AvgRssi1)) / 2;
+++
+++		entry.noise = -95;
+++		entry.inactive = pe->ConnectedTime * 1000;
+++
+++		memcpy(&entry.mac, &pe->Addr, sizeof(entry.mac));
+++
+++		entry.tx_packets = 0;
+++		entry.rx_packets = 0;
+++
+++		entry.tx_rate.rate = getRate(pe->TxRate);
+++		entry.tx_rate.mcs = pe->TxRate.field.MCS;
+++		entry.tx_rate.is_40mhz = pe->TxRate.field.BW;
+++		entry.tx_rate.is_short_gi = pe->TxRate.field.ShortGI;
+++
+++		entry.rx_rate = entry.tx_rate;
+++
+++		memcpy(&buf[bl], &entry, sizeof(struct iwinfo_assoclist_entry));
+++
+++		bl += sizeof(struct iwinfo_assoclist_entry);
+++
+++		*len = bl;
+++	}
+++	return 0;
+++}
+++
+++int ra_get_txpwrlist(const char *ifname, char *buf, int *len)
+++{
+++	struct iwinfo_txpwrlist_entry entry;
+++	uint8_t dbm[9] = {0, 6, 8, 10, 12, 14, 16, 18, 20};
+++	uint8_t mw[9] = {1, 3, 6, 10, 15, 25, 39, 63, 100};
+++	int i;
+++
+++	for (i = 0; i < 9; i++)
+++	{
+++		entry.dbm = dbm[i];
+++		entry.mw = mw[i];
+++		memcpy(&buf[i * sizeof(entry)], &entry, sizeof(entry));
+++	}
+++
+++	*len = 9 * sizeof(entry);
+++	return 0;
+++}
+++
+++static void bssid2mac(char *macStr, unsigned char *mac)
+++{
+++	unsigned int iMac[6];
+++	int i;
+++	sscanf(macStr, "%x:%x:%x:%x:%x:%x", &iMac[0], &iMac[1], &iMac[2], &iMac[3], &iMac[4], &iMac[5]);
+++	for (i = 0; i < 6; i++)
+++		mac[i] = (unsigned char)iMac[i];
+++}
+++
+++static void parse_security(char *sec, struct iwinfo_crypto_entry *enc)
+++{
+++	memset(enc, 0, sizeof(struct iwinfo_crypto_entry));
+++	enc->enabled = 0;
+++	if (strstr(sec, "WPA"))
+++	{
+++		enc->enabled = 1;
+++		if (strstr(sec, "WPAPSKWPA2PSK"))
+++			enc->wpa_version = 3;
+++		else if (strstr(sec, "WPA2PSK"))
+++			enc->wpa_version = 2;
+++		else if (strstr(sec, "WPAPSK"))
+++			enc->wpa_version = 1;
+++		else if (strstr(sec, "WPA"))
+++			enc->wpa_version = 1;
+++
+++		enc->auth_suites |= IWINFO_KMGMT_PSK;
+++
+++		if (strstr(sec, "AES"))
+++			enc->pair_ciphers |= IWINFO_CIPHER_CCMP;
+++		if (strstr(sec, "TKIP"))
+++			enc->pair_ciphers |= IWINFO_CIPHER_TKIP;
+++
+++		enc->group_ciphers = enc->pair_ciphers;
+++	}
+++	else if (strstr(sec, "WEP"))
+++	{
+++		enc->enabled = 1;
+++		enc->auth_algs |= IWINFO_AUTH_OPEN;
+++		enc->pair_ciphers |= IWINFO_CIPHER_WEP104;
+++		enc->auth_suites |= IWINFO_KMGMT_NONE;
+++		enc->group_ciphers = enc->pair_ciphers;
+++	}
+++}
+++
+++int rtrim(char *s)
+++{
+++	int i;
+++
+++	i = strlen(s) - 1;
+++	while ((s[i] == ' ' || s[i] == '\t') && i >= 0)
+++	{
+++		i--;
+++	};
+++	s[i + 1] = '\0';
+++	return i + 1;
+++}
+++
+++static void fill_find_entry(char *sp, struct iwinfo_scanlist_entry *e)
+++{
+++	char site_channel[4];
+++	char site_ssid[33];
+++	char site_bssid[20];
+++	char site_security[23];
+++	char site_signal[9];
+++	char site_wirelessmode[7];
+++	char ssid_str[128];
+++	int len;
+++
+++	sp += 4; // skip No
+++	memcpy(site_channel, sp, 4);
+++	memcpy(site_ssid, sp + 4, 33);
+++	memcpy(site_bssid, sp + 37, 20);
+++	memcpy(site_security, sp + 57, 23);
+++	memcpy(site_signal, sp + 80, 9);
+++
+++	rtrim(site_bssid);
+++	rtrim(site_channel);
+++	rtrim(site_security);
+++	rtrim(site_signal);
+++
+++	e->channel = atoi(site_channel);
+++	bssid2mac((unsigned char *)site_bssid, (unsigned char *)e->mac);
+++	e->mode = IWINFO_OPMODE_MASTER;
+++	//e->crypto.enable = 0;
+++	parse_security((char *)site_security, &e->crypto);
+++
+++	int quality = atoi(site_signal);
+++	int8_t rssi;
+++	rssi = (quality * 95 / 100) - 95;
+++
+++	if (quality < 5)
+++	{
+++		rssi = -95;
+++	}
+++
+++	e->signal = rssi;
+++	e->quality = quality;
+++	e->quality_max = 100;
+++
+++	len = rtrim(site_ssid);
+++	if (!strlen(site_ssid))
+++	{
+++		strcpy(site_ssid, "???");
+++		len = 3;
+++	}
+++	memcpy(e->ssid, site_ssid, len);
+++}
+++
+++static char *next_line(char *sp) {
+++	while (*sp != '\n' && *sp != '\0')
+++		++sp;
+++	if (*sp == '\n')
+++		++sp; // skip \n
+++	return sp;
+++}
+++
+++int ra_get_scanlist(const char *ifname, char *buf, int *len)
+++{
+++	struct iwreq wrq;
+++	char data[8192];
+++	char *sp, *empty, *end;
+++
+++	int line_len, i;
+++
+++	int is5g = is_5g(ifname);
+++
+++	iwpriv_set(ifname, "SiteSurvey", "1");
+++	sleep(3);
+++
+++	memset(data, 0, sizeof(data));
+++	wrq.u.data.length = sizeof(data);
+++	wrq.u.data.pointer = data;
+++	wrq.u.data.flags = 0;
+++
+++	if (ra_ioctl(ifname, RTPRIV_IOCTL_GSITESURVEY, &wrq) >= 0)
+++	{
+++		struct iwinfo_scanlist_entry e;
+++		// No  Ch  SSID                             BSSID               Security               Siganl(%)W-Mode  ExtCH  NT SSID_Len WPS DPID BcnRept
+++		line_len = 4 + 4 + 33 + 20 + 23 + 9 + 8 + 7 + 3 + 9; // WPS DPID may not present
+++		if (wrq.u.data.length < line_len + 3 + 10)
+++			return -1;
+++		sp = wrq.u.data.pointer;
+++		for (i = 0; i < 3; ++i) {
+++			// skip \n+'Total=xxxx'+\n+HEADER+\n
+++			sp = next_line(sp);
+++		}
+++		end = sp + strlen(sp);
+++		i = 0;
+++		while (*sp >= '0' && end > sp)
+++		{
+++			memset(&e, 0, sizeof(struct iwinfo_scanlist_entry));
+++
+++			fill_find_entry(sp, &e);
+++			if ((e.channel < 34) ^ is5g) {
+++				memcpy(&buf[i * sizeof(struct iwinfo_scanlist_entry)], &e, sizeof(struct iwinfo_scanlist_entry));
+++				i++;
+++			}
+++			sp += line_len;
+++			sp = next_line(sp);
+++		}
+++		*len = i * sizeof(struct iwinfo_scanlist_entry);
+++		return 0;
+++	}
+++	return -1;
+++}
+++
+++#define RA_MAX_CH_2G 13
+++static const uint8_t CH5G[]={
+++	/* 802.11 UNI / HyperLan 2 */
+++	36, 40, 44, 48, 52, 56, 60, 64, //8
+++
+++	/* 802.11 HyperLan 2 */
+++	100, 104, 108, 112, 116, 120, 124, 128, 132, 136, //10
+++
+++	/* 802.11 UNII */
+++	140, 144, 149, 153, 157, 161, 165
+++};
+++
+++int ra_get_freqlist(const char *ifname, char *buf, int *len)
+++{
+++
+++	struct iwinfo_freqlist_entry entry;
+++	int i, bl;
+++	bl = 0;
+++
+++	if (is_5g(ifname)) {
+++		for (i=0; i<ARRAY_SIZE(CH5G); ++i) {
+++			entry.mhz = 5000 + 5 * CH5G[i];
+++			entry.channel =  CH5G[i];
+++			entry.restricted = 0;
+++
+++			memcpy(&buf[bl], &entry, sizeof(struct iwinfo_freqlist_entry));
+++			bl += sizeof(struct iwinfo_freqlist_entry);
+++		}
+++	} else {
+++		for (i = 0; i < RA_MAX_CH_2G; i++)
+++		{
+++			entry.mhz = 2412 + 5 * i;
+++			entry.channel = i + 1;
+++			entry.restricted = 0;
+++
+++			memcpy(&buf[bl], &entry, sizeof(struct iwinfo_freqlist_entry));
+++			bl += sizeof(struct iwinfo_freqlist_entry);
+++		}
+++	}
+++
+++	*len = bl;
+++	return 0;
+++}
+++
+++int ra_get_country(const char *ifname, char *buf)
+++{
+++	char data[10];
+++	if (ra_oid_ioctl(ifname, RT_OID_VERSION_INFO, data, sizeof(data)) < 0)
+++		return -1;
+++	strncpy(buf, "US", 2);
+++	return 0;
+++}
+++
+++int ra_get_countrylist(const char *ifname, char *buf, int *len)
+++{
+++
+++	int i, count;
+++	struct ISO3166_to_CCode *e, *p = NULL;
+++	struct iwinfo_country_entry *c = (struct iwinfo_country_entry *)buf;
+++	char data[10];
+++	if (ra_oid_ioctl(ifname, RT_OID_VERSION_INFO, data, sizeof(data)) < 0)
+++		return -1;
+++	count = 0;
+++
+++	for (int i = 0; i < (sizeof(CountryCodes) / sizeof(CountryCodes[0])); i++)
+++	{
+++		e = &CountryCodes[i];
+++
+++		if (!p || (e->iso3166 != p->iso3166))
+++		{
+++			c->iso3166 = e->iso3166;
+++			snprintf(c->ccode, sizeof(c->ccode), "%i", e->ccode);
+++
+++			c++;
+++			count++;
+++		}
+++
+++		p = e;
+++	}
+++
+++	*len = (count * sizeof(struct iwinfo_country_entry));
+++	return 0;
+++}
+++
+++int ra_get_hwmodelist(const char *ifname, int *buf)
+++{
+++	char data[10];
+++
+++	if (ra_oid_ioctl(ifname, RT_OID_VERSION_INFO, data, sizeof(data)) < 0)
+++		return -1;
+++	if (is_5g(ifname))
+++	{
+++		*buf |= IWINFO_80211_A;
+++		*buf |= IWINFO_80211_N;
+++		*buf |= IWINFO_80211_AC;
+++	}
+++	else
+++	{
+++		*buf |= IWINFO_80211_B;
+++		*buf |= IWINFO_80211_G;
+++		*buf |= IWINFO_80211_N;
+++	}
+++
+++	return 0;
+++}
+++
+++int ra_get_htmodelist(const char *ifname, int *buf) {
+++	*buf = IWINFO_HTMODE_HT20 | IWINFO_HTMODE_HT40 | IWINFO_HTMODE_VHT20 | IWINFO_HTMODE_VHT40 | IWINFO_HTMODE_VHT80;
+++
+++	return 0;
+++}
+++
+++int ra_get_mbssid_support(const char *ifname, int *buf)
+++{
+++	char data[10];
+++
+++	if (ra_oid_ioctl(ifname, RT_OID_VERSION_INFO, data, sizeof(data)) < 0)
+++		return -1;
+++	*buf = 1;
+++	return 0;
+++}
+++
+++int iwinfo_hardware_id_from_mtd(struct iwinfo_hardware_id *id);
+++
+++int ra_get_hardware_id(const char *ifname, char *buf)
+++{
+++	struct iwinfo_hardware_id *id = (struct iwinfo_hardware_id *)buf;
+++	memset(id, 0, sizeof(struct iwinfo_hardware_id));
+++	char data[10];
+++	if (ra_oid_ioctl(ifname, RT_OID_VERSION_INFO, data, sizeof(data)) < 0)
+++		return -1;
+++	return iwinfo_hardware_id_from_mtd(id);
+++}
+++
+++struct iwinfo_hardware_entry * iwinfo_hardware(struct iwinfo_hardware_id *id);
+++
+++int ra_get_hardware_name(const char *ifname, char *buf)
+++{
+++	struct iwinfo_hardware_id id;
+++	struct iwinfo_hardware_entry *e;
+++
+++	if (ra_get_hardware_id(ifname, (char *)&id))
+++		return -1;
+++
+++	e = iwinfo_hardware(&id);
+++	if (!e)
+++		return -1;
+++
+++	strcpy(buf, e->device_name);
+++
+++	return 0;
+++}
+++
+++int ra_get_txpower_offset(const char *ifname, int *buf)
+++{
+++	/* Stub */
+++	*buf = 0;
+++	return -1;
+++}
+++
+++int ra_get_frequency_offset(const char *ifname, int *buf)
+++{
+++	return ra_get_frequency(ifname, buf);
+++}
++--- /dev/null
+++++ b/iwinfo_ra.h
++@@ -0,0 +1,74 @@
+++#ifndef __IWINFO_RA_H_
+++#define __IWINFO_RA_H_
+++
+++#include <fcntl.h>
+++
+++#include "iwinfo.h"
+++#include "iwinfo/utils.h"
+++
+++
+++#include "api/ralink.h"
+++
+++int ra_probe(const char *ifname);
+++int ra_get_mode(const char *ifname, int *buf);
+++int ra_get_ssid(const char *ifname, char *buf);
+++int ra_get_bssid(const char *ifname, char *buf);
+++int ra_get_country(const char *ifname, char *buf);
+++int ra_get_channel(const char *ifname, int *buf);
+++int ra_get_frequency(const char *ifname, int *buf);
+++int ra_get_frequency_offset(const char *ifname, int *buf);
+++int ra_get_txpower(const char *ifname, int *buf);
+++int ra_get_txpower_offset(const char *ifname, int *buf);
+++int ra_get_bitrate(const char *ifname, int *buf);
+++int ra_get_signal(const char *ifname, int *buf);
+++int ra_get_noise(const char *ifname, int *buf);
+++int ra_get_quality(const char *ifname, int *buf);
+++int ra_get_quality_max(const char *ifname, int *buf);
+++int ra_get_enctype(const char *ifname, char *buf);
+++int ra_get_encryption(const char *ifname, char *buf);
+++int ra_get_phyname(const char *ifname, char *buf);
+++int ra_get_assoclist(const char *ifname, char *buf, int *len);
+++int ra_get_txpwrlist(const char *ifname, char *buf, int *len);
+++int ra_get_scanlist(const char *ifname, char *buf, int *len);
+++int ra_get_freqlist(const char *ifname, char *buf, int *len);
+++int ra_get_countrylist(const char *ifname, char *buf, int *len);
+++int ra_get_hwmodelist(const char *ifname, int *buf);
+++int ra_get_htmodelist(const char *ifname, int *buf);
+++int ra_get_mbssid_support(const char *ifname, int *buf);
+++int ra_get_hardware_id(const char *ifname, char *buf);
+++int ra_get_hardware_name(const char *ifname, char *buf);
+++void ra_close(void);
+++
+++const struct iwinfo_ops ra_ops = {
+++	.name             = "ra",
+++	.probe            = ra_probe,
+++	.channel          = ra_get_channel,
+++	.frequency        = ra_get_frequency,
+++	.frequency_offset = ra_get_frequency_offset,
+++	.txpower          = ra_get_txpower,
+++	.txpower_offset   = ra_get_txpower_offset,
+++	.bitrate          = ra_get_bitrate,
+++	.signal           = ra_get_signal,
+++	.noise            = ra_get_noise,
+++	.quality          = ra_get_quality,
+++	.quality_max      = ra_get_quality_max,
+++	.mbssid_support   = ra_get_mbssid_support,
+++	.hwmodelist       = ra_get_hwmodelist,
+++	.htmodelist       = ra_get_htmodelist,
+++	.mode             = ra_get_mode,
+++	.ssid             = ra_get_ssid,
+++	.bssid            = ra_get_bssid,
+++	.country          = ra_get_country,
+++	.hardware_id      = ra_get_hardware_id,
+++	.hardware_name    = ra_get_hardware_name,
+++	.encryption       = ra_get_encryption,
+++	.phyname          = ra_get_phyname,
+++	.assoclist        = ra_get_assoclist,
+++	.txpwrlist        = ra_get_txpwrlist,
+++	.scanlist         = ra_get_scanlist,
+++	.freqlist         = ra_get_freqlist,
+++	.countrylist      = ra_get_countrylist,
+++	.close            = ra_close
+++};
+++
+++#endif
++--- a/iwinfo_wext.c
+++++ b/iwinfo_wext.c
++@@ -197,7 +197,7 @@ static int wext_get_channel(const char *
++ 	return -1;
++ }
++ 
++-static int wext_get_frequency(const char *ifname, int *buf)
+++int wext_get_frequency(const char *ifname, int *buf)
++ {
++ 	struct iwreq wrq;
++ 	struct iw_range range;
++@@ -294,7 +294,7 @@ static int wext_get_noise(const char *if
++ 	return -1;
++ }
++ 
++-static int wext_get_quality(const char *ifname, int *buf)
+++int wext_get_quality(const char *ifname, int *buf)
++ {
++ 	struct iwreq wrq;
++ 	struct iw_statistics stats;
++@@ -312,7 +312,7 @@ static int wext_get_quality(const char *
++ 	return -1;
++ }
++ 
++-static int wext_get_quality_max(const char *ifname, int *buf)
+++int wext_get_quality_max(const char *ifname, int *buf)
++ {
++ 	struct iwreq wrq;
++ 	struct iw_range range;
++@@ -377,7 +377,7 @@ static int wext_get_txpwrlist(const char
++ 	return -1;
++ }
++ 
++-static int wext_get_freqlist(const char *ifname, char *buf, int *len)
+++int wext_get_freqlist(const char *ifname, char *buf, int *len)
++ {
++ 	struct iwreq wrq;
++ 	struct iw_range range;
++@@ -421,7 +421,7 @@ static int wext_get_countrylist(const ch
++ 	return -1;
++ }
++ 
++-static int wext_get_hwmodelist(const char *ifname, int *buf)
+++int wext_get_hwmodelist(const char *ifname, int *buf)
++ {
++ 	char chans[IWINFO_BUFSIZE] = { 0 };
++ 	struct iwinfo_freqlist_entry *e = NULL;
++--- a/Makefile
+++++ b/Makefile
++@@ -34,6 +34,15 @@ ifneq ($(filter nl80211,$(IWINFO_BACKEND
++ 	IWINFO_LIB_OBJ     += iwinfo_nl80211.o
++ endif
++ 
+++ifneq ($(filter ra,$(IWINFO_BACKENDS)),)
+++	IWINFO_CFLAGS  += -DUSE_RA
+++	IWINFO_LIB_OBJ += iwinfo_ra.o
+++endif
+++
+++ifneq ($(filter rt2860v2,$(IWINFO_BACKENDS)),)
+++	IWINFO_CFLAGS  += -DUSE_RA -DUSE_RT2860
+++	IWINFO_LIB_OBJ += iwinfo_ra.o
+++endif
++ 
++ compile: clean $(IWINFO_LIB) $(IWINFO_LUA) $(IWINFO_CLI)
++ 
++--- a/hardware.txt
+++++ b/hardware.txt
++@@ -180,6 +180,36 @@
++ 0x1814 0x3662 0x1814 0x000d    0      0  "Ralink"   "Rt3662"
++ 0x1814 0x3883 0x1814 0x000d    0      0  "Ralink"   "Rt3883"
++ 0x1814 0x5350 0x1814 0x000f    0      0  "Ralink"   "Rt5350"
+++/* MT7620 */
+++0x1814 0x7620 0x1814 0x0000    0      0  "Mediatek" "MT7620"
+++0x1814 0x7620 0x1814 0xffff    0      0  "Mediatek" "MT7620"
+++0x1814 0x7620 0x1814 0x7620    0      0  "Mediatek" "MT7620"
+++/* MT7610 */
+++0x1814 0x7610 0x1814 0x0000    0      0  "Mediatek" "MT7610"
+++0x1814 0x7610 0x1814 0xffff    0      0  "Mediatek" "MT7610"
+++0x1814 0x7610 0x1814 0x7610    0      0  "Mediatek" "MT7610"
+++/* MT7602/MT7612/MT7662 */
+++0x1814 0x7662 0x1814 0x0000    0      0  "Mediatek" "MT7612"
+++0x1814 0x7662 0x1814 0xffff    0      0  "Mediatek" "MT7612"
+++0x1814 0x7662 0x1814 0x7602    0      0  "Mediatek" "MT7602"
+++0x1814 0x7662 0x1814 0x7612    0      0  "Mediatek" "MT7612"
+++0x1814 0x7662 0x1814 0x7662    0      0  "Mediatek" "MT7662"
+++/* MT7603 */
+++0x1814 0x7603 0x1814 0x0000    0      0  "Mediatek" "MT7603"
+++0x1814 0x7603 0x1814 0xffff    0      0  "Mediatek" "MT7603"
+++0x1814 0x7603 0x1814 0x7603    0      0  "Mediatek" "MT7603"
+++/* MT7628/MT7688 */
+++0x1814 0x7628 0x1814 0x0000    0      0  "Mediatek" "MT7628"
+++0x1814 0x7628 0x1814 0xffff    0      0  "Mediatek" "MT7628"
+++0x1814 0x7628 0x1814 0x7628    0      0  "Mediatek" "MT7628"
+++0x1814 0x7628 0x1814 0x7688    0      0  "Mediatek" "MT7688"
+++/* MT7615 */
+++0x1814 0x7615 0x1814 0x0000    0      0  "Mediatek" "MT7615"
+++0x1814 0x7615 0x1814 0xffff    0      0  "Mediatek" "MT7615"
+++0x1814 0x7615 0x1814 0x7615    0      0  "Mediatek" "MT7615"
+++
+++0x14c3 0x7615 0x14c3 0x0000    0      0  "MediaTek" "MT7615E"
+++
++ 0x11ab 0x2a55 0x11ab 0x0000    0      0  "Marvell"  "88W8864"
++ 0x02df 0x9135 0x0000 0x0000    0      0  "Marvell"  "88W8887"
++ 0x11ab 0x2b40 0x11ab 0x0000    0      0  "Marvell"  "88W8964"
++--- a/iwinfo_utils.c
+++++ b/iwinfo_utils.c
++@@ -259,7 +259,8 @@ int iwinfo_hardware_id_from_mtd(struct i
++ 
++ 				/* subsystem from EEPROM_NIC_CONF0_RF_TYPE */
++ 				id->subsystem_device_id = (bc[off + 0x1a] & 0x0f00) >> 8;
++-			} else if ((bc[off] == 0x7620) || (bc[off] == 0x2076) ||
+++			} else if ((bc[off] == 0x7615) || (bc[off] == 0x1576) ||
+++			           (bc[off] == 0x7620) || (bc[off] == 0x2076) ||
++ 			           (bc[off] == 0x7628) || (bc[off] == 0x2876) ||
++ 			           (bc[off] == 0x7688) || (bc[off] == 0x8876)) {
++ 				/* vendor: MediaTek */
+
+--- a/package/network/utils/iwinfo/Makefile
++++ b/package/network/utils/iwinfo/Makefile
+@@ -31,7 +31,7 @@
+ endef
+ 
+ define Package/libiwinfo/description
+-  Wireless information library with simplified API for nl80211
++  Wireless information library with simplified API for MT7615DBDC
+   and wext driver interfaces.
+ endef
+ 
+@@ -74,7 +74,7 @@
+ 	FPIC="$(FPIC)" \
+ 	CFLAGS="$(TARGET_CFLAGS)" \
+ 	LDFLAGS="$(TARGET_LDFLAGS)" \
+-	BACKENDS="nl80211" \
++	BACKENDS="ra" \
+ 	SOVERSION="$(IWINFO_ABI_VERSION)"
+ 
+ define Build/InstallDev
+
+--- a/target/linux/ramips/dts/mt7621.dtsi
++++ b/target/linux/ramips/dts/mt7621.dtsi
+@@ -37,10 +37,6 @@
+ 		compatible = "mti,cpu-interrupt-controller";
+ 	};
+ 
+-	chosen {
+-		bootargs = "console=ttyS0,57600";
+-	};
+-
+ 	pll: pll {
+ 		compatible = "mediatek,mt7621-pll", "syscon";
+ 
+@@ -463,6 +459,9 @@
+ 
+ 		mediatek,ethsys = <&ethsys>;
+ 
++		pinctrl-names = "default";
++		pinctrl-0 = <&rgmii1_pins &mdio_pins>;
++
+ 		gmac0: mac@0 {
+ 			compatible = "mediatek,eth-mac";
+ 			reg = <0>;
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/esw_rt3050.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/esw_rt3050.c
+@@ -17,14 +17,11 @@
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ #include <asm/mach-ralink/ralink_regs.h>
+-#include <linux/of_device.h>
+ #include <linux/of_irq.h>
+ 
+ #include <linux/switch.h>
+-#include <linux/reset.h>
+ 
+ #include "mtk_eth_soc.h"
+-#include "esw_rt3050.h"
+ 
+ /* HW limitations for this switch:
+  * - No large frame support (PKT_MAX_LEN at most 1536)
+@@ -175,6 +172,7 @@
+ 
+ #define RT5350_ESW_REG_PXTPC(_x)	(0x150 + (4 * _x))
+ #define RT5350_EWS_REG_LED_POLARITY	0x168
++#define RT5350_RESET_EPHY		BIT(24)
+ 
+ enum {
+ 	/* Global attributes. */
+@@ -217,7 +215,6 @@
+ 	struct device		*dev;
+ 	void __iomem		*base;
+ 	int			irq;
+-	struct fe_priv		*priv;
+ 
+ 	/* Protects against concurrent register r/w operations. */
+ 	spinlock_t		reg_rw_lock;
+@@ -235,8 +232,6 @@
+ 	int			led_frequency;
+ 	struct esw_vlan vlans[RT305X_ESW_NUM_VLANS];
+ 	struct esw_port ports[RT305X_ESW_NUM_PORTS];
+-	struct reset_control	*rst_esw;
+-	struct reset_control	*rst_ephy;
+ 
+ };
+ 
+@@ -259,29 +254,6 @@
+ 	__raw_writel(t | val, esw->base + reg);
+ }
+ 
+-static void esw_reset(struct rt305x_esw *esw)
+-{
+-	if (!esw->rst_esw)
+-		return;
+-
+-	reset_control_assert(esw->rst_esw);
+-	usleep_range(60, 120);
+-	reset_control_deassert(esw->rst_esw);
+-	/* the esw takes long to reset otherwise the board hang */
+-	msleep(10);
+-}
+-
+-static void esw_reset_ephy(struct rt305x_esw *esw)
+-{
+-	if (!esw->rst_ephy)
+-		return;
+-
+-	reset_control_assert(esw->rst_ephy);
+-	usleep_range(60, 120);
+-	reset_control_deassert(esw->rst_ephy);
+-	usleep_range(60, 120);
+-}
+-
+ static void esw_rmw(struct rt305x_esw *esw, unsigned reg,
+ 		    unsigned long mask, unsigned long val)
+ {
+@@ -464,8 +436,6 @@
+ 	u8 port_disable = 0;
+ 	u8 port_map = RT305X_ESW_PMAP_LLLLLL;
+ 
+-	esw_reset(esw);
+-
+ 	/* vodoo from original driver */
+ 	esw_w32(esw, 0xC8A07850, RT305X_ESW_REG_FCT0);
+ 	esw_w32(esw, 0x00000000, RT305X_ESW_REG_SGC2);
+@@ -535,7 +505,8 @@
+ 		esw->ports[i].disable = (port_disable & (1 << i)) != 0;
+ 
+ 	if (ralink_soc == RT305X_SOC_RT3352) {
+-		esw_reset_ephy(esw);
++		/* reset EPHY */
++		fe_reset(RT5350_RESET_EPHY);
+ 
+ 		rt305x_mii_write(esw, 0, 31, 0x8000);
+ 		for (i = 0; i < 5; i++) {
+@@ -585,7 +556,8 @@
+ 		/* select local register */
+ 		rt305x_mii_write(esw, 0, 31, 0x8000);
+ 	} else if (ralink_soc == RT305X_SOC_RT5350) {
+-		esw_reset_ephy(esw);
++		/* reset EPHY */
++		fe_reset(RT5350_RESET_EPHY);
+ 
+ 		/* set the led polarity */
+ 		esw_w32(esw, esw->reg_led_polarity & 0x1F,
+@@ -642,7 +614,8 @@
+ 	} else if (ralink_soc == MT762X_SOC_MT7628AN || ralink_soc == MT762X_SOC_MT7688) {
+ 		int i;
+ 
+-		esw_reset_ephy(esw);
++		/* reset EPHY */
++		fe_reset(RT5350_RESET_EPHY);
+ 
+ 		/* set the led polarity */
+ 		esw_w32(esw, esw->reg_led_polarity & 0x1F,
+@@ -738,44 +711,19 @@
+ 	esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
+ }
+ 
+-
+-int rt3050_esw_has_carrier(struct fe_priv *priv)
+-{
+-	struct rt305x_esw *esw = priv->soc->swpriv;
+-	u32 link;
+-	int i;
+-	bool cpuport;
+-
+-	link = esw_r32(esw, RT305X_ESW_REG_POA);
+-	link >>= RT305X_ESW_POA_LINK_SHIFT;
+-	cpuport = link & BIT(RT305X_ESW_PORT6);
+-	link &= RT305X_ESW_POA_LINK_MASK;
+-	for (i = 0; i <= RT305X_ESW_PORT5; i++) {
+-		if (priv->link[i] != (link & BIT(i)))
+-			dev_info(esw->dev, "port %d link %s\n", i, link & BIT(i) ? "up" : "down");
+-		priv->link[i] = link & BIT(i);
+-	}
+-
+-	return !!link && cpuport;
+-}
+-
+ static irqreturn_t esw_interrupt(int irq, void *_esw)
+ {
+-	struct rt305x_esw *esw = (struct rt305x_esw *) _esw;
++	struct rt305x_esw *esw = (struct rt305x_esw *)_esw;
+ 	u32 status;
+-	int i;
+ 
+ 	status = esw_r32(esw, RT305X_ESW_REG_ISR);
+ 	if (status & RT305X_ESW_PORT_ST_CHG) {
+-		if (!esw->priv)
+-			goto out;
+-		if (rt3050_esw_has_carrier(esw->priv))
+-			netif_carrier_on(esw->priv->netdev);
+-		else
+-			netif_carrier_off(esw->priv->netdev);
+-	}
++		u32 link = esw_r32(esw, RT305X_ESW_REG_POA);
+ 
+-out:
++		link >>= RT305X_ESW_POA_LINK_SHIFT;
++		link &= RT305X_ESW_POA_LINK_MASK;
++		dev_info(esw->dev, "link changed 0x%02X\n", link);
++	}
+ 	esw_w32(esw, status, RT305X_ESW_REG_ISR);
+ 
+ 	return IRQ_HANDLED;
+@@ -1403,7 +1351,9 @@
+ 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	struct device_node *np = pdev->dev.of_node;
+ 	const __be32 *port_map, *port_disable, *reg_init;
++	struct switch_dev *swdev;
+ 	struct rt305x_esw *esw;
++	int ret;
+ 
+ 	esw = devm_kzalloc(&pdev->dev, sizeof(*esw), GFP_KERNEL);
+ 	if (!esw)
+@@ -1435,74 +1385,6 @@
+ 	if (reg_init)
+ 		esw->reg_led_polarity = be32_to_cpu(*reg_init);
+ 
+-	esw->rst_esw = devm_reset_control_get(&pdev->dev, "esw");
+-	if (IS_ERR(esw->rst_esw))
+-		esw->rst_esw = NULL;
+-	esw->rst_ephy = devm_reset_control_get(&pdev->dev, "ephy");
+-	if (IS_ERR(esw->rst_ephy))
+-		esw->rst_ephy = NULL;
+-
+-	spin_lock_init(&esw->reg_rw_lock);
+-	platform_set_drvdata(pdev, esw);
+-
+-	return 0;
+-}
+-
+-static int esw_remove(struct platform_device *pdev)
+-{
+-	struct rt305x_esw *esw = platform_get_drvdata(pdev);
+-
+-	if (esw) {
+-		esw_w32(esw, ~0, RT305X_ESW_REG_IMR);
+-		platform_set_drvdata(pdev, NULL);
+-	}
+-
+-	return 0;
+-}
+-
+-static const struct of_device_id ralink_esw_match[] = {
+-	{ .compatible = "ralink,rt3050-esw" },
+-	{},
+-};
+-MODULE_DEVICE_TABLE(of, ralink_esw_match);
+-
+-/* called by the ethernet driver to bound with the switch driver */
+-int rt3050_esw_init(struct fe_priv *priv)
+-{
+-	struct device_node *np = priv->switch_np;
+-	struct platform_device *pdev = of_find_device_by_node(np);
+-	struct switch_dev *swdev;
+-	struct rt305x_esw *esw;
+-	const __be32 *rgmii;
+-	int ret;
+-
+-	if (!pdev)
+-		return -ENODEV;
+-
+-	if (!of_device_is_compatible(np, ralink_esw_match->compatible))
+-		return -EINVAL;
+-
+-	esw = platform_get_drvdata(pdev);
+-	if (!esw)
+-		return -EPROBE_DEFER;
+-
+-	priv->soc->swpriv = esw;
+-	esw->priv = priv;
+-
+-	esw_hw_init(esw);
+-
+-	rgmii = of_get_property(np, "ralink,rgmii", NULL);
+-	if (rgmii && be32_to_cpu(*rgmii) == 1) {
+-		/*
+-		 * External switch connected to RGMII interface.
+-		 * Unregister the switch device after initialization.
+-		 */
+-		dev_err(&pdev->dev, "RGMII mode, not exporting switch device.\n");
+-		unregister_switch(&esw->swdev);
+-		platform_set_drvdata(pdev, NULL);
+-		return -ENODEV;
+-	}
+-
+ 	swdev = &esw->swdev;
+ 	swdev->of_node = pdev->dev.of_node;
+ 	swdev->name = "rt305x-esw";
+@@ -1518,19 +1400,53 @@
+ 		return ret;
+ 	}
+ 
++	platform_set_drvdata(pdev, esw);
++
++	spin_lock_init(&esw->reg_rw_lock);
++
++	esw_hw_init(esw);
++
++	reg_init = of_get_property(np, "ralink,rgmii", NULL);
++	if (reg_init && be32_to_cpu(*reg_init) == 1) {
++		/* 
++		 * External switch connected to RGMII interface. 
++		 * Unregister the switch device after initialization. 
++		 */
++		dev_err(&pdev->dev, "RGMII mode, not exporting switch device.\n");
++		unregister_switch(&esw->swdev);
++		platform_set_drvdata(pdev, NULL);
++		return -ENODEV;
++	}
++
+ 	ret = devm_request_irq(&pdev->dev, esw->irq, esw_interrupt, 0, "esw",
+-			esw);
++			       esw);
++
+ 	if (!ret) {
+ 		esw_w32(esw, RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_ISR);
+ 		esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
+ 	}
+ 
+-	dev_info(&pdev->dev, "mediatek esw at 0x%08lx, irq %d initialized\n",
+-		   esw->base, esw->irq);
++	return ret;
++}
++
++static int esw_remove(struct platform_device *pdev)
++{
++	struct rt305x_esw *esw = platform_get_drvdata(pdev);
++
++	if (esw) {
++		esw_w32(esw, ~0, RT305X_ESW_REG_IMR);
++		platform_set_drvdata(pdev, NULL);
++	}
+ 
+ 	return 0;
+ }
+ 
++static const struct of_device_id ralink_esw_match[] = {
++	{ .compatible = "ralink,rt3050-esw" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, ralink_esw_match);
++
+ static struct platform_driver esw_driver = {
+ 	.probe = esw_probe,
+ 	.remove = esw_remove,
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/esw_rt3050.h
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/esw_rt3050.h
+@@ -26,7 +26,4 @@
+ static inline void mtk_switch_exit(void) { }
+ 
+ #endif
+-
+-int rt3050_esw_init(struct fe_priv *priv);
+-int rt3050_esw_has_carrier(struct fe_priv *priv);
+ #endif
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/gsw_mt7620.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/gsw_mt7620.c
+@@ -40,7 +40,7 @@
+ 	struct fe_priv *priv = (struct fe_priv *)_priv;
+ 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+ 	u32 status;
+-	int i, max = (gsw->port4_ephy) ? (4) : (3);
++	int i, max = (gsw->port4 == PORT4_EPHY) ? (4) : (3);
+ 
+ 	status = mtk_switch_r32(gsw, GSW_REG_ISR);
+ 	if (status & PORT_IRQ_ST_CHG)
+@@ -61,82 +61,119 @@
+ 	return IRQ_HANDLED;
+ }
+ 
+-static void mt7620_hw_init(struct mt7620_gsw *gsw)
++static int mt7620_mdio_mode(struct device_node *eth_node)
++{
++	struct device_node *phy_node, *mdiobus_node;
++	const __be32 *id;
++	int ret = 0;
++
++	mdiobus_node = of_get_child_by_name(eth_node, "mdio-bus");
++
++	if (mdiobus_node) {
++		if (of_property_read_bool(mdiobus_node, "mediatek,mdio-mode"))
++			ret = 1;
++
++		for_each_child_of_node(mdiobus_node, phy_node) {
++			id = of_get_property(phy_node, "reg", NULL);
++			if (id && (be32_to_cpu(*id) == 0x1f))
++				ret = 1;
++		}
++
++		of_node_put(mdiobus_node);
++	}
++
++	return ret;
++}
++
++static void mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
+ {
+ 	u32 i;
+ 	u32 val;
+-	u32 is_BGA = (rt_sysc_r32(SYSC_REG_CHIP_REV_ID) >> 16) & 1;
+-
+-	/* Internal ethernet requires PCIe RC mode */
+-	rt_sysc_w32(rt_sysc_r32(SYSC_REG_CFG1) | PCIE_RC_MODE, SYSC_REG_CFG1);
++	u32 is_BGA = (rt_sysc_r32(0x0c) >> 16) & 1;
+ 
++	rt_sysc_w32(rt_sysc_r32(SYSC_REG_CFG1) | BIT(8), SYSC_REG_CFG1);
+ 	mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_CKGCR) & ~(0x3 << 4), GSW_REG_CKGCR);
+ 
+ 	/* Enable MIB stats */
+ 	mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_MIB_CNT_EN) | (1 << 1), GSW_REG_MIB_CNT_EN);
+ 
+-	if (gsw->ephy_disable) {
+-		mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_GPC1) |
+-			(gsw->ephy_base << 16) | (0x1f << 24),
+-			GSW_REG_GPC1);
++	if (mdio_mode) {
++		u32 val;
+ 
+-		pr_info("gsw: internal ephy disabled\n");
+-	} else if (gsw->ephy_base) {
++		/* turn off ephy and set phy base addr to 12 */
+ 		mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_GPC1) |
+-			(gsw->ephy_base << 16),
++			(0x1f << 24) | (0xc << 16),
+ 			GSW_REG_GPC1);
+-		fe_reset(MT7620A_RESET_EPHY);
+ 
+-		pr_info("gsw: ephy base address: %d\n", gsw->ephy_base);
+-	}
++		/* set MT7530 central align */
++		val = mt7530_mdio_r32(gsw, 0x7830);
++		val &= ~BIT(0);
++		val |= BIT(1);
++		mt7530_mdio_w32(gsw, 0x7830, val);
++
++		val = mt7530_mdio_r32(gsw, 0x7a40);
++		val &= ~BIT(30);
++		mt7530_mdio_w32(gsw, 0x7a40, val);
+ 
+-	/* global page 4 */
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 31, 0x4000);
++		mt7530_mdio_w32(gsw, 0x7a78, 0x855);
++	} else {
+ 
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 17, 0x7444);
+-	if (is_BGA)
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 19, 0x0114);
+-	else
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 19, 0x0117);
++		if (gsw->ephy_base) {
++			/* set phy base addr to ephy_base */
++			mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_GPC1) |
++				(gsw->ephy_base << 16),
++				GSW_REG_GPC1);
++			fe_reset(BIT(24)); /* Resets the Ethernet PHY block. */
++		}
+ 
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 22, 0x10cf);
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 25, 0x6212);
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 26, 0x0777);
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 29, 0x4000);
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 28, 0xc077);
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 24, 0x0000);
+-
+-	/* global page 3 */
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 31, 0x3000);
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 17, 0x4838);
++		/* global page 4 */
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 31, 0x4000);
+ 
+-	/* global page 2 */
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 31, 0x2000);
+-	if (is_BGA) {
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 21, 0x0515);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 22, 0x0053);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 23, 0x00bf);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 24, 0x0aaf);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 25, 0x0fad);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 26, 0x0fc1);
+-	} else {
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 21, 0x0517);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 22, 0x0fd2);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 23, 0x00bf);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 24, 0x0aab);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 25, 0x00ae);
+-		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 26, 0x0fff);
+-	}
+-	/* global page 1 */
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 31, 0x1000);
+-	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 17, 0xe7f8);
+-
+-	/* turn on all PHYs */
+-	for (i = 0; i <= 4; i++) {
+-		val = _mt7620_mii_read(gsw, gsw->ephy_base + i, MII_BMCR);
+-		val &= ~BMCR_PDOWN;
+-		val |= BMCR_ANRESTART | BMCR_ANENABLE | BMCR_SPEED100;
+-		_mt7620_mii_write(gsw, gsw->ephy_base + i, MII_BMCR, val);
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 17, 0x7444);
++		if (is_BGA)
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 19, 0x0114);
++		else
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 19, 0x0117);
++
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 22, 0x10cf);
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 25, 0x6212);
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 26, 0x0777);
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 29, 0x4000);
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 28, 0xc077);
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 24, 0x0000);
++
++		/* global page 3 */
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 31, 0x3000);
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 17, 0x4838);
++
++		/* global page 2 */
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 31, 0x2000);
++		if (is_BGA) {
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 21, 0x0515);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 22, 0x0053);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 23, 0x00bf);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 24, 0x0aaf);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 25, 0x0fad);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 26, 0x0fc1);
++		} else {
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 21, 0x0517);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 22, 0x0fd2);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 23, 0x00bf);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 24, 0x0aab);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 25, 0x00ae);
++			_mt7620_mii_write(gsw, gsw->ephy_base + 1, 26, 0x0fff);
++		}
++		/* global page 1 */
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 31, 0x1000);
++		_mt7620_mii_write(gsw, gsw->ephy_base + 1, 17, 0xe7f8);
++
++		/* turn on all PHYs */
++		for (i = 0; i <= 4; i++) {
++			val = _mt7620_mii_read(gsw, gsw->ephy_base + i, MII_BMCR);
++			val &= ~BMCR_PDOWN;
++			val |= BMCR_ANRESTART | BMCR_ANENABLE | BMCR_SPEED100;
++			_mt7620_mii_write(gsw, gsw->ephy_base + i, MII_BMCR, val);
++		}
+ 	}
+ 
+ 	/* global page 0 */
+@@ -165,8 +202,8 @@
+ 	mtk_switch_w32(gsw, 0x7f7f7fe0, 0x0010);
+ 
+ 	/* setup port 4 */
+-	if (gsw->port4_ephy) {
+-		val = rt_sysc_r32(SYSC_REG_CFG1);
++	if (gsw->port4 == PORT4_EPHY) {
++		u32 val = rt_sysc_r32(SYSC_REG_CFG1);
+ 
+ 		val |= 3 << 14;
+ 		rt_sysc_w32(val, SYSC_REG_CFG1);
+@@ -174,6 +211,12 @@
+ 		_mt7620_mii_write(gsw, gsw->ephy_base + 4, 4, 0x05e1);
+ 		_mt7620_mii_write(gsw, gsw->ephy_base + 4, 16, 0x1313);
+ 		pr_info("gsw: setting port4 to ephy mode\n");
++	} else if (!mdio_mode) {
++		u32 val = rt_sysc_r32(SYSC_REG_CFG1);
++
++		val &= ~(3 << 14);
++		rt_sysc_w32(val, SYSC_REG_CFG1);
++		pr_info("gsw: setting port4 to gmac mode\n");
+ 	}
+ }
+ 
+@@ -185,13 +228,9 @@
+ 
+ int mtk_gsw_init(struct fe_priv *priv)
+ {
+-	struct device_node *eth_node = priv->dev->of_node;
+-	struct device_node *phy_node, *mdiobus_node;
+ 	struct device_node *np = priv->switch_np;
+ 	struct platform_device *pdev = of_find_device_by_node(np);
+ 	struct mt7620_gsw *gsw;
+-	const __be32 *id;
+-	u8 val;
+ 
+ 	if (!pdev)
+ 		return -ENODEV;
+@@ -202,27 +241,7 @@
+ 	gsw = platform_get_drvdata(pdev);
+ 	priv->soc->swpriv = gsw;
+ 
+-	gsw->ephy_disable = of_property_read_bool(np, "mediatek,ephy-disable");
+-
+-	mdiobus_node = of_get_child_by_name(eth_node, "mdio-bus");
+-	if (mdiobus_node) {
+-		for_each_child_of_node(mdiobus_node, phy_node) {
+-			id = of_get_property(phy_node, "reg", NULL);
+-			if (id && (be32_to_cpu(*id) == 0x1f))
+-				gsw->ephy_disable = true;
+-		}
+-
+-		of_node_put(mdiobus_node);
+-	}
+-
+-	gsw->port4_ephy = !of_property_read_bool(np, "mediatek,port4-gmac");
+-
+-	if (of_property_read_u8(np, "mediatek,ephy-base", &val) == 0)
+-		gsw->ephy_base = val;
+-	else
+-		gsw->ephy_base = 0;
+-
+-	mt7620_hw_init(gsw);
++	mt7620_hw_init(gsw, mt7620_mdio_mode(priv->dev->of_node));
+ 
+ 	if (gsw->irq) {
+ 		request_irq(gsw->irq, gsw_interrupt_mt7620, 0,
+@@ -236,7 +255,10 @@
+ static int mt7620_gsw_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	const char *port4 = NULL;
+ 	struct mt7620_gsw *gsw;
++	struct device_node *np = pdev->dev.of_node;
++	u16 val;
+ 
+ 	gsw = devm_kzalloc(&pdev->dev, sizeof(struct mt7620_gsw), GFP_KERNEL);
+ 	if (!gsw)
+@@ -248,6 +270,19 @@
+ 
+ 	gsw->dev = &pdev->dev;
+ 
++	of_property_read_string(np, "mediatek,port4", &port4);
++	if (port4 && !strcmp(port4, "ephy"))
++		gsw->port4 = PORT4_EPHY;
++	else if (port4 && !strcmp(port4, "gmac"))
++		gsw->port4 = PORT4_EXT;
++	else
++		gsw->port4 = PORT4_EPHY;
++
++	if (of_property_read_u16(np, "mediatek,ephy-base-address", &val) == 0)
++		gsw->ephy_base = val;
++	else
++		gsw->ephy_base = 0;
++
+ 	gsw->irq = platform_get_irq(pdev, 0);
+ 
+ 	platform_set_drvdata(pdev, gsw);
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/gsw_mt7620.h
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/gsw_mt7620.h
+@@ -17,7 +17,11 @@
+ 
+ #define GSW_REG_PHY_TIMEOUT	(5 * HZ)
+ 
++#ifdef CONFIG_SOC_MT7621
++#define MT7620A_GSW_REG_PIAC	0x0004
++#else
+ #define MT7620A_GSW_REG_PIAC	0x7004
++#endif
+ 
+ #define GSW_NUM_VLANS		16
+ #define GSW_NUM_VIDS		4096
+@@ -55,13 +59,17 @@
+ 
+ #define SYSC_REG_CHIP_REV_ID	0x0c
+ #define SYSC_REG_CFG1		0x14
+-#define PCIE_RC_MODE		BIT(8)
++#define RST_CTRL_MCM		BIT(2)
+ #define SYSC_PAD_RGMII2_MDIO	0x58
+ #define SYSC_GPIO_MODE		0x60
+ 
+ #define PORT_IRQ_ST_CHG		0x7f
+ 
++#ifdef CONFIG_SOC_MT7621
++#define ESW_PHY_POLLING		0x0000
++#else
+ #define ESW_PHY_POLLING		0x7000
++#endif
+ 
+ #define	PMCR_IPG		BIT(18)
+ #define	PMCR_MAC_MODE		BIT(16)
+@@ -88,12 +96,16 @@
+ 	GSW_ATTR_PORT_UNTAG,
+ };
+ 
++enum {
++	PORT4_EPHY = 0,
++	PORT4_EXT,
++};
++
+ struct mt7620_gsw {
+ 	struct device		*dev;
+ 	void __iomem		*base;
+ 	int			irq;
+-	bool			ephy_disable;
+-	bool			port4_ephy;
++	int			port4;
+ 	unsigned long int	autopoll;
+ 	u16			ephy_base;
+ };
+
+--- /dev/null
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/gsw_mt7621.c
+@@ -0,0 +1,297 @@
++/*   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; version 2 of the License
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   Copyright (C) 2009-2015 John Crispin <blogic@openwrt.org>
++ *   Copyright (C) 2009-2015 Felix Fietkau <nbd@nbd.name>
++ *   Copyright (C) 2013-2015 Michael Lee <igvtee@gmail.com>
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <linux/platform_device.h>
++#include <linux/of_device.h>
++#include <linux/of_irq.h>
++
++#include <ralink_regs.h>
++
++#include "mtk_eth_soc.h"
++#include "gsw_mt7620.h"
++
++void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg)
++{
++	iowrite32(val, gsw->base + reg);
++}
++
++u32 mtk_switch_r32(struct mt7620_gsw *gsw, unsigned reg)
++{
++	return ioread32(gsw->base + reg);
++}
++
++static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
++{
++	struct fe_priv *priv = (struct fe_priv *)_priv;
++	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
++	u32 reg, i;
++
++	reg = mt7530_mdio_r32(gsw, 0x700c);
++	mt7530_mdio_w32(gsw, 0x700c, reg);
++
++	for (i = 0; i < 5; i++)
++		if (reg & BIT(i)) {
++			unsigned int link;
++
++			link = mt7530_mdio_r32(gsw,
++					       0x3008 + (i * 0x100)) & 0x1;
++
++			if (link != priv->link[i]) {
++				priv->link[i] = link;
++				if (link)
++					netdev_info(priv->netdev,
++						    "port %d link up\n", i);
++				else
++					netdev_info(priv->netdev,
++						    "port %d link down\n", i);
++			}
++		}
++
++	mt7620_handle_carrier(priv);
++
++	return IRQ_HANDLED;
++}
++
++static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
++{
++	u32 i;
++	u32 val;
++
++	/* wardware reset the switch */
++	fe_reset(RST_CTRL_MCM);
++	mdelay(10);
++
++	/* reduce RGMII2 PAD driving strength */
++	rt_sysc_m32(3 << 4, 0, SYSC_PAD_RGMII2_MDIO);
++
++	/* gpio mux - RGMII1=Normal mode */
++	rt_sysc_m32(BIT(14), 0, SYSC_GPIO_MODE);
++
++	/* set GMAC1 RGMII mode */
++	rt_sysc_m32(3 << 12, 0, SYSC_REG_CFG1);
++
++	/* enable MDIO to control MT7530 */
++	rt_sysc_m32(3 << 12, 0, SYSC_GPIO_MODE);
++
++	/* turn off all PHYs */
++	for (i = 0; i <= 4; i++) {
++		val = _mt7620_mii_read(gsw, i, 0x0);
++		val |= BIT(11);
++		_mt7620_mii_write(gsw, i, 0x0, val);
++	}
++
++	/* reset the switch */
++	mt7530_mdio_w32(gsw, 0x7000, 0x3);
++	usleep_range(10, 20);
++
++	if ((rt_sysc_r32(SYSC_REG_CHIP_REV_ID) & 0xFFFF) == 0x0101) {
++		/* (GE1, Force 1000M/FD, FC ON, MAX_RX_LENGTH 1536) */
++		mtk_switch_w32(gsw, 0x2305e30b, GSW_REG_MAC_P0_MCR);
++		mt7530_mdio_w32(gsw, 0x3600, 0x5e30b);
++	} else {
++		/* (GE1, Force 1000M/FD, FC ON, MAX_RX_LENGTH 1536) */
++		mtk_switch_w32(gsw, 0x2305e33b, GSW_REG_MAC_P0_MCR);
++		mt7530_mdio_w32(gsw, 0x3600, 0x5e33b);
++	}
++
++	/* (GE2, Link down) */
++	mtk_switch_w32(gsw, 0x8000, GSW_REG_MAC_P1_MCR);
++
++	/* Set switch max RX frame length to 2k */
++	mt7530_mdio_w32(gsw, GSW_REG_GMACCR, 0x3F0B);
++
++	/* Enable Port 6, P5 as GMAC5, P5 disable */
++	val = mt7530_mdio_r32(gsw, 0x7804);
++	val &= ~BIT(8);
++	val |= BIT(6) | BIT(13) | BIT(16);
++	mt7530_mdio_w32(gsw, 0x7804, val);
++
++	val = rt_sysc_r32(0x10);
++	val = (val >> 6) & 0x7;
++	if (val >= 6) {
++		/* 25Mhz Xtal - do nothing */
++	} else if (val >= 3) {
++		/* 40Mhz */
++
++		/* disable MT7530 core clock */
++		_mt7620_mii_write(gsw, 0, 13, 0x1f);
++		_mt7620_mii_write(gsw, 0, 14, 0x410);
++		_mt7620_mii_write(gsw, 0, 13, 0x401f);
++		_mt7620_mii_write(gsw, 0, 14, 0x0);
++
++		/* disable MT7530 PLL */
++		_mt7620_mii_write(gsw, 0, 13, 0x1f);
++		_mt7620_mii_write(gsw, 0, 14, 0x40d);
++		_mt7620_mii_write(gsw, 0, 13, 0x401f);
++		_mt7620_mii_write(gsw, 0, 14, 0x2020);
++
++		/* for MT7530 core clock = 500Mhz */
++		_mt7620_mii_write(gsw, 0, 13, 0x1f);
++		_mt7620_mii_write(gsw, 0, 14, 0x40e);
++		_mt7620_mii_write(gsw, 0, 13, 0x401f);
++		_mt7620_mii_write(gsw, 0, 14, 0x119);
++
++		/* enable MT7530 PLL */
++		_mt7620_mii_write(gsw, 0, 13, 0x1f);
++		_mt7620_mii_write(gsw, 0, 14, 0x40d);
++		_mt7620_mii_write(gsw, 0, 13, 0x401f);
++		_mt7620_mii_write(gsw, 0, 14, 0x2820);
++
++		usleep_range(20, 40);
++
++		/* enable MT7530 core clock */
++		_mt7620_mii_write(gsw, 0, 13, 0x1f);
++		_mt7620_mii_write(gsw, 0, 14, 0x410);
++		_mt7620_mii_write(gsw, 0, 13, 0x401f);
++	} else {
++		/* 20Mhz Xtal - TODO */
++	}
++
++	/* RGMII */
++	_mt7620_mii_write(gsw, 0, 14, 0x1);
++
++	/* set MT7530 central align */
++	val = mt7530_mdio_r32(gsw, 0x7830);
++	val &= ~BIT(0);
++	val |= BIT(1);
++	mt7530_mdio_w32(gsw, 0x7830, val);
++	val = mt7530_mdio_r32(gsw, 0x7a40);
++	val &= ~BIT(30);
++	mt7530_mdio_w32(gsw, 0x7a40, val);
++	mt7530_mdio_w32(gsw, 0x7a78, 0x855);
++
++	/* delay setting for 10/1000M */
++	mt7530_mdio_w32(gsw, 0x7b00, 0x102);
++	mt7530_mdio_w32(gsw, 0x7b04, 0x14);
++
++	/* lower Tx Driving*/
++	mt7530_mdio_w32(gsw, 0x7a54, 0x44);
++	mt7530_mdio_w32(gsw, 0x7a5c, 0x44);
++	mt7530_mdio_w32(gsw, 0x7a64, 0x44);
++	mt7530_mdio_w32(gsw, 0x7a6c, 0x44);
++	mt7530_mdio_w32(gsw, 0x7a74, 0x44);
++	mt7530_mdio_w32(gsw, 0x7a7c, 0x44);
++
++	/* Disable EEE */
++	for (i = 0; i <= 4; i++) {
++		_mt7620_mii_write(gsw, i, 13, 0x7);
++		_mt7620_mii_write(gsw, i, 14, 0x3C);
++		_mt7620_mii_write(gsw, i, 13, 0x4007);
++		_mt7620_mii_write(gsw, i, 14, 0x0);
++	}
++
++	/* Disable EEE 10Base-Te */
++	for (i = 0; i <= 4; i++) {
++		_mt7620_mii_write(gsw, i, 13, 0x1f);
++		_mt7620_mii_write(gsw, i, 14, 0x027b);
++		_mt7620_mii_write(gsw, i, 13, 0x401f);
++		_mt7620_mii_write(gsw, i, 14, 0x1177);
++	}
++
++	/* turn on all PHYs */
++	for (i = 0; i <= 4; i++) {
++		val = _mt7620_mii_read(gsw, i, 0);
++		val &= ~BIT(11);
++		_mt7620_mii_write(gsw, i, 0, val);
++	}
++
++	/* enable irq */
++	mt7530_mdio_w32(gsw, 0x7008, 0x1f);
++	val = mt7530_mdio_r32(gsw, 0x7808);
++	val |= 3 << 16;
++	mt7530_mdio_w32(gsw, 0x7808, val);
++}
++
++static const struct of_device_id mediatek_gsw_match[] = {
++	{ .compatible = "mediatek,ralink-mt7621-gsw" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, mediatek_gsw_match);
++
++int mtk_gsw_init(struct fe_priv *priv)
++{
++	struct device_node *np = priv->switch_np;
++	struct platform_device *pdev = of_find_device_by_node(np);
++	struct mt7620_gsw *gsw;
++
++	if (!pdev)
++		return -ENODEV;
++
++	if (!of_device_is_compatible(np, mediatek_gsw_match->compatible))
++		return -EINVAL;
++
++	gsw = platform_get_drvdata(pdev);
++	priv->soc->swpriv = gsw;
++
++	if (gsw->irq) {
++		request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
++			    "gsw", priv);
++		disable_irq(gsw->irq);
++	}
++
++	mt7621_hw_init(gsw, np);
++
++	if (gsw->irq)
++		enable_irq(gsw->irq);
++
++	return 0;
++}
++
++static int mt7621_gsw_probe(struct platform_device *pdev)
++{
++	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	struct mt7620_gsw *gsw;
++
++	gsw = devm_kzalloc(&pdev->dev, sizeof(struct mt7620_gsw), GFP_KERNEL);
++	if (!gsw)
++		return -ENOMEM;
++
++	gsw->base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(gsw->base))
++		return PTR_ERR(gsw->base);
++
++	gsw->dev = &pdev->dev;
++	gsw->irq = platform_get_irq(pdev, 0);
++
++	platform_set_drvdata(pdev, gsw);
++
++	return 0;
++}
++
++static int mt7621_gsw_remove(struct platform_device *pdev)
++{
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++static struct platform_driver gsw_driver = {
++	.probe = mt7621_gsw_probe,
++	.remove = mt7621_gsw_remove,
++	.driver = {
++		.name = "ralink-mt7621-gsw",
++		.owner = THIS_MODULE,
++		.of_match_table = mediatek_gsw_match,
++	},
++};
++
++module_platform_driver(gsw_driver);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("John Crispin <blogic@openwrt.org>");
++MODULE_DESCRIPTION("GBit switch driver for Mediatek MT7621 SoC");
++MODULE_VERSION(MTK_FE_DRV_VERSION);
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/Kconfig
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/Kconfig
+@@ -27,15 +27,23 @@
+ 	bool "MT7620"
+ 	depends on MIPS && SOC_MT7620
+ 
++config NET_RALINK_MT7621
++	bool "MT7621"
++	depends on MIPS && SOC_MT7621
++
+ endchoice
+ 
++config NET_RALINK_OFFLOAD
++	def_bool NET_RALINK_SOC
++	depends on NET_RALINK_MT7621
++
+ config NET_RALINK_HW_QOS
+ 	def_bool NET_RALINK_SOC
+ 	depends on NET_RALINK_MT7623
+ 
+ config NET_RALINK_MDIO
+ 	def_bool NET_RALINK_SOC
+-	depends on (NET_RALINK_RT2880 || NET_RALINK_RT3883 || NET_RALINK_MT7620)
++	depends on (NET_RALINK_RT2880 || NET_RALINK_RT3883 || NET_RALINK_MT7620 || NET_RALINK_MT7621)
+ 	select PHYLIB
+ 
+ config NET_RALINK_MDIO_RT2880
+@@ -45,7 +53,7 @@
+ 
+ config NET_RALINK_MDIO_MT7620
+ 	def_bool NET_RALINK_SOC
+-	depends on NET_RALINK_MT7620
++	depends on (NET_RALINK_MT7620 || NET_RALINK_MT7621)
+ 	select NET_RALINK_MDIO
+ 
+ config NET_RALINK_ESW_RT3050
+@@ -55,4 +63,8 @@
+ config NET_RALINK_GSW_MT7620
+ 	def_tristate NET_RALINK_SOC
+ 	depends on NET_RALINK_MT7620
++
++config NET_RALINK_GSW_MT7621
++	def_tristate NET_RALINK_SOC
++	depends on NET_RALINK_MT7621
+ endif
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/Makefile
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/Makefile
+@@ -8,11 +8,15 @@
+ ralink-eth-$(CONFIG_NET_RALINK_MDIO_RT2880)	+= mdio_rt2880.o
+ ralink-eth-$(CONFIG_NET_RALINK_MDIO_MT7620)	+= mdio_mt7620.o
+ 
++ralink-eth-$(CONFIG_NET_RALINK_OFFLOAD)	+= mtk_offload.o mtk_debugfs.o
++
+ ralink-eth-$(CONFIG_NET_RALINK_RT2880)	+= soc_rt2880.o
+ ralink-eth-$(CONFIG_NET_RALINK_RT3050)	+= soc_rt3050.o
+ ralink-eth-$(CONFIG_NET_RALINK_RT3883)	+= soc_rt3883.o
+ ralink-eth-$(CONFIG_NET_RALINK_MT7620)	+= soc_mt7620.o
++ralink-eth-$(CONFIG_NET_RALINK_MT7621)	+= soc_mt7621.o
+ 
+ obj-$(CONFIG_NET_RALINK_ESW_RT3050)		+= esw_rt3050.o
+ obj-$(CONFIG_NET_RALINK_GSW_MT7620)		+= gsw_mt7620.o mt7530.o
++obj-$(CONFIG_NET_RALINK_GSW_MT7621)		+= gsw_mt7621.o mt7530.o
+ obj-$(CONFIG_NET_RALINK_SOC)			+= ralink-eth.o
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/mdio.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/mdio.c
+@@ -97,8 +97,13 @@
+ 		return -ENODEV;
+ 	}
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
++	phydev->supported &= PHY_GBIT_FEATURES;
++	phydev->advertising = phydev->supported;
++#else
+ 	phy_set_max_speed(phydev, SPEED_1000);
+ 	linkmode_copy(phydev->advertising, phydev->supported);
++#endif
+ 	phydev->no_auto_carrier_off = 1;
+ 
+ 	dev_info(priv->dev,
+@@ -120,11 +125,17 @@
+ 	phy->speed = 0;
+ 	phy->duplex = 0;
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
++	phy->supported &= IS_ENABLED(CONFIG_NET_RALINK_MDIO_MT7620) ?
++			PHY_GBIT_FEATURES : PHY_BASIC_FEATURES;
++	phy->advertising = phy->supported | ADVERTISED_Autoneg;
++#else
+ 	phy_set_max_speed(phy, IS_ENABLED(CONFIG_NET_RALINK_MDIO_MT7620) ?
+ 				       SPEED_1000 :
+ 				       SPEED_100);
+ 	linkmode_copy(phy->advertising, phy->supported);
+ 	linkmode_set_bit(ETHTOOL_LINK_MODE_Autoneg_BIT, phy->advertising);
++#endif
+ 
+ 	phy_start_aneg(phy);
+ }
+@@ -232,8 +243,7 @@
+ 	mii_np = of_get_child_by_name(priv->dev->of_node, "mdio-bus");
+ 	if (!mii_np) {
+ 		dev_err(priv->dev, "no %s child node found", "mdio-bus");
+-		err = 0;
+-		goto err_no_bus;
++		return -ENODEV;
+ 	}
+ 
+ 	if (!of_device_is_available(mii_np)) {
+@@ -265,8 +275,6 @@
+ 	kfree(priv->mii_bus);
+ err_put_node:
+ 	of_node_put(mii_np);
+-err_no_bus:
+-	dev_err(priv->dev, "%s disabled", "mdio-bus");
+ 	priv->mii_bus = NULL;
+ 	return err;
+ }
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/mt7530.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/mt7530.c
+@@ -31,21 +31,25 @@
+ #include <linux/lockdep.h>
+ #include <linux/workqueue.h>
+ #include <linux/of_device.h>
+-#include <asm/byteorder.h>
+ 
+ #include "mt7530.h"
+ 
+ #define MT7530_CPU_PORT		6
+ #define MT7530_NUM_PORTS	8
++#ifdef CONFIG_SOC_MT7621
++#define MT7530_NUM_VLANS	4095
++#else
+ #define MT7530_NUM_VLANS	16
++#endif
+ #define MT7530_MAX_VID		4095
+ #define MT7530_MIN_VID		0
+-#define MT7530_NUM_ARL_RECORDS 2048
+-#define ARL_LINE_LENGTH		30
+ 
+ #define MT7530_PORT_MIB_TXB_ID	2	/* TxGOC */
+ #define MT7530_PORT_MIB_RXB_ID	6	/* RxGOC */
+ 
++#define MT7621_PORT_MIB_TXB_ID	18	/* TxByte */
++#define MT7621_PORT_MIB_RXB_ID	37	/* RxByte */
++
+ /* registers */
+ #define REG_ESW_WT_MAC_MFC		0x10
+ 
+@@ -57,20 +61,6 @@
+ #define REG_ESW_VLAN_VAWD2		0x98
+ #define REG_ESW_VLAN_VTIM(x)	(0x100 + 4 * ((x) / 2))
+ 
+-#define REG_ESW_WT_MAC_ATC  0x80
+-#define REG_ESW_TABLE_ATRD  0x8C
+-#define REG_ESW_TABLE_TSRA1 0x84
+-#define REG_ESW_TABLE_TSRA2 0x88
+-
+-#define REG_MAC_ATC_START  0x8004
+-#define REG_MAC_ATC_NEXT   0x8005
+-
+-#define REG_MAC_ATC_BUSY      0x8000U
+-#define REG_MAC_ATC_SRCH_HIT  0x2000U
+-#define REG_MAC_ATC_SRCH_END  0x4000U
+-#define REG_ATRD_VALID        0xff000000U
+-#define REG_ATRD_PORT_MASK    0xff0U
+-
+ #define REG_ESW_VLAN_VAWD1_IVL_MAC	BIT(30)
+ #define REG_ESW_VLAN_VAWD1_VTAG_EN	BIT(28)
+ #define REG_ESW_VLAN_VAWD1_VALID	BIT(0)
+@@ -152,6 +142,50 @@
+ 	MIB_DESC(1, MT7620_MIB_STATS_PORT_REPC2N, "RxEPC2")
+ };
+ 
++static const struct mt7xxx_mib_desc mt7621_mibs[] = {
++	MIB_DESC(1, MT7621_STATS_TDPC, "TxDrop"),
++	MIB_DESC(1, MT7621_STATS_TCRC, "TxCRC"),
++	MIB_DESC(1, MT7621_STATS_TUPC, "TxUni"),
++	MIB_DESC(1, MT7621_STATS_TMPC, "TxMulti"),
++	MIB_DESC(1, MT7621_STATS_TBPC, "TxBroad"),
++	MIB_DESC(1, MT7621_STATS_TCEC, "TxCollision"),
++	MIB_DESC(1, MT7621_STATS_TSCEC, "TxSingleCol"),
++	MIB_DESC(1, MT7621_STATS_TMCEC, "TxMultiCol"),
++	MIB_DESC(1, MT7621_STATS_TDEC, "TxDefer"),
++	MIB_DESC(1, MT7621_STATS_TLCEC, "TxLateCol"),
++	MIB_DESC(1, MT7621_STATS_TXCEC, "TxExcCol"),
++	MIB_DESC(1, MT7621_STATS_TPPC, "TxPause"),
++	MIB_DESC(1, MT7621_STATS_TL64PC, "Tx64Byte"),
++	MIB_DESC(1, MT7621_STATS_TL65PC, "Tx65Byte"),
++	MIB_DESC(1, MT7621_STATS_TL128PC, "Tx128Byte"),
++	MIB_DESC(1, MT7621_STATS_TL256PC, "Tx256Byte"),
++	MIB_DESC(1, MT7621_STATS_TL512PC, "Tx512Byte"),
++	MIB_DESC(1, MT7621_STATS_TL1024PC, "Tx1024Byte"),
++	MIB_DESC(2, MT7621_STATS_TOC, "TxByte"),
++	MIB_DESC(1, MT7621_STATS_RDPC, "RxDrop"),
++	MIB_DESC(1, MT7621_STATS_RFPC, "RxFiltered"),
++	MIB_DESC(1, MT7621_STATS_RUPC, "RxUni"),
++	MIB_DESC(1, MT7621_STATS_RMPC, "RxMulti"),
++	MIB_DESC(1, MT7621_STATS_RBPC, "RxBroad"),
++	MIB_DESC(1, MT7621_STATS_RAEPC, "RxAlignErr"),
++	MIB_DESC(1, MT7621_STATS_RCEPC, "RxCRC"),
++	MIB_DESC(1, MT7621_STATS_RUSPC, "RxUnderSize"),
++	MIB_DESC(1, MT7621_STATS_RFEPC, "RxFragment"),
++	MIB_DESC(1, MT7621_STATS_ROSPC, "RxOverSize"),
++	MIB_DESC(1, MT7621_STATS_RJEPC, "RxJabber"),
++	MIB_DESC(1, MT7621_STATS_RPPC, "RxPause"),
++	MIB_DESC(1, MT7621_STATS_RL64PC, "Rx64Byte"),
++	MIB_DESC(1, MT7621_STATS_RL65PC, "Rx65Byte"),
++	MIB_DESC(1, MT7621_STATS_RL128PC, "Rx128Byte"),
++	MIB_DESC(1, MT7621_STATS_RL256PC, "Rx256Byte"),
++	MIB_DESC(1, MT7621_STATS_RL512PC, "Rx512Byte"),
++	MIB_DESC(1, MT7621_STATS_RL1024PC, "Rx1024Byte"),
++	MIB_DESC(2, MT7621_STATS_ROC, "RxByte"),
++	MIB_DESC(1, MT7621_STATS_RDPC_CTRL, "RxCtrlDrop"),
++	MIB_DESC(1, MT7621_STATS_RDPC_ING, "RxIngDrop"),
++	MIB_DESC(1, MT7621_STATS_RDPC_ARL, "RxARLDrop")
++};
++
+ enum {
+ 	/* Global attributes. */
+ 	MT7530_ATTR_ENABLE_VLAN,
+@@ -178,7 +212,6 @@
+ 	bool			global_vlan_enable;
+ 	struct mt7530_vlan_entry	vlan_entries[MT7530_NUM_VLANS];
+ 	struct mt7530_port_entry	port_entries[MT7530_NUM_PORTS];
+-	char arl_buf[MT7530_NUM_ARL_RECORDS * ARL_LINE_LENGTH + 1];
+ };
+ 
+ struct mt7530_mapping {
+@@ -464,6 +497,14 @@
+ }
+ 
+ static int
++mt7621_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
++		struct switch_val *val)
++{
++	val->value.i = val->port_vlan;
++	return 0;
++}
++
++static int
+ mt7530_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
+ 		struct switch_val *val)
+ {
+@@ -555,6 +596,7 @@
+ 	int port;
+ 	u32 val;
+ 
++#ifndef CONFIG_SOC_MT7621
+ 	/* vid of vlan */
+ 	val = mt7530_r32(priv, REG_ESW_VLAN_VTIM(vlan));
+ 	if (vlan % 2 == 0) {
+@@ -565,6 +607,7 @@
+ 		val |= (vid << 12);
+ 	}
+ 	mt7530_w32(priv, REG_ESW_VLAN_VTIM(vlan), val);
++#endif
+ 
+ 	/* vlan port membership */
+ 	if (ports)
+@@ -585,7 +628,11 @@
+ 	mt7530_w32(priv, REG_ESW_VLAN_VAWD2, val);
+ 
+ 	/* write to vlan table */
++#ifdef CONFIG_SOC_MT7621
++	mt7530_vtcr(priv, 1, vid);
++#else
+ 	mt7530_vtcr(priv, 1, vlan);
++#endif
+ }
+ 
+ static int
+@@ -738,6 +785,53 @@
+ 	return 0;
+ }
+ 
++static u64 get_mib_counter(struct mt7530_priv *priv, int i, int port)
++{
++	unsigned int port_base;
++	u64 lo;
++
++	port_base = MT7621_MIB_COUNTER_BASE +
++		    MT7621_MIB_COUNTER_PORT_OFFSET * port;
++
++	lo = mt7530_r32(priv, port_base + mt7621_mibs[i].offset);
++	if (mt7621_mibs[i].size == 2) {
++		u64 hi;
++
++		hi = mt7530_r32(priv, port_base + mt7621_mibs[i].offset + 4);
++		lo |= hi << 32;
++	}
++
++	return lo;
++}
++
++static int mt7621_sw_get_port_mib(struct switch_dev *dev,
++				  const struct switch_attr *attr,
++				  struct switch_val *val)
++{
++	static char buf[4096];
++	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
++	int i, len = 0;
++
++	if (val->port_vlan >= MT7530_NUM_PORTS)
++		return -EINVAL;
++
++	len += snprintf(buf + len, sizeof(buf) - len,
++			"Port %d MIB counters\n", val->port_vlan);
++
++	for (i = 0; i < ARRAY_SIZE(mt7621_mibs); ++i) {
++		u64 counter;
++		len += snprintf(buf + len, sizeof(buf) - len,
++				"%-11s: ", mt7621_mibs[i].name);
++		counter = get_mib_counter(priv, i, val->port_vlan);
++		len += snprintf(buf + len, sizeof(buf) - len, "%llu\n",
++				counter);
++	}
++
++	val->value.s = buf;
++	val->len = len;
++	return 0;
++}
++
+ static u64 get_mib_counter_7620(struct mt7530_priv *priv, int i)
+ {
+ 	return mt7530_r32(priv, MT7620_MIB_COUNTER_BASE + mt7620_mibs[i].offset);
+@@ -775,100 +869,6 @@
+ 	return 0;
+ }
+ 
+-static char *mt7530_print_arl_table_row(u32 atrd,
+-					u32 mac1,
+-					u32 mac2,
+-					char *buf,
+-					size_t *size)
+-{
+-	int ret;
+-	size_t port;
+-	size_t i;
+-	u8 port_map;
+-	u8 mac[ETH_ALEN];
+-
+-	mac1 = ntohl(mac1);
+-	mac2 = ntohl(mac2);
+-	port_map = (u8)((atrd & REG_ATRD_PORT_MASK) >> 4);
+-	memcpy(mac, &mac1, sizeof(mac1));
+-	memcpy(mac + sizeof(mac1), &mac2, sizeof(mac) - sizeof(mac1));
+-	for (port = 0, i = 1; port < MT7530_NUM_PORTS; ++port, i <<= 1) {
+-		if (port_map & i) {
+-			ret = snprintf(buf, *size, "Port %d: MAC %pM\n", port, mac);
+-			if (ret >= *size || ret <= 0) {
+-				*buf = 0;
+-				buf = NULL;
+-				goto out;
+-			}
+-			buf += ret;
+-			*size = *size - ret;
+-		}
+-	}
+-out:
+-	return buf;
+-}
+-
+-static int mt7530_get_arl_table(struct switch_dev *dev,
+-				const struct switch_attr *attr,
+-				struct switch_val *val)
+-{
+-	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+-	char *buf = priv->arl_buf;
+-	size_t size = sizeof(priv->arl_buf);
+-	size_t count = 0;
+-	size_t retry_times = 100;
+-	int ret;
+-	u32 atc;
+-
+-	ret = snprintf(buf, size, "address resolution table\n");
+-	if (ret >= size || ret <= 0) {
+-		priv->arl_buf[0] = 0;
+-		goto out;
+-	}
+-	buf += ret;
+-	size = size - ret;
+-
+-	mt7530_w32(priv, REG_ESW_WT_MAC_ATC, REG_MAC_ATC_START);
+-
+-	do {
+-		atc = mt7530_r32(priv, REG_ESW_WT_MAC_ATC);
+-		if (atc & REG_MAC_ATC_SRCH_HIT && !(atc & REG_MAC_ATC_BUSY)) {
+-			u32 atrd;
+-
+-			++count;
+-			atrd = mt7530_r32(priv, REG_ESW_TABLE_ATRD);
+-			if (atrd & REG_ATRD_VALID) {
+-				u32 mac1;
+-				u32 mac2;
+-
+-				mac1 = mt7530_r32(priv, REG_ESW_TABLE_TSRA1);
+-				mac2 = mt7530_r32(priv, REG_ESW_TABLE_TSRA2);
+-
+-				if (!(atc & REG_MAC_ATC_SRCH_END))
+-					mt7530_w32(priv, REG_ESW_WT_MAC_ATC, REG_MAC_ATC_NEXT);
+-
+-				buf = mt7530_print_arl_table_row(atrd, mac1, mac2, buf, &size);
+-				if (!buf) {
+-					pr_warn("%s: too many addresses\n", __func__);
+-					goto out;
+-				}
+-			} else if (!(atc & REG_MAC_ATC_SRCH_END)) {
+-				mt7530_w32(priv, REG_ESW_WT_MAC_ATC, REG_MAC_ATC_NEXT);
+-			}
+-		} else {
+-			--retry_times;
+-			usleep_range(1000, 5000);
+-		}
+-	} while (!(atc & REG_MAC_ATC_SRCH_END) &&
+-		 count < MT7530_NUM_ARL_RECORDS &&
+-		 retry_times > 0);
+-out:
+-	val->value.s = priv->arl_buf;
+-	val->len = strlen(priv->arl_buf);
+-
+-	return 0;
+-}
+-
+ static int mt7530_sw_get_port_mib(struct switch_dev *dev,
+ 				  const struct switch_attr *attr,
+ 				  struct switch_val *val)
+@@ -911,6 +911,20 @@
+ 	return 0;
+ }
+ 
++static int mt7621_get_port_stats(struct switch_dev *dev, int port,
++					struct switch_port_stats *stats)
++{
++	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
++
++	if (port < 0 || port >= MT7530_NUM_PORTS)
++		return -EINVAL;
++
++	stats->tx_bytes = get_mib_counter(priv, MT7621_PORT_MIB_TXB_ID, port);
++	stats->rx_bytes = get_mib_counter(priv, MT7621_PORT_MIB_RXB_ID, port);
++
++	return 0;
++}
++
+ static const struct switch_attr mt7530_global[] = {
+ 	{
+ 		.type = SWITCH_TYPE_INT,
+@@ -934,12 +948,40 @@
+ 		.get = mt7530_get_mirror_monitor_port,
+ 		.max = MT7530_NUM_PORTS - 1
+ 	},
++};
++
++static const struct switch_attr mt7621_port[] = {
+ 	{
+ 		.type = SWITCH_TYPE_STRING,
+-		.name = "arl_table",
+-		.description = "Get ARL table",
++		.name = "mib",
++		.description = "Get MIB counters for port",
++		.get = mt7621_sw_get_port_mib,
+ 		.set = NULL,
+-		.get = mt7530_get_arl_table,
++	}, {
++		.type = SWITCH_TYPE_INT,
++		.name = "enable_mirror_rx",
++		.description = "Enable mirroring of RX packets",
++		.set = mt7530_set_port_mirror_rx,
++		.get = mt7530_get_port_mirror_rx,
++		.max = 1,
++	}, {
++		.type = SWITCH_TYPE_INT,
++		.name = "enable_mirror_tx",
++		.description = "Enable mirroring of TX packets",
++		.set = mt7530_set_port_mirror_tx,
++		.get = mt7530_get_port_mirror_tx,
++		.max = 1,
++	},
++};
++
++static const struct switch_attr mt7621_vlan[] = {
++	{
++		.type = SWITCH_TYPE_INT,
++		.name = "vid",
++		.description = "VLAN ID (0-4094)",
++		.set = mt7530_set_vid,
++		.get = mt7621_get_vid,
++		.max = 4094,
+ 	},
+ };
+ 
+@@ -978,6 +1020,29 @@
+ 	},
+ };
+ 
++static const struct switch_dev_ops mt7621_ops = {
++	.attr_global = {
++		.attr = mt7530_global,
++		.n_attr = ARRAY_SIZE(mt7530_global),
++	},
++	.attr_port = {
++		.attr = mt7621_port,
++		.n_attr = ARRAY_SIZE(mt7621_port),
++	},
++	.attr_vlan = {
++		.attr = mt7621_vlan,
++		.n_attr = ARRAY_SIZE(mt7621_vlan),
++	},
++	.get_vlan_ports = mt7530_get_vlan_ports,
++	.set_vlan_ports = mt7530_set_vlan_ports,
++	.get_port_pvid = mt7530_get_port_pvid,
++	.set_port_pvid = mt7530_set_port_pvid,
++	.get_port_link = mt7530_get_port_link,
++	.get_port_stats = mt7621_get_port_stats,
++	.apply_config = mt7530_apply_config,
++	.reset_switch = mt7530_reset_switch,
++};
++
+ static const struct switch_dev_ops mt7530_ops = {
+ 	.attr_global = {
+ 		.attr = mt7530_global,
+@@ -1021,6 +1086,9 @@
+ 	if (bus) {
+ 		swdev->alias = "mt7530";
+ 		swdev->name = "mt7530";
++	} else if (IS_ENABLED(CONFIG_SOC_MT7621)) {
++		swdev->alias = "mt7621";
++		swdev->name = "mt7621";
+ 	} else {
+ 		swdev->alias = "mt7620";
+ 		swdev->name = "mt7620";
+@@ -1028,7 +1096,10 @@
+ 	swdev->cpu_port = MT7530_CPU_PORT;
+ 	swdev->ports = MT7530_NUM_PORTS;
+ 	swdev->vlans = MT7530_NUM_VLANS;
+-	swdev->ops = &mt7530_ops;
++	if (IS_ENABLED(CONFIG_SOC_MT7621))
++		swdev->ops = &mt7621_ops;
++	else
++		swdev->ops = &mt7530_ops;
+ 
+ 	ret = register_switch(swdev, NULL);
+ 	if (ret) {
+@@ -1043,7 +1114,7 @@
+ 	mt7530_apply_config(swdev);
+ 
+ 	/* magic vodoo */
+-	if (bus && mt7530_r32(mt7530, REG_HWTRAP) !=  0x1117edf) {
++	if (!IS_ENABLED(CONFIG_SOC_MT7621) && bus && mt7530_r32(mt7530, REG_HWTRAP) !=  0x1117edf) {
+ 		dev_info(dev, "fixing up MHWTRAP register - bootloader probably played with it\n");
+ 		mt7530_w32(mt7530, REG_HWTRAP, 0x1117edf);
+ 	}
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/mt7530.h
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/mt7530.h
+@@ -137,6 +137,50 @@
+ /* Rx Event Packet Counter of Port n */
+ #define MT7620_MIB_STATS_PORT_REPC2N	0x30
+ 
++#define MT7621_MIB_COUNTER_BASE	0x4000
++#define MT7621_MIB_COUNTER_PORT_OFFSET	0x100
++#define MT7621_STATS_TDPC	0x00
++#define MT7621_STATS_TCRC	0x04
++#define MT7621_STATS_TUPC	0x08
++#define MT7621_STATS_TMPC	0x0C
++#define MT7621_STATS_TBPC	0x10
++#define MT7621_STATS_TCEC	0x14
++#define MT7621_STATS_TSCEC	0x18
++#define MT7621_STATS_TMCEC	0x1C
++#define MT7621_STATS_TDEC	0x20
++#define MT7621_STATS_TLCEC	0x24
++#define MT7621_STATS_TXCEC	0x28
++#define MT7621_STATS_TPPC	0x2C
++#define MT7621_STATS_TL64PC	0x30
++#define MT7621_STATS_TL65PC	0x34
++#define MT7621_STATS_TL128PC	0x38
++#define MT7621_STATS_TL256PC	0x3C
++#define MT7621_STATS_TL512PC	0x40
++#define MT7621_STATS_TL1024PC	0x44
++#define MT7621_STATS_TOC	0x48
++#define MT7621_STATS_RDPC	0x60
++#define MT7621_STATS_RFPC	0x64
++#define MT7621_STATS_RUPC	0x68
++#define MT7621_STATS_RMPC	0x6C
++#define MT7621_STATS_RBPC	0x70
++#define MT7621_STATS_RAEPC	0x74
++#define MT7621_STATS_RCEPC	0x78
++#define MT7621_STATS_RUSPC	0x7C
++#define MT7621_STATS_RFEPC	0x80
++#define MT7621_STATS_ROSPC	0x84
++#define MT7621_STATS_RJEPC	0x88
++#define MT7621_STATS_RPPC	0x8C
++#define MT7621_STATS_RL64PC	0x90
++#define MT7621_STATS_RL65PC	0x94
++#define MT7621_STATS_RL128PC	0x98
++#define MT7621_STATS_RL256PC	0x9C
++#define MT7621_STATS_RL512PC	0xA0
++#define MT7621_STATS_RL1024PC	0xA4
++#define MT7621_STATS_ROC	0xA8
++#define MT7621_STATS_RDPC_CTRL	0xB0
++#define MT7621_STATS_RDPC_ING	0xB4
++#define MT7621_STATS_RDPC_ARL	0xB8
++
+ int mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vlan);
+ 
+ #endif
+
+--- /dev/null
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/mtk_debugfs.c
+@@ -0,0 +1,115 @@
++/*   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; version 2 of the License
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   Copyright (C) 2014-2016 Sean Wang <sean.wang@mediatek.com>
++ *   Copyright (C) 2016-2017 John Crispin <blogic@openwrt.org>
++ */
++
++#include "mtk_offload.h"
++
++static const char *mtk_foe_entry_state_str[] = {
++	"INVALID",
++	"UNBIND",
++	"BIND",
++	"FIN"
++};
++
++static const char *mtk_foe_packet_type_str[] = {
++	"IPV4_HNAPT",
++	"IPV4_HNAT",
++	"IPV6_1T_ROUTE",
++	"IPV4_DSLITE",
++	"IPV6_3T_ROUTE",
++	"IPV6_5T_ROUTE",
++	"IPV6_6RD",
++};
++
++#define IPV4_HNAPT                      0
++#define IPV4_HNAT                       1
++#define IS_IPV4_HNAPT(x)	(((x)->bfib1.pkt_type == IPV4_HNAPT) ? 1: 0)
++static struct mtk_eth *_eth;
++#define es(entry)		(mtk_foe_entry_state_str[entry->bfib1.state])
++//#define ei(entry, end)		(MTK_PPE_TBL_SZ - (int)(end - entry))
++#define ei(entry, end)		(MTK_PPE_ENTRY_CNT - (int)(end - entry))
++#define pt(entry)		(mtk_foe_packet_type_str[entry->ipv4_hnapt.bfib1.pkt_type])
++
++static int mtk_ppe_debugfs_foe_show(struct seq_file *m, void *private)
++{
++	struct mtk_eth *eth = _eth;
++	struct mtk_foe_entry *entry, *end;
++	int i = 0;
++
++	entry = eth->foe_table;
++	end = eth->foe_table + MTK_PPE_ENTRY_CNT;
++
++	while (entry < end) {
++		if (IS_IPV4_HNAPT(entry)) {
++			__be32 saddr = htonl(entry->ipv4_hnapt.sip);
++			__be32 daddr = htonl(entry->ipv4_hnapt.dip);
++			__be32 nsaddr = htonl(entry->ipv4_hnapt.new_sip);
++			__be32 ndaddr = htonl(entry->ipv4_hnapt.new_dip);
++			unsigned char h_dest[ETH_ALEN];
++			unsigned char h_source[ETH_ALEN];
++
++			*((u32*) h_source) = swab32(entry->ipv4_hnapt.smac_hi);
++			*((u16*) &h_source[4]) = swab16(entry->ipv4_hnapt.smac_lo);
++			*((u32*) h_dest) = swab32(entry->ipv4_hnapt.dmac_hi);
++			*((u16*) &h_dest[4]) = swab16(entry->ipv4_hnapt.dmac_lo);
++			seq_printf(m,
++				   "(%x)0x%05x|state=%s|type=%s|"
++				   "%pI4:%d->%pI4:%d=>%pI4:%d->%pI4:%d|%pM=>%pM|"
++				   "etype=0x%04x|info1=0x%x|info2=0x%x|"
++				   "vlan1=%d|vlan2=%d\n",
++				   i,
++				   ei(entry, end), es(entry), pt(entry),
++				   &saddr, entry->ipv4_hnapt.sport,
++				   &daddr, entry->ipv4_hnapt.dport,
++				   &nsaddr, entry->ipv4_hnapt.new_sport,
++				   &ndaddr, entry->ipv4_hnapt.new_dport, h_source,
++				   h_dest, ntohs(entry->ipv4_hnapt.etype),
++				   entry->ipv4_hnapt.info_blk1,
++				   entry->ipv4_hnapt.info_blk2,
++				   entry->ipv4_hnapt.vlan1,
++				   entry->ipv4_hnapt.vlan2);
++		} else
++			seq_printf(m, "0x%05x state=%s\n",
++				   ei(entry, end), es(entry));
++		entry++;
++		i++;
++	}
++
++	return 0;
++}
++
++static int mtk_ppe_debugfs_foe_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, mtk_ppe_debugfs_foe_show, file->private_data);
++}
++
++static const struct file_operations mtk_ppe_debugfs_foe_fops = {
++	.open = mtk_ppe_debugfs_foe_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
++int ra_ppe_debugfs_init(struct mtk_eth *eth)
++{
++	struct dentry *root;
++
++	_eth = eth;
++
++	root = debugfs_create_dir("mtk_ppe", NULL);
++	if (!root)
++		return -ENOMEM;
++
++	debugfs_create_file("all_entry", S_IRUGO, root, eth, &mtk_ppe_debugfs_foe_fops);
++
++	return 0;
++}
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/mtk_eth_soc.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/mtk_eth_soc.c
+@@ -141,17 +141,6 @@
+ 	usleep_range(10, 20);
+ }
+ 
+-void fe_reset_fe(struct fe_priv *priv)
+-{
+-	if (!priv->rst_fe)
+-		return;
+-
+-	reset_control_assert(priv->rst_fe);
+-	usleep_range(60, 120);
+-	reset_control_deassert(priv->rst_fe);
+-	usleep_range(60, 120);
+-}
+-
+ static inline void fe_int_disable(u32 mask)
+ {
+ 	fe_reg_w32(fe_reg_r32(FE_REG_FE_INT_ENABLE) & ~mask,
+@@ -575,7 +564,7 @@
+ 	barrier();
+ 	return (u32)(ring->tx_ring_size -
+ 			((ring->tx_next_idx - ring->tx_free_idx) &
+-			 (ring->tx_ring_size - 1)));
++			 (ring->tx_ring_size - 1)) - 1);
+ }
+ 
+ struct fe_map_state {
+@@ -726,11 +715,19 @@
+ 	/* TX SG offload */
+ 	nr_frags = skb_shinfo(skb)->nr_frags;
+ 	for (i = 0; i < nr_frags; i++) {
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
++		struct skb_frag_struct *frag;
++#else
+ 		skb_frag_t *frag;
++#endif
+ 
+ 		frag = &skb_shinfo(skb)->frags[i];
+ 		if (fe_tx_dma_map_page(ring, &st, skb_frag_page(frag),
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
++				       frag->page_offset, skb_frag_size(frag)))
++#else
+ 				       skb_frag_off(frag), skb_frag_size(frag)))
++#endif
+ 			goto err_dma;
+ 	}
+ 
+@@ -765,7 +762,11 @@
+ 			netif_wake_queue(dev);
+ 	}
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0)
++	if (netif_xmit_stopped(netdev_get_tx_queue(dev, 0)) || !head->xmit_more)
++#else
+ 	if (netif_xmit_stopped(netdev_get_tx_queue(dev, 0)) || !netdev_xmit_more())
++#endif
+ 		fe_reg_w32(ring->tx_next_idx, FE_REG_TX_CTX_IDX0);
+ 
+ 	return 0;
+@@ -824,14 +825,22 @@
+ {
+ 	struct sk_buff *head = skb;
+ 	int i, nfrags = 0;
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
++	struct skb_frag_struct *frag;
++#else
+ 	skb_frag_t *frag;
++#endif
+ 
+ next_frag:
+ 	nfrags++;
+ 	if (skb_is_gso(skb)) {
+ 		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
+ 			frag = &skb_shinfo(skb)->frags[i];
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
++			nfrags += DIV_ROUND_UP(frag->size, TX_DMA_BUF_LEN);
++#else
+ 			nfrags += DIV_ROUND_UP(skb_frag_size(frag), TX_DMA_BUF_LEN);
++#endif
+ 		}
+ 	} else {
+ 		nfrags += skb_shinfo(skb)->nr_frags;
+@@ -951,11 +960,18 @@
+ 			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
+ 					       RX_DMA_VID(trxd.rxd3));
+ 
+-		stats->rx_packets++;
+-		stats->rx_bytes += pktlen;
+-
+-		napi_gro_receive(napi, skb);
++#ifdef CONFIG_NET_RALINK_OFFLOAD
++		if (ra_offload_check_rx(priv, skb, trxd.rxd4) == 0) {
++#endif
++			stats->rx_packets++;
++			stats->rx_bytes += pktlen;
+ 
++			napi_gro_receive(napi, skb);
++#ifdef CONFIG_NET_RALINK_OFFLOAD
++		} else {
++			dev_kfree_skb(skb);
++		}
++#endif
+ 		ring->rx_data[idx] = new_data;
+ 		rxd->rxd1 = (unsigned int)dma_addr;
+ 
+@@ -1296,6 +1312,9 @@
+ 	napi_enable(&priv->rx_napi);
+ 	fe_int_enable(priv->soc->tx_int | priv->soc->rx_int);
+ 	netif_start_queue(dev);
++#ifdef CONFIG_NET_RALINK_OFFLOAD
++	ra_ppe_probe(priv);
++#endif
+ 
+ 	return 0;
+ }
+@@ -1332,6 +1351,10 @@
+ 
+ 	fe_free_dma(priv);
+ 
++#ifdef CONFIG_NET_RALINK_OFFLOAD
++	ra_ppe_remove(priv);
++#endif
++
+ 	return 0;
+ }
+ 
+@@ -1371,21 +1394,13 @@
+ 	const char *mac_addr;
+ 	int err;
+ 
+-	if (priv->soc->reset_fe)
+-		priv->soc->reset_fe(priv);
+-	else
+-		fe_reset_fe(priv);
+-
+-	if (priv->soc->switch_init) {
+-		err = priv->soc->switch_init(priv);
+-		if (err) {
+-			if (err == -EPROBE_DEFER)
+-				return err;
++	priv->soc->reset_fe();
+ 
++	if (priv->soc->switch_init)
++		if (priv->soc->switch_init(priv)) {
+ 			netdev_err(dev, "failed to initialize switch core\n");
+ 			return -ENODEV;
+ 		}
+-	}
+ 
+ 	fe_reset_phy(priv);
+ 
+@@ -1500,6 +1515,23 @@
+ 	return fe_open(dev);
+ }
+ 
++#ifdef CONFIG_NET_RALINK_OFFLOAD
++static int
++fe_flow_offload(enum flow_offload_type type, struct flow_offload *flow,
++		struct flow_offload_hw_path *src,
++		struct flow_offload_hw_path *dest)
++{
++	struct fe_priv *priv;
++
++	if (src->dev != dest->dev)
++		return -EINVAL;
++
++	priv = netdev_priv(src->dev);
++
++	return mtk_flow_offload(priv, type, flow, src, dest);
++}
++#endif
++
+ static const struct net_device_ops fe_netdev_ops = {
+ 	.ndo_init		= fe_init,
+ 	.ndo_uninit		= fe_uninit,
+@@ -1517,6 +1549,9 @@
+ #ifdef CONFIG_NET_POLL_CONTROLLER
+ 	.ndo_poll_controller	= fe_poll_controller,
+ #endif
++#ifdef CONFIG_NET_RALINK_OFFLOAD
++	.ndo_flow_offload	= fe_flow_offload,
++#endif
+ };
+ 
+ static void fe_reset_pending(struct fe_priv *priv)
+@@ -1598,12 +1633,6 @@
+ 		goto err_free_dev;
+ 	}
+ 
+-	priv = netdev_priv(netdev);
+-	spin_lock_init(&priv->page_lock);
+-	priv->rst_fe = devm_reset_control_get(&pdev->dev, "fe");
+-	if (IS_ERR(priv->rst_fe))
+-		priv->rst_fe = NULL;
+-
+ 	if (soc->init_data)
+ 		soc->init_data(soc, netdev);
+ 	netdev->vlan_features = netdev->hw_features &
+@@ -1618,6 +1647,8 @@
+ 	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE])
+ 		netdev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
+ 
++	priv = netdev_priv(netdev);
++	spin_lock_init(&priv->page_lock);
+ 	if (fe_reg_table[FE_REG_FE_COUNTER_BASE]) {
+ 		priv->hw_stats = kzalloc(sizeof(*priv->hw_stats), GFP_KERNEL);
+ 		if (!priv->hw_stats) {
+@@ -1705,7 +1736,7 @@
+ 	.probe = fe_probe,
+ 	.remove = fe_remove,
+ 	.driver = {
+-		.name = "mtk_soc_eth",
++		.name = "ralink_soc_eth",
+ 		.owner = THIS_MODULE,
+ 		.of_match_table = of_fe_match,
+ 	},
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/mtk_eth_soc.h
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/mtk_eth_soc.h
+@@ -49,7 +49,7 @@
+ 	FE_FLAG_MAX
+ };
+ 
+-#define MTK_FE_DRV_VERSION		"0.2"
++#define MTK_FE_DRV_VERSION		"0.1.2"
+ 
+ /* power of 2 to let NEXT_TX_DESP_IDX work */
+ #define NUM_DMA_DESC		BIT(10)
+@@ -157,10 +157,6 @@
+ #define MT7620A_FE_GDMA1_MAC_ADRL	(MT7620A_GDMA_OFFSET + 0x0C)
+ #define MT7620A_FE_GDMA1_MAC_ADRH	(MT7620A_GDMA_OFFSET + 0x10)
+ 
+-#define MT7620A_RESET_FE	BIT(21)
+-#define MT7620A_RESET_ESW	BIT(23)
+-#define MT7620A_RESET_EPHY	BIT(24)
+-
+ #define RT5350_TX_BASE_PTR0	(RT5350_PDMA_OFFSET + 0x00)
+ #define RT5350_TX_MAX_CNT0	(RT5350_PDMA_OFFSET + 0x04)
+ #define RT5350_TX_CTX_IDX0	(RT5350_PDMA_OFFSET + 0x08)
+@@ -382,7 +378,7 @@
+ 	const u16 *reg_table;
+ 
+ 	void (*init_data)(struct fe_soc_data *data, struct net_device *netdev);
+-	void (*reset_fe)(struct fe_priv *priv);
++	void (*reset_fe)(void);
+ 	void (*set_mac)(struct fe_priv *priv, unsigned char *mac);
+ 	int (*fwd_config)(struct fe_priv *priv);
+ 	void (*tx_dma)(struct fe_tx_dma *txd);
+@@ -498,7 +494,6 @@
+ 	DECLARE_BITMAP(pending_flags, FE_FLAG_MAX);
+ 
+ 	struct reset_control		*rst_ppe;
+-	struct reset_control		*rst_fe;
+ 	struct mtk_foe_entry		*foe_table;
+ 	dma_addr_t			foe_table_phys;
+ 	struct flow_offload __rcu	**foe_flow_table;
+@@ -518,12 +513,20 @@
+ u32 fe_reg_r32(enum fe_reg reg);
+ 
+ void fe_reset(u32 reset_bits);
+-void fe_reset_fe(struct fe_priv *priv);
+ 
+ static inline void *priv_netdev(struct fe_priv *priv)
+ {
+ 	return (char *)priv - ALIGN(sizeof(struct net_device), NETDEV_ALIGN);
+ }
+ 
++int ra_ppe_probe(struct fe_priv *eth);
++void ra_ppe_remove(struct fe_priv *eth);
++int mtk_flow_offload(struct fe_priv *eth,
++		     enum flow_offload_type type,
++		     struct flow_offload *flow,
++		     struct flow_offload_hw_path *src,
++		     struct flow_offload_hw_path *dest);
++int ra_offload_check_rx(struct fe_priv *eth, struct sk_buff *skb, u32 rxd4);
++
+ 
+ #endif /* FE_ETH_H */
+
+--- /dev/null
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/mtk_offload.c
+@@ -0,0 +1,540 @@
++/*   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; version 2 of the License
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   Copyright (C) 2018 John Crispin <john@phrozen.org>
++ */
++
++#include "mtk_offload.h"
++
++#define INVALID	0
++#define UNBIND	1
++#define BIND	2
++#define FIN	3
++
++#define IPV4_HNAPT			0
++#define IPV4_HNAT			1
++
++static u32
++mtk_flow_hash_v4(struct flow_offload_tuple *tuple)
++{
++	u32 ports = ntohs(tuple->src_port)  << 16 | ntohs(tuple->dst_port);
++	u32 src = ntohl(tuple->dst_v4.s_addr);
++	u32 dst = ntohl(tuple->src_v4.s_addr);
++	u32 hash = (ports & src) | ((~ports) & dst);
++	u32 hash_23_0 = hash & 0xffffff;
++	u32 hash_31_24 = hash & 0xff000000;
++
++	hash = ports ^ src ^ dst ^ ((hash_23_0 << 8) | (hash_31_24 >> 24));
++	hash = ((hash & 0xffff0000) >> 16 ) ^ (hash & 0xfffff);
++	hash &= 0x7ff;
++	hash *= 2;;
++
++	return hash;
++}
++
++static int
++mtk_foe_prepare_v4(struct mtk_foe_entry *entry,
++		   struct flow_offload_tuple *tuple,
++		   struct flow_offload_tuple *dest_tuple,
++		   struct flow_offload_hw_path *src,
++		   struct flow_offload_hw_path *dest)
++{
++	int is_mcast = !!is_multicast_ether_addr(dest->eth_dest);
++
++	if (tuple->l4proto == IPPROTO_UDP)
++		entry->ipv4_hnapt.bfib1.udp = 1;
++
++	entry->ipv4_hnapt.etype = htons(ETH_P_IP);
++	entry->ipv4_hnapt.bfib1.pkt_type = IPV4_HNAPT;
++	entry->ipv4_hnapt.iblk2.fqos = 0;
++	entry->ipv4_hnapt.bfib1.ttl = 1;
++	entry->ipv4_hnapt.bfib1.cah = 1;
++	entry->ipv4_hnapt.bfib1.ka = 1;
++	entry->ipv4_hnapt.iblk2.mcast = is_mcast;
++	entry->ipv4_hnapt.iblk2.dscp = 0;
++	entry->ipv4_hnapt.iblk2.port_mg = 0x3f;
++	entry->ipv4_hnapt.iblk2.port_ag = 0x1f;
++#ifdef CONFIG_NET_RALINK_HW_QOS
++	entry->ipv4_hnapt.iblk2.qid = 1;
++	entry->ipv4_hnapt.iblk2.fqos = 1;
++#endif
++#ifdef CONFIG_RALINK
++	entry->ipv4_hnapt.iblk2.dp = 1;
++	if ((dest->flags & FLOW_OFFLOAD_PATH_VLAN) && (dest->vlan_id > 1))
++		entry->ipv4_hnapt.iblk2.qid += 8;
++#else
++	entry->ipv4_hnapt.iblk2.dp = (dest->dev->name[3] - '0') + 1;
++#endif
++
++	entry->ipv4_hnapt.sip = ntohl(tuple->src_v4.s_addr);
++	entry->ipv4_hnapt.dip = ntohl(tuple->dst_v4.s_addr);
++	entry->ipv4_hnapt.sport = ntohs(tuple->src_port);
++	entry->ipv4_hnapt.dport = ntohs(tuple->dst_port);
++
++	entry->ipv4_hnapt.new_sip = ntohl(dest_tuple->dst_v4.s_addr);
++	entry->ipv4_hnapt.new_dip = ntohl(dest_tuple->src_v4.s_addr);
++	entry->ipv4_hnapt.new_sport = ntohs(dest_tuple->dst_port);
++	entry->ipv4_hnapt.new_dport = ntohs(dest_tuple->src_port);
++
++	entry->bfib1.state = BIND;
++
++	if (dest->flags & FLOW_OFFLOAD_PATH_PPPOE) {
++		entry->bfib1.psn = 1;
++		entry->ipv4_hnapt.etype = htons(ETH_P_PPP_SES);
++		entry->ipv4_hnapt.pppoe_id = dest->pppoe_sid;
++	}
++
++	if (dest->flags & FLOW_OFFLOAD_PATH_VLAN) {
++		entry->ipv4_hnapt.vlan1 = dest->vlan_id;
++		entry->bfib1.vlan_layer = 1;
++
++		switch (dest->vlan_proto) {
++		case htons(ETH_P_8021Q):
++			entry->ipv4_hnapt.bfib1.vpm = 1;
++			break;
++		case htons(ETH_P_8021AD):
++			entry->ipv4_hnapt.bfib1.vpm = 2;
++			break;
++		default:
++			return -EINVAL;
++		}
++	}
++
++	return 0;
++}
++
++static void
++mtk_foe_set_mac(struct mtk_foe_entry *entry, u8 *smac, u8 *dmac)
++{
++	entry->ipv4_hnapt.dmac_hi = swab32(*((u32*) dmac));
++	entry->ipv4_hnapt.dmac_lo = swab16(*((u16*) &dmac[4]));
++	entry->ipv4_hnapt.smac_hi = swab32(*((u32*) smac));
++	entry->ipv4_hnapt.smac_lo = swab16(*((u16*) &smac[4]));
++}
++
++static int
++mtk_check_entry_available(struct mtk_eth *eth, u32 hash)
++{
++	struct mtk_foe_entry entry = ((struct mtk_foe_entry *)eth->foe_table)[hash];
++
++	return (entry.bfib1.state == BIND)? 0:1;
++}
++
++static void
++mtk_foe_write(struct mtk_eth *eth, u32 hash,
++	      struct mtk_foe_entry *entry)
++{
++	struct mtk_foe_entry *table = (struct mtk_foe_entry *)eth->foe_table;
++
++	memcpy(&table[hash], entry, sizeof(*entry));
++}
++
++int mtk_flow_offload(struct mtk_eth *eth,
++		     enum flow_offload_type type,
++		     struct flow_offload *flow,
++		     struct flow_offload_hw_path *src,
++		     struct flow_offload_hw_path *dest)
++{
++	struct flow_offload_tuple *otuple = &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple;
++	struct flow_offload_tuple *rtuple = &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple;
++	u32 time_stamp = mtk_r32(eth, 0x0010) & (0x7fff);
++	u32 ohash, rhash;
++	struct mtk_foe_entry orig = {
++		.bfib1.time_stamp = time_stamp,
++		.bfib1.psn = 0,
++	};
++	struct mtk_foe_entry reply = {
++		.bfib1.time_stamp = time_stamp,
++		.bfib1.psn = 0,
++	};
++
++	if (otuple->l4proto != IPPROTO_TCP && otuple->l4proto != IPPROTO_UDP)
++		return -EINVAL;
++	
++	if (type == FLOW_OFFLOAD_DEL) {
++		flow = NULL;
++		synchronize_rcu();
++		return 0;
++	}
++
++	switch (otuple->l3proto) {
++	case AF_INET:
++		if (mtk_foe_prepare_v4(&orig, otuple, rtuple, src, dest) ||
++		    mtk_foe_prepare_v4(&reply, rtuple, otuple, dest, src))
++			return -EINVAL;
++
++		ohash = mtk_flow_hash_v4(otuple);
++		rhash = mtk_flow_hash_v4(rtuple);
++		break;
++
++	case AF_INET6:
++		return -EINVAL;
++
++	default:
++		return -EINVAL;
++	}
++
++	/* Two-way hash: when hash collision occurs, the hash value will be shifted to the next position. */
++	if (!mtk_check_entry_available(eth, ohash)){       
++		if (!mtk_check_entry_available(eth, ohash + 1))
++			return -EINVAL;
++                ohash += 1;
++        }
++        if (!mtk_check_entry_available(eth, rhash)){
++		if (!mtk_check_entry_available(eth, rhash + 1))
++                        return -EINVAL;
++                rhash += 1;
++	}
++
++	mtk_foe_set_mac(&orig, dest->eth_src, dest->eth_dest);
++	mtk_foe_set_mac(&reply, src->eth_src, src->eth_dest);
++	mtk_foe_write(eth, ohash, &orig);
++	mtk_foe_write(eth, rhash, &reply);
++	rcu_assign_pointer(eth->foe_flow_table[ohash], flow);
++	rcu_assign_pointer(eth->foe_flow_table[rhash], flow);
++
++	return 0;
++}
++
++#ifdef CONFIG_NET_RALINK_HW_QOS
++
++#define QDMA_TX_SCH_TX	  0x1a14
++
++static void mtk_ppe_scheduler(struct mtk_eth *eth, int id, u32 rate)
++{
++	int exp = 0, shift = 0;
++	u32 reg = mtk_r32(eth, QDMA_TX_SCH_TX);
++	u32 val = 0;
++
++	if (rate)
++		val = BIT(11);
++
++	while (rate > 127) {
++		rate /= 10;
++		exp++;
++	}
++
++	val |= (rate & 0x7f) << 4;
++	val |= exp & 0xf;
++	if (id)
++		shift = 16;
++	reg &= ~(0xffff << shift);
++	reg |= val << shift;
++	mtk_w32(eth, val, QDMA_TX_SCH_TX);
++}
++
++#define QTX_CFG(x)	(0x1800 + (x * 0x10))
++#define QTX_SCH(x)	(0x1804 + (x * 0x10))
++
++static void mtk_ppe_queue(struct mtk_eth *eth, int id, int sched, int weight, int resv, u32 min_rate, u32 max_rate)
++{
++	int max_exp = 0, min_exp = 0;
++	u32 reg;
++
++	if (id >= 16)
++		return;
++
++	reg = mtk_r32(eth, QTX_SCH(id));
++	reg &= 0x70000000;
++
++	if (sched)
++		reg |= BIT(31);
++
++	if (min_rate)
++		reg |= BIT(27);
++
++	if (max_rate)
++		reg |= BIT(11);
++
++	while (max_rate > 127) {
++		max_rate /= 10;
++		max_exp++;
++	}
++
++	while (min_rate > 127) {
++		min_rate /= 10;
++		min_exp++;
++	}
++
++	reg |= (min_rate & 0x7f) << 20;
++	reg |= (min_exp & 0xf) << 16;
++	reg |= (weight & 0xf) << 12;
++	reg |= (max_rate & 0x7f) << 4;
++	reg |= max_exp & 0xf;
++	mtk_w32(eth, reg, QTX_SCH(id));
++
++	resv &= 0xff;
++	reg = mtk_r32(eth, QTX_CFG(id));
++	reg &= 0xffff0000;
++	reg |= (resv << 8) | resv;
++	mtk_w32(eth, reg, QTX_CFG(id));
++}
++#endif
++
++static int mtk_init_foe_table(struct mtk_eth *eth)
++{
++	if (eth->foe_table)
++		return 0;
++
++	eth->foe_flow_table = devm_kcalloc(eth->dev, MTK_PPE_ENTRY_CNT,
++					   sizeof(*eth->foe_flow_table),
++					   GFP_KERNEL);
++	if (!eth->foe_flow_table)
++		return -EINVAL;
++
++	/* map the FOE table */
++	eth->foe_table = dmam_alloc_coherent(eth->dev, MTK_PPE_TBL_SZ,
++					     &eth->foe_table_phys, GFP_KERNEL);
++	if (!eth->foe_table) {
++		dev_err(eth->dev, "failed to allocate foe table\n");
++		kfree(eth->foe_flow_table);
++		return -ENOMEM;
++	}
++
++
++	return 0;
++}
++
++static int ra_ppe_start(struct mtk_eth *eth)
++{
++	int ret;
++
++	ret = mtk_init_foe_table(eth);
++	if (ret)
++		return ret;
++
++	/* tell the PPE about the tables base address */
++	mtk_w32(eth, eth->foe_table_phys, MTK_REG_PPE_TB_BASE);
++
++	/* flush the table */
++	memset(eth->foe_table, 0, MTK_PPE_TBL_SZ);
++
++	/* setup hashing */
++	mtk_m32(eth,
++		MTK_PPE_TB_CFG_HASH_MODE_MASK | MTK_PPE_TB_CFG_TBL_SZ_MASK,
++		MTK_PPE_TB_CFG_HASH_MODE1 | MTK_PPE_TB_CFG_TBL_SZ_4K,
++		MTK_REG_PPE_TB_CFG);
++
++	/* set the default hashing seed */
++	mtk_w32(eth, MTK_PPE_HASH_SEED, MTK_REG_PPE_HASH_SEED);
++
++	/* each foe entry is 64bytes and is setup by cpu forwarding*/
++	mtk_m32(eth, MTK_PPE_CAH_CTRL_X_MODE | MTK_PPE_TB_CFG_ENTRY_SZ_MASK |
++		MTK_PPE_TB_CFG_SMA_MASK,
++		MTK_PPE_TB_CFG_ENTRY_SZ_64B |  MTK_PPE_TB_CFG_SMA_FWD_CPU,
++		MTK_REG_PPE_TB_CFG);
++
++	/* set ip proto */
++	mtk_w32(eth, 0xFFFFFFFF, MTK_REG_PPE_IP_PROT_CHK);
++
++	/* setup caching */
++	mtk_m32(eth, 0, MTK_PPE_CAH_CTRL_X_MODE, MTK_REG_PPE_CAH_CTRL);
++	mtk_m32(eth, MTK_PPE_CAH_CTRL_X_MODE, MTK_PPE_CAH_CTRL_EN,
++		MTK_REG_PPE_CAH_CTRL);
++
++	/* enable FOE */
++	mtk_m32(eth, 0, MTK_PPE_FLOW_CFG_IPV4_NAT_FRAG_EN |
++		MTK_PPE_FLOW_CFG_IPV4_NAPT_EN | MTK_PPE_FLOW_CFG_IPV4_NAT_EN |
++		MTK_PPE_FLOW_CFG_IPV4_GREK_EN,
++		MTK_REG_PPE_FLOW_CFG);
++
++	/* setup flow entry un/bind aging */
++	mtk_m32(eth, 0,
++		MTK_PPE_TB_CFG_UNBD_AGE | MTK_PPE_TB_CFG_NTU_AGE |
++		MTK_PPE_TB_CFG_FIN_AGE | MTK_PPE_TB_CFG_UDP_AGE |
++		MTK_PPE_TB_CFG_TCP_AGE,
++		MTK_REG_PPE_TB_CFG);
++
++	mtk_m32(eth, MTK_PPE_UNB_AGE_MNP_MASK | MTK_PPE_UNB_AGE_DLTA_MASK,
++		MTK_PPE_UNB_AGE_MNP | MTK_PPE_UNB_AGE_DLTA,
++		MTK_REG_PPE_UNB_AGE);
++	mtk_m32(eth, MTK_PPE_BND_AGE0_NTU_DLTA_MASK |
++		MTK_PPE_BND_AGE0_UDP_DLTA_MASK,
++		MTK_PPE_BND_AGE0_NTU_DLTA | MTK_PPE_BND_AGE0_UDP_DLTA,
++		MTK_REG_PPE_BND_AGE0);
++	mtk_m32(eth, MTK_PPE_BND_AGE1_FIN_DLTA_MASK |
++		MTK_PPE_BND_AGE1_TCP_DLTA_MASK,
++		MTK_PPE_BND_AGE1_FIN_DLTA | MTK_PPE_BND_AGE1_TCP_DLTA,
++		MTK_REG_PPE_BND_AGE1);
++
++	/* setup flow entry keep alive */
++	mtk_m32(eth, MTK_PPE_TB_CFG_KA_MASK, MTK_PPE_TB_CFG_KA,
++		MTK_REG_PPE_TB_CFG);
++	mtk_w32(eth, MTK_PPE_KA_UDP | MTK_PPE_KA_TCP | MTK_PPE_KA_T, MTK_REG_PPE_KA);
++
++	/* setup flow entry rate limit */
++	mtk_w32(eth, (0x3fff << 16) | 0x3fff, MTK_REG_PPE_BIND_LMT_0);
++	mtk_w32(eth, MTK_PPE_NTU_KA | 0x3fff, MTK_REG_PPE_BIND_LMT_1);
++	mtk_m32(eth, MTK_PPE_BNDR_RATE_MASK, 1, MTK_REG_PPE_BNDR);
++
++	/* enable the PPE */
++	mtk_m32(eth, 0, MTK_PPE_GLO_CFG_EN, MTK_REG_PPE_GLO_CFG);
++
++#ifdef CONFIG_RALINK
++	/* set the default forwarding port to QDMA */
++	mtk_w32(eth, 0x0, MTK_REG_PPE_DFT_CPORT);
++#else
++	/* set the default forwarding port to QDMA */
++	mtk_w32(eth, 0x55555555, MTK_REG_PPE_DFT_CPORT);
++#endif
++
++	/* allow packets with TTL=0 */
++	mtk_m32(eth, MTK_PPE_GLO_CFG_TTL0_DROP, 0, MTK_REG_PPE_GLO_CFG);
++
++	/* send all traffic from gmac to the ppe */
++	mtk_m32(eth, 0xffff, 0x4444, MTK_GDMA_FWD_CFG(0));
++	mtk_m32(eth, 0xffff, 0x4444, MTK_GDMA_FWD_CFG(1));
++
++	dev_info(eth->dev, "PPE started\n");
++
++#ifdef CONFIG_NET_RALINK_HW_QOS
++	mtk_ppe_scheduler(eth, 0, 500000);
++	mtk_ppe_scheduler(eth, 1, 500000);
++	mtk_ppe_queue(eth, 0, 0, 7, 32, 250000, 0);
++	mtk_ppe_queue(eth, 1, 0, 7, 32, 250000, 0);
++	mtk_ppe_queue(eth, 8, 1, 7, 32, 250000, 0);
++	mtk_ppe_queue(eth, 9, 1, 7, 32, 250000, 0);
++#endif
++
++	return 0;
++}
++
++static int mtk_ppe_busy_wait(struct mtk_eth *eth)
++{
++	unsigned long t_start = jiffies;
++	u32 r = 0;
++
++	while (1) {
++		r = mtk_r32(eth, MTK_REG_PPE_GLO_CFG);
++		if (!(r & MTK_PPE_GLO_CFG_BUSY))
++			return 0;
++		if (time_after(jiffies, t_start + HZ))
++			break;
++		usleep_range(10, 20);
++	}
++
++	dev_err(eth->dev, "ppe: table busy timeout - resetting\n");
++	reset_control_reset(eth->rst_ppe);
++
++	return -ETIMEDOUT;
++}
++
++static int ra_ppe_stop(struct mtk_eth *eth)
++{
++	u32 r1 = 0, r2 = 0;
++	int i;
++
++	/* discard all traffic while we disable the PPE */
++	mtk_m32(eth, 0xffff, 0x7777, MTK_GDMA_FWD_CFG(0));
++	mtk_m32(eth, 0xffff, 0x7777, MTK_GDMA_FWD_CFG(1));
++
++	if (mtk_ppe_busy_wait(eth))
++		return -ETIMEDOUT;
++
++	/* invalidate all flow table entries */
++	for (i = 0; i < MTK_PPE_ENTRY_CNT; i++)
++		eth->foe_table[i].bfib1.state = FOE_STATE_INVALID;
++
++	/* disable caching */
++	mtk_m32(eth, 0, MTK_PPE_CAH_CTRL_X_MODE, MTK_REG_PPE_CAH_CTRL);
++	mtk_m32(eth, MTK_PPE_CAH_CTRL_X_MODE | MTK_PPE_CAH_CTRL_EN, 0,
++		MTK_REG_PPE_CAH_CTRL);
++
++	/* flush cache has to be ahead of hnat diable --*/
++	mtk_m32(eth, MTK_PPE_GLO_CFG_EN, 0, MTK_REG_PPE_GLO_CFG);
++
++	/* disable FOE */
++	mtk_m32(eth,
++		MTK_PPE_FLOW_CFG_IPV4_NAT_FRAG_EN |
++		MTK_PPE_FLOW_CFG_IPV4_NAPT_EN | MTK_PPE_FLOW_CFG_IPV4_NAT_EN |
++		MTK_PPE_FLOW_CFG_FUC_FOE | MTK_PPE_FLOW_CFG_FMC_FOE,
++		0, MTK_REG_PPE_FLOW_CFG);
++
++	/* disable FOE aging */
++	mtk_m32(eth, 0,
++		MTK_PPE_TB_CFG_FIN_AGE | MTK_PPE_TB_CFG_UDP_AGE |
++		MTK_PPE_TB_CFG_TCP_AGE | MTK_PPE_TB_CFG_UNBD_AGE |
++		MTK_PPE_TB_CFG_NTU_AGE, MTK_REG_PPE_TB_CFG);
++
++	r1 = mtk_r32(eth, 0x100);
++	r2 = mtk_r32(eth, 0x10c);
++
++	dev_info(eth->dev, "0x100 = 0x%x, 0x10c = 0x%x\n", r1, r2);
++
++	if (((r1 & 0xff00) >> 0x8) >= (r1 & 0xff) ||
++	    ((r1 & 0xff00) >> 0x8) >= (r2 & 0xff)) {
++		dev_info(eth->dev, "reset pse\n");
++		mtk_w32(eth, 0x1, 0x4);
++	}
++
++	/* set the foe entry base address to 0 */
++	mtk_w32(eth, 0, MTK_REG_PPE_TB_BASE);
++
++	if (mtk_ppe_busy_wait(eth))
++		return -ETIMEDOUT;
++
++	/* send all traffic back to the DMA engine */
++#ifdef CONFIG_RALINK
++	mtk_m32(eth, 0xffff, 0x0, MTK_GDMA_FWD_CFG(0));
++	mtk_m32(eth, 0xffff, 0x0, MTK_GDMA_FWD_CFG(1));
++#else
++	mtk_m32(eth, 0xffff, 0x5555, MTK_GDMA_FWD_CFG(0));
++	mtk_m32(eth, 0xffff, 0x5555, MTK_GDMA_FWD_CFG(1));
++#endif
++	return 0;
++}
++
++static void mtk_offload_keepalive(struct fe_priv *eth, unsigned int hash)
++{
++	struct flow_offload *flow;
++
++	rcu_read_lock();
++	flow = rcu_dereference(eth->foe_flow_table[hash]);
++	if (flow)
++		flow->timeout = jiffies + 30 * HZ;
++	rcu_read_unlock();
++}
++
++int ra_offload_check_rx(struct fe_priv *eth, struct sk_buff *skb, u32 rxd4)
++{
++	unsigned int hash;
++
++	switch (FIELD_GET(MTK_RXD4_CPU_REASON, rxd4)) {
++	case MTK_CPU_REASON_KEEPALIVE_UC_OLD_HDR:
++	case MTK_CPU_REASON_KEEPALIVE_MC_NEW_HDR:
++	case MTK_CPU_REASON_KEEPALIVE_DUP_OLD_HDR:
++		hash = FIELD_GET(MTK_RXD4_FOE_ENTRY, rxd4);
++		mtk_offload_keepalive(eth, hash);
++		return -1;
++	case MTK_CPU_REASON_PACKET_SAMPLING:
++		return -1;
++	default:
++		return 0;
++	}
++}
++
++int ra_ppe_probe(struct mtk_eth *eth)
++{
++	int err;
++
++	err = ra_ppe_start(eth);
++	if (err)
++		return err;
++
++	err = ra_ppe_debugfs_init(eth);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++void ra_ppe_remove(struct mtk_eth *eth)
++{
++	ra_ppe_stop(eth);
++}
+
+--- /dev/null
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/mtk_offload.h
+@@ -0,0 +1,260 @@
++/*   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; version 2 of the License
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   Copyright (C) 2014-2016 Sean Wang <sean.wang@mediatek.com>
++ *   Copyright (C) 2016-2017 John Crispin <blogic@openwrt.org>
++ */
++
++#include <linux/dma-mapping.h>
++#include <linux/delay.h>
++#include <linux/if.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/platform_device.h>
++#include <linux/reset.h>
++#include <linux/netfilter.h>
++#include <linux/netdevice.h>
++#include <net/netfilter/nf_flow_table.h>
++#include <linux/debugfs.h>
++#include <linux/etherdevice.h>
++#include <linux/bitfield.h>
++
++#include "mtk_eth_soc.h"
++
++#ifdef CONFIG_RALINK
++/* ramips compat */
++#define mtk_eth					fe_priv
++#define MTK_GDMA_FWD_CFG(x)			(0x500 + (x * 0x1000))
++#define mtk_m32					fe_m32
++
++static inline u32
++mtk_r32(struct mtk_eth *eth, u32 reg)
++{
++	return fe_r32(reg);
++}
++
++static inline void
++mtk_w32(struct mtk_eth *eth, u32 val, u32 reg)
++{
++	fe_w32(val, reg);
++}
++#endif
++
++#define MTK_REG_PPE_GLO_CFG			0xe00
++#define   MTK_PPE_GLO_CFG_BUSY			BIT(31)
++#define   MTK_PPE_GLO_CFG_TTL0_DROP		BIT(4)
++#define   MTK_PPE_GLO_CFG_EN			BIT(0)
++
++#define MTK_REG_PPE_FLOW_CFG			0xe04
++#define   MTK_PPE_FLOW_CFG_IPV4_GREK_EN		BIT(19)
++#define   MTK_PPE_FLOW_CFG_IPV4_NAT_FRAG_EN	BIT(17)
++#define   MTK_PPE_FLOW_CFG_IPV4_NAPT_EN		BIT(13)
++#define   MTK_PPE_FLOW_CFG_IPV4_NAT_EN		BIT(12)
++#define   MTK_PPE_FLOW_CFG_FUC_FOE		BIT(2)
++#define   MTK_PPE_FLOW_CFG_FMC_FOE		BIT(1)
++
++#define MTK_REG_PPE_IP_PROT_CHK			0xe08
++
++#define MTK_REG_PPE_TB_BASE			0xe20
++
++#define MTK_REG_PPE_BNDR			0xe28
++#define   MTK_PPE_BNDR_RATE_MASK		0xffff
++
++#define MTK_REG_PPE_BIND_LMT_0			0xe2C
++
++#define MTK_REG_PPE_BIND_LMT_1			0xe30
++#define   MTK_PPE_NTU_KA			BIT(16)
++
++#define MTK_REG_PPE_KA				0xe34
++#define   MTK_PPE_KA_T				BIT(0)
++#define   MTK_PPE_KA_TCP			BIT(16)
++#define   MTK_PPE_KA_UDP			BIT(24)
++
++#define MTK_REG_PPE_UNB_AGE			0xe38
++#define   MTK_PPE_UNB_AGE_MNP_MASK		(0xffff << 16)
++#define   MTK_PPE_UNB_AGE_MNP			(1000 << 16)
++#define   MTK_PPE_UNB_AGE_DLTA_MASK		0xff
++#define   MTK_PPE_UNB_AGE_DLTA			3
++
++#define MTK_REG_PPE_BND_AGE0			0xe3c
++#define   MTK_PPE_BND_AGE0_NTU_DLTA_MASK	(0xffff << 16)
++#define   MTK_PPE_BND_AGE0_NTU_DLTA		(5 << 16)
++#define   MTK_PPE_BND_AGE0_UDP_DLTA_MASK	0xffff
++#define   MTK_PPE_BND_AGE0_UDP_DLTA		5
++
++#define MTK_REG_PPE_BND_AGE1			0xe40
++#define   MTK_PPE_BND_AGE1_FIN_DLTA_MASK	(0xffff << 16)
++#define   MTK_PPE_BND_AGE1_FIN_DLTA		(5 << 16)
++#define   MTK_PPE_BND_AGE1_TCP_DLTA_MASK	0xffff
++#define   MTK_PPE_BND_AGE1_TCP_DLTA		5
++
++#define MTK_REG_PPE_DFT_CPORT			0xe48
++
++#define MTK_REG_PPE_TB_CFG			0xe1c
++#define   MTK_PPE_TB_CFG_X_MODE_MASK		(3 << 18)
++#define   MTK_PPE_TB_CFG_HASH_MODE1		BIT(14)
++#define   MTK_PPE_TB_CFG_HASH_MODE_MASK		(0x3 << 14)
++#define   MTK_PPE_TB_CFG_KA			(3 << 12)
++#define   MTK_PPE_TB_CFG_KA_MASK		(0x3 << 12)
++#define   MTK_PPE_TB_CFG_FIN_AGE		BIT(11)
++#define   MTK_PPE_TB_CFG_UDP_AGE		BIT(10)
++#define   MTK_PPE_TB_CFG_TCP_AGE		BIT(9)
++#define   MTK_PPE_TB_CFG_UNBD_AGE		BIT(8)
++#define   MTK_PPE_TB_CFG_NTU_AGE		BIT(7)
++#define   MTK_PPE_TB_CFG_SMA_FWD_CPU		(0x3 << 4)
++#define   MTK_PPE_TB_CFG_SMA_MASK		(0x3 << 4)
++#define   MTK_PPE_TB_CFG_ENTRY_SZ_64B		0
++#define   MTK_PPE_TB_CFG_ENTRY_SZ_MASK		BIT(3)
++#define   MTK_PPE_TB_CFG_TBL_SZ_4K		2
++#define   MTK_PPE_TB_CFG_TBL_SZ_MASK		0x7
++
++#define MTK_REG_PPE_HASH_SEED			0xe44
++#define   MTK_PPE_HASH_SEED			0x12345678
++
++
++#define MTK_REG_PPE_CAH_CTRL			0xf20
++#define   MTK_PPE_CAH_CTRL_X_MODE		BIT(9)
++#define   MTK_PPE_CAH_CTRL_EN			BIT(0)
++
++struct mtk_foe_unbind_info_blk {
++	u32 time_stamp:8;
++	u32 pcnt:16;		/* packet count */
++	u32 preb:1;
++	u32 pkt_type:3;
++	u32 state:2;
++	u32 udp:1;
++	u32 sta:1;		/* static entry */
++} __attribute__ ((packed));
++
++struct mtk_foe_bind_info_blk {
++	u32 time_stamp:15;
++	u32 ka:1;		/* keep alive */
++	u32 vlan_layer:3;
++	u32 psn:1;		/* egress packet has PPPoE session */
++#ifdef CONFIG_RALINK
++	u32 vpm:2;		/* 0:ethertype remark, 1:0x8100(CR default) */
++#else
++	u32 vpm:1;		/* 0:ethertype remark, 1:0x8100(CR default) */
++	u32 ps:1;		/* packet sampling */
++#endif
++	u32 cah:1;		/* cacheable flag */
++	u32 rmt:1;		/* remove tunnel ip header (6rd/dslite only) */
++	u32 ttl:1;
++	u32 pkt_type:3;
++	u32 state:2;
++	u32 udp:1;
++	u32 sta:1;		/* static entry */
++} __attribute__ ((packed));
++
++struct mtk_foe_info_blk2 {
++	u32 qid:4;		/* QID in Qos Port */
++	u32 fqos:1;		/* force to PSE QoS port */
++	u32 dp:3;		/* force to PSE port x 
++				 0:PSE,1:GSW, 2:GMAC,4:PPE,5:QDMA,7=DROP */
++	u32 mcast:1;		/* multicast this packet to CPU */
++	u32 pcpl:1;		/* OSBN */
++	u32 mlen:1;		/* 0:post 1:pre packet length in meter */
++	u32 alen:1;		/* 0:post 1:pre packet length in accounting */
++	u32 port_mg:6;		/* port meter group */
++	u32 port_ag:6;		/* port account group */
++	u32 dscp:8;		/* DSCP value */
++} __attribute__ ((packed));
++
++struct mtk_foe_ipv4_hnapt {
++	union {
++		struct mtk_foe_bind_info_blk bfib1;
++		struct mtk_foe_unbind_info_blk udib1;
++		u32 info_blk1;
++	};
++	u32 sip;
++	u32 dip;
++	u16 dport;
++	u16 sport;
++	union {
++		struct mtk_foe_info_blk2 iblk2;
++		u32 info_blk2;
++	};
++	u32 new_sip;
++	u32 new_dip;
++	u16 new_dport;
++	u16 new_sport;
++	u32 resv1;
++	u32 resv2;
++	u32 resv3:26;
++	u32 act_dp:6;		/* UDF */
++	u16 vlan1;
++	u16 etype;
++	u32 dmac_hi;
++	u16 vlan2;
++	u16 dmac_lo;
++	u32 smac_hi;
++	u16 pppoe_id;
++	u16 smac_lo;
++} __attribute__ ((packed));
++
++struct mtk_foe_entry {
++	union {
++		struct mtk_foe_unbind_info_blk udib1;
++		struct mtk_foe_bind_info_blk bfib1;
++		struct mtk_foe_ipv4_hnapt ipv4_hnapt;
++	};
++};
++
++enum mtk_foe_entry_state {
++	FOE_STATE_INVALID = 0,
++	FOE_STATE_UNBIND = 1,
++	FOE_STATE_BIND = 2,
++	FOE_STATE_FIN = 3
++};
++
++
++#define MTK_RXD4_FOE_ENTRY		GENMASK(13, 0)
++#define MTK_RXD4_CPU_REASON		GENMASK(18, 14)
++#define MTK_RXD4_SRC_PORT		GENMASK(21, 19)
++#define MTK_RXD4_ALG			GENMASK(31, 22)
++
++enum mtk_foe_cpu_reason {
++	MTK_CPU_REASON_TTL_EXCEEDED		= 0x02,
++	MTK_CPU_REASON_OPTION_HEADER		= 0x03,
++	MTK_CPU_REASON_NO_FLOW			= 0x07,
++	MTK_CPU_REASON_IPV4_FRAG		= 0x08,
++	MTK_CPU_REASON_IPV4_DSLITE_FRAG		= 0x09,
++	MTK_CPU_REASON_IPV4_DSLITE_NO_TCP_UDP	= 0x0a,
++	MTK_CPU_REASON_IPV6_6RD_NO_TCP_UDP	= 0x0b,
++	MTK_CPU_REASON_TCP_FIN_SYN_RST		= 0x0c,
++	MTK_CPU_REASON_UN_HIT			= 0x0d,
++	MTK_CPU_REASON_HIT_UNBIND		= 0x0e,
++	MTK_CPU_REASON_HIT_UNBIND_RATE_REACHED	= 0x0f,
++	MTK_CPU_REASON_HIT_BIND_TCP_FIN		= 0x10,
++	MTK_CPU_REASON_HIT_TTL_1		= 0x11,
++	MTK_CPU_REASON_HIT_BIND_VLAN_VIOLATION	= 0x12,
++	MTK_CPU_REASON_KEEPALIVE_UC_OLD_HDR	= 0x13,
++	MTK_CPU_REASON_KEEPALIVE_MC_NEW_HDR	= 0x14,
++	MTK_CPU_REASON_KEEPALIVE_DUP_OLD_HDR	= 0x15,
++	MTK_CPU_REASON_HIT_BIND_FORCE_CPU	= 0x16,
++	MTK_CPU_REASON_TUNNEL_OPTION_HEADER	= 0x17,
++	MTK_CPU_REASON_MULTICAST_TO_CPU		= 0x18,
++	MTK_CPU_REASON_MULTICAST_TO_GMAC1_CPU	= 0x19,
++	MTK_CPU_REASON_HIT_PRE_BIND		= 0x1a,
++	MTK_CPU_REASON_PACKET_SAMPLING		= 0x1b,
++	MTK_CPU_REASON_EXCEED_MTU		= 0x1c,
++	MTK_CPU_REASON_PPE_BYPASS		= 0x1e,
++	MTK_CPU_REASON_INVALID			= 0x1f,
++};
++
++
++/* our table size is 4K */
++#define MTK_PPE_ENTRY_CNT		0x1000
++#define MTK_PPE_TBL_SZ			\
++			(MTK_PPE_ENTRY_CNT * sizeof(struct mtk_foe_entry))
++
++int ra_ppe_debugfs_init(struct mtk_eth *eth);
++
++
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_mt7620.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_mt7620.c
+@@ -27,9 +27,16 @@
+ 
+ #define MT7620A_CDMA_CSG_CFG	0x400
+ #define MT7620_DMA_VID		(MT7620A_CDMA_CSG_CFG | 0x30)
++#define MT7621_CDMP_IG_CTRL	(MT7620A_CDMA_CSG_CFG + 0x00)
++#define MT7621_CDMP_EG_CTRL	(MT7620A_CDMA_CSG_CFG + 0x04)
++#define MT7620A_RESET_FE	BIT(21)
++#define MT7621_RESET_FE		BIT(6)
++#define MT7620A_RESET_ESW	BIT(23)
+ #define MT7620_L4_VALID		BIT(23)
++#define MT7621_L4_VALID		BIT(24)
+ 
+ #define MT7620_TX_DMA_UDF	BIT(15)
++#define MT7621_TX_DMA_UDF	BIT(19)
+ #define TX_DMA_FP_BMAP		((0xff) << 19)
+ 
+ #define CDMA_ICS_EN		BIT(2)
+@@ -46,6 +53,11 @@
+ #define MT7620_GDM1_TX_GBCNT	(MT7620_REG_MIB_OFFSET + 0x300)
+ #define MT7620_GDM2_TX_GBCNT	(MT7620_GDM1_TX_GBCNT + 0x40)
+ 
++#define MT7621_REG_MIB_OFFSET	0x2000
++#define MT7621_PPE_AC_BCNT0	(MT7621_REG_MIB_OFFSET + 0x00)
++#define MT7621_GDM1_TX_GBCNT	(MT7621_REG_MIB_OFFSET + 0x400)
++#define MT7621_GDM2_TX_GBCNT	(MT7621_GDM1_TX_GBCNT + 0x40)
++
+ #define GSW_REG_GDMA1_MAC_ADRL	0x508
+ #define GSW_REG_GDMA1_MAC_ADRH	0x50C
+ 
+@@ -56,6 +68,8 @@
+  * but after test it should be BIT(13).
+  */
+ #define MT7620_FE_GDM1_AF	BIT(13)
++#define MT7621_FE_GDM1_AF	BIT(28)
++#define MT7621_FE_GDM2_AF	BIT(29)
+ 
+ static const u16 mt7620_reg_table[FE_REG_COUNT] = {
+ 	[FE_REG_PDMA_GLO_CFG] = RT5350_PDMA_GLO_CFG,
+@@ -80,26 +94,11 @@
+ static int mt7620_gsw_config(struct fe_priv *priv)
+ {
+ 	struct mt7620_gsw *gsw = (struct mt7620_gsw *) priv->soc->swpriv;
+-	u32 val;
+ 
+ 	/* is the mt7530 internal or external */
+ 	if (priv->mii_bus && mdiobus_get_phy(priv->mii_bus, 0x1f)) {
+ 		mt7530_probe(priv->dev, gsw->base, NULL, 0);
+ 		mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
+-
+-		/* magic values from original SDK */
+-		val = mt7530_mdio_r32(gsw, 0x7830);
+-		val &= ~BIT(0);
+-		val |= BIT(1);
+-		mt7530_mdio_w32(gsw, 0x7830, val);
+-
+-		val = mt7530_mdio_r32(gsw, 0x7a40);
+-		val &= ~BIT(30);
+-		mt7530_mdio_w32(gsw, 0x7a40, val);
+-
+-		mt7530_mdio_w32(gsw, 0x7a78, 0x855);
+-
+-		pr_info("mt7530: mdio central align\n");
+ 	} else {
+ 		mt7530_probe(priv->dev, gsw->base, NULL, 1);
+ 	}
+@@ -154,7 +153,7 @@
+ 	u32 val, mask = 0;
+ 	u32 val_delay = 0;
+ 	u32 mask_delay = GSW_REG_GPCx_TXDELAY | GSW_REG_GPCx_RXDELAY;
+-	int min = (gsw->port4_ephy) ? (5) : (4);
++	int min = (gsw->port4 == PORT4_EPHY) ? (5) : (4);
+ 
+ 	if (!_id || (be32_to_cpu(*_id) < min) || (be32_to_cpu(*_id) > 5)) {
+ 		if (_id)
+@@ -176,6 +175,7 @@
+ 	    (size != (4 * sizeof(*priv->phy->phy_fixed[id])))) {
+ 		pr_err("%s: invalid fixed link property\n", np->name);
+ 		priv->phy->phy_fixed[id] = NULL;
++		return;
+ 	}
+ 
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
+@@ -203,7 +203,7 @@
+ 		break;
+ 	case PHY_INTERFACE_MODE_RGMII_TXID:
+ 		mask = 0;
+-		val_delay |= GSW_REG_GPCx_TXDELAY;
++		val_delay &= ~GSW_REG_GPCx_TXDELAY;
+ 		val_delay |= GSW_REG_GPCx_RXDELAY;
+ 		break;
+ 	case PHY_INTERFACE_MODE_MII:
+@@ -217,6 +217,10 @@
+ 		return;
+ 	}
+ 
++	priv->phy->phy_node[id] = of_parse_phandle(np, "phy-handle", 0);
++	if (!priv->phy->phy_node[id] && !priv->phy->phy_fixed[id])
++		return;
++
+ 	val = rt_sysc_r32(SYSC_REG_CFG1);
+ 	val &= ~(3 << shift);
+ 	val |= mask << shift;
+@@ -257,8 +261,8 @@
+ 			val = 2;
+ 			break;
+ 		default:
+-			dev_err(priv->dev, "port %d - invalid link speed: %d\n",
+-				id, priv->phy->speed[id]);
++			dev_err(priv->dev, "invalid link speed: %d\n",
++				priv->phy->speed[id]);
+ 			priv->phy->phy_fixed[id] = 0;
+ 			return;
+ 		}
+@@ -272,13 +276,7 @@
+ 		if (priv->phy->duplex[id])
+ 			val |= PMCR_DUPLEX;
+ 		mtk_switch_w32(gsw, val, GSW_REG_PORT_PMCR(id));
+-		dev_info(priv->dev, "port %d - using fixed link parameters\n", id);
+-		return;
+-	}
+-
+-	priv->phy->phy_node[id] = of_parse_phandle(np, "phy-handle", 0);
+-	if (!priv->phy->phy_node[id]) {
+-		dev_err(priv->dev, "port %d - missing phy handle\n", id);
++		dev_info(priv->dev, "using fixed link parameters\n");
+ 		return;
+ 	}
+ 
+@@ -291,10 +289,11 @@
+ 		fe_connect_phy_node(priv, priv->phy->phy_node[id], id);
+ 		gsw->autopoll |= BIT(be32_to_cpup(phy_addr));
+ 		mt7620_auto_poll(gsw,id);
++		return;
+ 	}
+ }
+ 
+-static void mt7620_fe_reset(struct fe_priv *priv)
++static void mt7620_fe_reset(void)
+ {
+ 	fe_reset(MT7620A_RESET_FE | MT7620A_RESET_ESW);
+ }
+
+--- /dev/null
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_mt7621.c
+@@ -0,0 +1,187 @@
++/*   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; version 2 of the License
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   Copyright (C) 2009-2015 John Crispin <blogic@openwrt.org>
++ *   Copyright (C) 2009-2015 Felix Fietkau <nbd@nbd.name>
++ *   Copyright (C) 2013-2015 Michael Lee <igvtee@gmail.com>
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/if_vlan.h>
++#include <linux/of_net.h>
++
++#include <asm/mach-ralink/ralink_regs.h>
++
++#include "mtk_eth_soc.h"
++#include "gsw_mt7620.h"
++#include "mt7530.h"
++#include "mdio.h"
++
++#define MT7620A_CDMA_CSG_CFG	0x400
++#define MT7621_CDMP_IG_CTRL	(MT7620A_CDMA_CSG_CFG + 0x00)
++#define MT7621_CDMP_EG_CTRL	(MT7620A_CDMA_CSG_CFG + 0x04)
++#define MT7621_RESET_FE		BIT(6)
++#define MT7621_L4_VALID		BIT(24)
++
++#define MT7621_TX_DMA_UDF	BIT(19)
++#define MT7621_TX_DMA_FPORT	BIT(25)
++
++#define CDMA_ICS_EN		BIT(2)
++#define CDMA_UCS_EN		BIT(1)
++#define CDMA_TCS_EN		BIT(0)
++
++#define GDMA_ICS_EN		BIT(22)
++#define GDMA_TCS_EN		BIT(21)
++#define GDMA_UCS_EN		BIT(20)
++
++/* frame engine counters */
++#define MT7621_REG_MIB_OFFSET	0x2000
++#define MT7621_PPE_AC_BCNT0	(MT7621_REG_MIB_OFFSET + 0x00)
++#define MT7621_GDM1_TX_GBCNT	(MT7621_REG_MIB_OFFSET + 0x400)
++#define MT7621_GDM2_TX_GBCNT	(MT7621_GDM1_TX_GBCNT + 0x40)
++
++#define GSW_REG_GDMA1_MAC_ADRL	0x508
++#define GSW_REG_GDMA1_MAC_ADRH	0x50C
++
++#define MT7621_FE_RST_GL	(FE_FE_OFFSET + 0x04)
++#define MT7620_FE_INT_STATUS2	(FE_FE_OFFSET + 0x08)
++
++/* FE_INT_STATUS reg on mt7620 define CNT_GDM1_AF at BIT(29)
++ * but after test it should be BIT(13).
++ */
++#define MT7620_FE_GDM1_AF	BIT(13)
++#define MT7621_FE_GDM1_AF	BIT(28)
++#define MT7621_FE_GDM2_AF	BIT(29)
++
++static const u16 mt7621_reg_table[FE_REG_COUNT] = {
++	[FE_REG_PDMA_GLO_CFG] = RT5350_PDMA_GLO_CFG,
++	[FE_REG_PDMA_RST_CFG] = RT5350_PDMA_RST_CFG,
++	[FE_REG_DLY_INT_CFG] = RT5350_DLY_INT_CFG,
++	[FE_REG_TX_BASE_PTR0] = RT5350_TX_BASE_PTR0,
++	[FE_REG_TX_MAX_CNT0] = RT5350_TX_MAX_CNT0,
++	[FE_REG_TX_CTX_IDX0] = RT5350_TX_CTX_IDX0,
++	[FE_REG_TX_DTX_IDX0] = RT5350_TX_DTX_IDX0,
++	[FE_REG_RX_BASE_PTR0] = RT5350_RX_BASE_PTR0,
++	[FE_REG_RX_MAX_CNT0] = RT5350_RX_MAX_CNT0,
++	[FE_REG_RX_CALC_IDX0] = RT5350_RX_CALC_IDX0,
++	[FE_REG_RX_DRX_IDX0] = RT5350_RX_DRX_IDX0,
++	[FE_REG_FE_INT_ENABLE] = RT5350_FE_INT_ENABLE,
++	[FE_REG_FE_INT_STATUS] = RT5350_FE_INT_STATUS,
++	[FE_REG_FE_DMA_VID_BASE] = 0,
++	[FE_REG_FE_COUNTER_BASE] = MT7621_GDM1_TX_GBCNT,
++	[FE_REG_FE_RST_GL] = MT7621_FE_RST_GL,
++	[FE_REG_FE_INT_STATUS2] = MT7620_FE_INT_STATUS2,
++};
++
++static int mt7621_gsw_config(struct fe_priv *priv)
++{
++	if (priv->mii_bus &&  mdiobus_get_phy(priv->mii_bus, 0x1f))
++		mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
++
++	return 0;
++}
++
++static void mt7621_fe_reset(void)
++{
++	fe_reset(MT7621_RESET_FE);
++}
++
++static void mt7621_rxcsum_config(bool enable)
++{
++	if (enable)
++		fe_w32(fe_r32(MT7620A_GDMA1_FWD_CFG) | (GDMA_ICS_EN |
++					GDMA_TCS_EN | GDMA_UCS_EN),
++				MT7620A_GDMA1_FWD_CFG);
++	else
++		fe_w32(fe_r32(MT7620A_GDMA1_FWD_CFG) & ~(GDMA_ICS_EN |
++					GDMA_TCS_EN | GDMA_UCS_EN),
++				MT7620A_GDMA1_FWD_CFG);
++}
++
++static void mt7621_rxvlan_config(bool enable)
++{
++	if (enable)
++		fe_w32(1, MT7621_CDMP_EG_CTRL);
++	else
++		fe_w32(0, MT7621_CDMP_EG_CTRL);
++}
++
++static int mt7621_fwd_config(struct fe_priv *priv)
++{
++	struct net_device *dev = priv_netdev(priv);
++
++	fe_w32(fe_r32(MT7620A_GDMA1_FWD_CFG) & ~0xffff,
++	       MT7620A_GDMA1_FWD_CFG);
++
++	/* mt7621 doesn't have txcsum config */
++	mt7621_rxcsum_config((dev->features & NETIF_F_RXCSUM));
++	mt7621_rxvlan_config(dev->features & NETIF_F_HW_VLAN_CTAG_RX);
++
++	return 0;
++}
++
++static void mt7621_tx_dma(struct fe_tx_dma *txd)
++{
++	txd->txd4 = MT7621_TX_DMA_FPORT;
++}
++
++static void mt7621_init_data(struct fe_soc_data *data,
++			     struct net_device *netdev)
++{
++	struct fe_priv *priv = netdev_priv(netdev);
++
++	priv->flags = FE_FLAG_PADDING_64B | FE_FLAG_RX_2B_OFFSET |
++		FE_FLAG_RX_SG_DMA | FE_FLAG_NAPI_WEIGHT |
++		FE_FLAG_HAS_SWITCH | FE_FLAG_JUMBO_FRAME;
++
++	netdev->hw_features = NETIF_F_IP_CSUM | NETIF_F_RXCSUM |
++		NETIF_F_HW_VLAN_CTAG_TX | NETIF_F_HW_VLAN_CTAG_RX |
++		NETIF_F_SG | NETIF_F_TSO |
++		NETIF_F_TSO6 | NETIF_F_IPV6_CSUM |
++		NETIF_F_TSO_MANGLEID;
++}
++
++static void mt7621_set_mac(struct fe_priv *priv, unsigned char *mac)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&priv->page_lock, flags);
++	fe_w32((mac[0] << 8) | mac[1], GSW_REG_GDMA1_MAC_ADRH);
++	fe_w32((mac[2] << 24) | (mac[3] << 16) | (mac[4] << 8) | mac[5],
++	       GSW_REG_GDMA1_MAC_ADRL);
++	spin_unlock_irqrestore(&priv->page_lock, flags);
++}
++
++static struct fe_soc_data mt7621_data = {
++	.init_data = mt7621_init_data,
++	.reset_fe = mt7621_fe_reset,
++	.set_mac = mt7621_set_mac,
++	.fwd_config = mt7621_fwd_config,
++	.tx_dma = mt7621_tx_dma,
++	.switch_init = mtk_gsw_init,
++	.switch_config = mt7621_gsw_config,
++	.reg_table = mt7621_reg_table,
++	.pdma_glo_cfg = FE_PDMA_SIZE_16DWORDS,
++	.rx_int = RT5350_RX_DONE_INT,
++	.tx_int = RT5350_TX_DONE_INT,
++	.status_int = (MT7621_FE_GDM1_AF | MT7621_FE_GDM2_AF),
++	.checksum_bit = MT7621_L4_VALID,
++	.has_carrier = mt7620_has_carrier,
++	.mdio_read = mt7620_mdio_read,
++	.mdio_write = mt7620_mdio_write,
++	.mdio_adjust_link = mt7620_mdio_link_adjust,
++};
++
++const struct of_device_id of_fe_match[] = {
++	{ .compatible = "mediatek,ralink-mt7621-eth", .data = &mt7621_data },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, of_fe_match);
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_rt2880.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_rt2880.c
+@@ -19,6 +19,8 @@
+ #include "mtk_eth_soc.h"
+ #include "mdio_rt2880.h"
+ 
++#define RT2880_RESET_FE			BIT(18)
++
+ static void rt2880_init_data(struct fe_soc_data *data,
+ 			     struct net_device *netdev)
+ {
+@@ -31,6 +33,11 @@
+ 	/* netdev->hw_features |= NETIF_F_IP_CSUM | NETIF_F_RXCSUM; */
+ }
+ 
++void rt2880_fe_reset(void)
++{
++	fe_reset(RT2880_RESET_FE);
++}
++
+ static int rt2880_fwd_config(struct fe_priv *priv)
+ {
+ 	int ret;
+@@ -48,6 +55,7 @@
+ 
+ struct fe_soc_data rt2880_data = {
+ 	.init_data = rt2880_init_data,
++	.reset_fe = rt2880_fe_reset,
+ 	.fwd_config = rt2880_fwd_config,
+ 	.pdma_glo_cfg = FE_PDMA_SIZE_8DWORDS,
+ 	.checksum_bit = RX_DMA_L4VALID,
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_rt3050.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_rt3050.c
+@@ -17,9 +17,11 @@
+ #include <asm/mach-ralink/ralink_regs.h>
+ 
+ #include "mtk_eth_soc.h"
+-#include "esw_rt3050.h"
+ #include "mdio_rt2880.h"
+ 
++#define RT305X_RESET_FE         BIT(21)
++#define RT305X_RESET_ESW        BIT(23)
++
+ static const u16 rt5350_reg_table[FE_REG_COUNT] = {
+ 	[FE_REG_PDMA_GLO_CFG] = RT5350_PDMA_GLO_CFG,
+ 	[FE_REG_PDMA_RST_CFG] = RT5350_PDMA_RST_CFG,
+@@ -67,6 +69,11 @@
+ 	return 0;
+ }
+ 
++static void rt305x_fe_reset(void)
++{
++	fe_reset(RT305X_RESET_FE);
++}
++
+ static void rt5350_init_data(struct fe_soc_data *data,
+ 			     struct net_device *netdev)
+ {
+@@ -113,10 +120,15 @@
+ 	txd->txd4 = 0;
+ }
+ 
++static void rt5350_fe_reset(void)
++{
++	fe_reset(RT305X_RESET_FE | RT305X_RESET_ESW);
++}
++
+ static struct fe_soc_data rt3050_data = {
+ 	.init_data = rt305x_init_data,
++	.reset_fe = rt305x_fe_reset,
+ 	.fwd_config = rt3050_fwd_config,
+-	.switch_init = rt3050_esw_init,
+ 	.pdma_glo_cfg = FE_PDMA_SIZE_8DWORDS,
+ 	.checksum_bit = RX_DMA_L4VALID,
+ 	.rx_int = FE_RX_DONE_INT,
+@@ -127,9 +139,9 @@
+ static struct fe_soc_data rt5350_data = {
+ 	.init_data = rt5350_init_data,
+ 	.reg_table = rt5350_reg_table,
++	.reset_fe = rt5350_fe_reset,
+ 	.set_mac = rt5350_set_mac,
+ 	.fwd_config = rt5350_fwd_config,
+-	.switch_init = rt3050_esw_init,
+ 	.tx_dma = rt5350_tx_dma,
+ 	.pdma_glo_cfg = FE_PDMA_SIZE_8DWORDS,
+ 	.checksum_bit = RX_DMA_L4VALID,
+
+--- a/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_rt3883.c
++++ b/target/linux/ramips/files/drivers/net/ethernet/ralink/soc_rt3883.c
+@@ -19,6 +19,13 @@
+ #include "mtk_eth_soc.h"
+ #include "mdio_rt2880.h"
+ 
++#define RT3883_RSTCTRL_FE		BIT(21)
++
++static void rt3883_fe_reset(void)
++{
++	fe_reset(RT3883_RSTCTRL_FE);
++}
++
+ static int rt3883_fwd_config(struct fe_priv *priv)
+ {
+ 	int ret;
+@@ -47,6 +54,7 @@
+ 
+ static struct fe_soc_data rt3883_data = {
+ 	.init_data = rt3883_init_data,
++	.reset_fe = rt3883_fe_reset,
+ 	.fwd_config = rt3883_fwd_config,
+ 	.pdma_glo_cfg = FE_PDMA_SIZE_8DWORDS,
+ 	.rx_int = FE_RX_DONE_INT,
+
+--- a/target/linux/ramips/mt7621/base-files/etc/board.d/02_network
++++ b/target/linux/ramips/mt7621/base-files/etc/board.d/02_network
+@@ -52,6 +52,10 @@
+ 	netgear,wac104)
+ 		ucidef_set_interface_lan "lan1 lan2 lan3 lan4"
+ 		;;
++	phicomm,k2p)
++		ucidef_add_switch "switch0" "0:lan:3" "1:lan:2" "2:lan:1" "3:lan:0" "4:wan" "6t@eth0"
++		ucidef_set_interface_lan "eth0.1"
++		;;
+ 	mikrotik,routerboard-750gr3)
+ 		ucidef_set_interfaces_lan_wan "lan2 lan3 lan4 lan5" "wan"
+ 		;;
+
+--- a/target/linux/ramips/mt7621/config-5.4
++++ b/target/linux/ramips/mt7621/config-5.4
+@@ -88,6 +88,7 @@
+ CONFIG_GPIO_GENERIC=y
+ CONFIG_GPIO_MT7621=y
+ # CONFIG_GPIO_RALINK is not set
++CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_WATCHDOG=y
+ # CONFIG_GPIO_WATCHDOG_ARCH_INITCALL is not set
+ CONFIG_GRO_CELLS=y
+@@ -176,9 +177,15 @@
+ CONFIG_NET_DSA_TAG_MTK=y
+ CONFIG_NET_FLOW_LIMIT=y
+ CONFIG_NET_MEDIATEK_SOC=y
++CONFIG_NET_RALINK_GSW_MT7621=y
++CONFIG_NET_RALINK_MDIO=y
++CONFIG_NET_RALINK_MDIO_MT7620=y
++CONFIG_NET_RALINK_MT7621=y
++CONFIG_NET_RALINK_OFFLOAD=y
++CONFIG_NET_RALINK_SOC=y
+ CONFIG_NET_SWITCHDEV=y
+ CONFIG_NET_VENDOR_MEDIATEK=y
+-# CONFIG_NET_VENDOR_RALINK is not set
++CONFIG_NET_VENDOR_RALINK=y
+ CONFIG_NR_CPUS=4
+ CONFIG_OF=y
+ CONFIG_OF_ADDRESS=y
+@@ -248,6 +255,8 @@
+ CONFIG_SPI_MT7621=y
+ # CONFIG_SPI_RT2880 is not set
+ CONFIG_SRCU=y
++CONFIG_SWCONFIG=y
++CONFIG_SWCONFIG_LEDS=y
+ CONFIG_SWPHY=y
+ CONFIG_SYNC_R4K=y
+ CONFIG_SYSCTL_EXCEPTION_TRACE=y

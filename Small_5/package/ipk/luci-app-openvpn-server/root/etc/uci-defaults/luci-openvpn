@@ -1,0 +1,1 @@
+[ -s /etc/openvpn/ta.key ] || openvpn --genkey --secret /etc/openvpn/ta.key

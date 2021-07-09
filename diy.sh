@@ -1,0 +1,76 @@
+#!/bin/bash
+VERSION="V3.3.0"
+A=0
+[ -n "$OP_TARGET" ] || OP_TARGET="X64"
+case "$OP_TARGET" in
+	X64)path="X64";;
+	AC58U)path="AC58U";;
+	ACRH17)path="ACRH17";;
+	R7800)path="R7800";;
+	N1)path="N1";;
+	RPI-4)path="RPI-4";;
+	K2P-16M)path="K2P";A=1;;
+	K2P-32M)path="K2P";A=2;;
+	MI-AC2100)path="MI-AC2100";;
+	REDMI-AC2100)path="REDMI-AC2100";;
+	R2S)path="R2S";;
+	*)echo "No adaptation target!";exit 1;;
+esac
+cp -r target/$path/. Small_5
+[ $A = 1 ] && rm -f Small_5/Patch-K2P-32M.patch
+[ $A = 2 ] && rm -f Small_5/Patch-K2P-16M.patch
+cp -r Small_5/. openwrt
+rm -rf Openwrt_Custom Small_5 target README.md
+cd openwrt
+
+cat > version.patch  <<EOF
+--- a/package/base-files/files/etc/banner
++++ b/package/base-files/files/etc/banner
+@@ -4,5 +4,5 @@
+  |_______||   __|_____|__|__||________||__|  |____|
+           |__| W I R E L E S S   F R E E D O M
+  -----------------------------------------------------
+- %D %V, %C
++ %D $VERSION By Small_5, %C
+  -----------------------------------------------------
+
+--- a/package/base-files/files/etc/openwrt_release
++++ b/package/base-files/files/etc/openwrt_release
+@@ -1,7 +1,7 @@
+ DISTRIB_ID='%D'
+-DISTRIB_RELEASE='%V'
++DISTRIB_RELEASE='$VERSION By Small_5'
+ DISTRIB_REVISION='%R'
+ DISTRIB_TARGET='%S'
+ DISTRIB_ARCH='%A'
+-DISTRIB_DESCRIPTION='%D %V %C'
++DISTRIB_DESCRIPTION='%D $VERSION By Small_5 %C'
+ DISTRIB_TAINTS='%t'
+
+--- a/package/base-files/files/usr/lib/os-release
++++ b/package/base-files/files/usr/lib/os-release
+@@ -1,8 +1,8 @@
+ NAME="%D"
+-VERSION="%V"
++VERSION="$VERSION By Small_5"
+ ID="%d"
+ ID_LIKE="lede openwrt"
+-PRETTY_NAME="%D %V"
++PRETTY_NAME="%D $VERSION By Small_5"
+ VERSION_ID="%v"
+ HOME_URL="%u"
+ BUG_URL="%b"
+@@ -15,4 +15,4 @@
+ OPENWRT_DEVICE_MANUFACTURER_URL="%m"
+ OPENWRT_DEVICE_PRODUCT="%P"
+ OPENWRT_DEVICE_REVISION="%h"
+-OPENWRT_RELEASE="%D %V %C"
++OPENWRT_RELEASE="%D $VERSION By Small_5 %C"
+EOF
+
+patch -p1 -E < default.patch && patch -p1 -E < feeds.patch && patch -p1 -E < version.patch && rm -f default.patch feeds.patch version.patch
+for i in $(find -maxdepth 1 -name 'Patch-*.patch' | sed 's#.*/##');do
+	patch -p1 -E < $i
+done
+rm -f Patch-*.patch
+echo "Model:$OP_TARGET"
