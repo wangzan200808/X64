@@ -271,7 +271,7 @@ rules(){
 		[ "$YB_SERVER" = $GLOBAL_SERVER ] && YB_GL=1 || [ ! $(uci_get_by_name $YB_SERVER server) ] && YB_SERVER=
 		[ "$NF_SERVER" = $GLOBAL_SERVER ] && NF_GL=1 || [ ! $(uci_get_by_name $NF_SERVER server) ] && NF_SERVER=
 		[ "$CU_SERVER" = $GLOBAL_SERVER ] && CU_GL=1 || [ ! $(uci_get_by_name $CU_SERVER server) ] && CU_SERVER=
-		[ "$TG_SERVER" = $GLOBAL_SERVER ] && TG_GL=1 || [ ! $(uci_get_by_name $TG_SERVER server) ] && TG_SERVER=
+		[ "$TG_SERVER" = $GLOBAL_SERVER ] && TG_GL=1 && tg_gl=1 || [ ! $(uci_get_by_name $TG_SERVER server) ] && TG_SERVER=
 		[ $run_mode = gfw -o "$TG_IP" ] || TG_GL=
 		[ "$YB_GL" -o "$NF_GL" -o "$CU_GL" -o "$TG_GL" ] && P=-x
 		[ "$YB_SERVER" -a "$NF_SERVER" = "$YB_SERVER" ] && NF_YB=1 && NF_SERVER=
@@ -477,7 +477,7 @@ start_tcp(){
 	[ $YB_GL ] && CONFIG_FILE=$CONFIG_FILE-yb
 	[ $NF_GL ] && CONFIG_FILE=$CONFIG_FILE-nf
 	[ $CU_GL ] && CONFIG_FILE=$CONFIG_FILE-cu
-	[ $TG_GL ] && CONFIG_FILE=$CONFIG_FILE-tg
+	[ $tg_gl ] && CONFIG_FILE=$CONFIG_FILE-tg
 	CONFIG_FILE=$CONFIG_FILE.json
 	gen_config_file $GLOBAL_SERVER 0 $threads
 	redir_tcp=1
