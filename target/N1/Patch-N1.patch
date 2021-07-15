@@ -32,3 +32,13 @@
  		];
  
  		var table = E('table', { 'class': 'table' });
+
+--- a/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
++++ b/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
+@@ -1,2 +1,6 @@
+ 
+ config settings 'cpufreq'
++	option mode 'schedutil'
++	option min '1000000'
++	option max '1500000'
++
