@@ -2,7 +2,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_SOURCE_URL:=https://github.com/ntop/n2n.git
-PKG_SOURCE_VERSION:=1f51aa1d5cc8610d2a338b6e4d940e28badadb0f
+PKG_SOURCE_VERSION:=5c1c65cd5adba4613edaf2d3cf1196237766b07e
 
 PKG_NAME:=n2n
 PKG_VERSION:=2.9.0_git-$(PKG_SOURCE_VERSION)
