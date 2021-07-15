@@ -25,7 +25,7 @@ if [ $A = 1 ];then
 elif [ $A = 2 ];then
 	rm -f Small_5/Patch-K2P-16M.patch
 elif [ $A = 3 ];then
-	rm -rf openwrt/package/boot/uboot-rockchip openwrt/target/linux/rockchip
+	rm -rf openwrt/package/boot/uboot-rockchip openwrt/package/kernel/linux/modules/video.mk openwrt/target/linux/rockchip
 	cp -r target/rockchip/. Small_5
 fi
 
