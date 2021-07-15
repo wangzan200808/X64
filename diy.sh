@@ -13,12 +13,22 @@ case "$OP_TARGET" in
 	K2P-32M)path="K2P";A=2;;
 	MI-AC2100)path="MI-AC2100";;
 	REDMI-AC2100)path="REDMI-AC2100";;
-	R2S)path="R2S";;
+	R2S)path="R2S";A=3;;
+	R4S)path="R4S";A=3;;
+	R1-PLUS)path="R1-PLUS";A=3;;
 	*)echo "No adaptation target!";exit 1;;
 esac
 cp -r target/$path/. Small_5
-[ $A = 1 ] && rm -f Small_5/Patch-K2P-32M.patch
-[ $A = 2 ] && rm -f Small_5/Patch-K2P-16M.patch
+
+if [ $A = 1 ];then
+	rm -f Small_5/Patch-K2P-32M.patch
+elif [ $A = 2 ];then
+	rm -f Small_5/Patch-K2P-16M.patch
+elif [ $A = 3 ];then
+	rm -rf openwrt/package/boot/uboot-rockchip openwrt/target/linux/rockchip
+	cp -r target/rockchip/. Small_5
+fi
+
 cp -r Small_5/. openwrt
 rm -rf Openwrt_Custom Small_5 target README.md
 cd openwrt

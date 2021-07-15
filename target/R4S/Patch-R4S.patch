@@ -6,7 +6,7 @@
  			local sys = require "luci.sys"
 -			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'") }
 +			local rv = {}
-+			rv.cpufreq = sys.exec("echo $(expr $(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq) / 1000) MHz +$(awk '{printf(\"%.1f°C\",$0/1000)}' /sys/class/thermal/thermal_zone0/temp)")
++			rv.cpufreq = sys.exec("echo A72:$(expr $(cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq) / 1000) MHz A53:$(expr $(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq) / 1000) MHz +$(awk '{printf(\"%.1f°C\",$0/1000)}' /sys/class/thermal/thermal_zone0/temp)")
 +			rv.cpufree = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'")
 +			return rv
 +		end
@@ -61,36 +61,13 @@
 
 --- a/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
 +++ b/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
-@@ -1,2 +1,6 @@
+@@ -1,2 +1,9 @@
  
  config settings 'cpufreq'
 +	option mode0 'schedutil'
 +	option min0 '816000'
-+	option max0 '1512000'
++	option max0 '1608000'
++	option mode4 'schedutil'
++	option min4 '816000'
++	option max4 '2016000'
 +
-
---- a/target/linux/rockchip/armv8/base-files/etc/board.d/01_leds
-+++ b/target/linux/rockchip/armv8/base-files/etc/board.d/01_leds
-@@ -10,8 +10,8 @@
- case $board in
- friendlyarm,nanopi-r2s|\
- xunlong,orangepi-r1-plus)
--	ucidef_set_led_netdev "wan" "WAN" "$boardname:green:wan" "eth0"
--	ucidef_set_led_netdev "lan" "LAN" "$boardname:green:lan" "eth1"
-+	ucidef_set_led_netdev "wan" "WAN" "$boardname:green:wan" "eth1"
-+	ucidef_set_led_netdev "lan" "LAN" "$boardname:green:lan" "eth0"
- 	;;
- friendlyarm,nanopi-r4s)
- 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth0"
-
---- a/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
-+++ b/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
-@@ -10,7 +10,7 @@
- 	friendlyarm,nanopi-r2s|\
- 	friendlyarm,nanopi-r4s|\
- 	xunlong,orangepi-r1-plus)
--		ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
-+		ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
- 		;;
- 	*)
- 		ucidef_set_interface_lan 'eth0'
