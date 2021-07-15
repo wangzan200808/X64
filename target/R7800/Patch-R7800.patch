@@ -38,11 +38,11 @@
 @@ -1,2 +1,8 @@
  
  config settings 'cpufreq'
-+	option mode 'ondemand'
-+	option min '384000'
-+	option max '1725000'
-+	option up '95'
-+	option rate '1'
++	option mode0 'ondemand'
++	option min0 '384000'
++	option max0 '1725000'
++	option up0 '95'
++	option rate0 '1'
 +
 
 --- /dev/null

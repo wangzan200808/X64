@@ -38,11 +38,11 @@
 @@ -1,2 +1,8 @@
  
  config settings 'cpufreq'
-+	option mode 'ondemand'
-+	option min '48000'
-+	option max '896000'
-+	option up '95'
-+	option rate '1'
++	option mode0 'ondemand'
++	option min0 '48000'
++	option max0 '896000'
++	option up0 '95'
++	option rate0 '1'
 +
 
 --- a/package/firmware/ipq-wifi/Makefile
