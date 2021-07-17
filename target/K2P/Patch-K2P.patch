@@ -1,6 +1,6 @@
 --- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/wireless.js
 +++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/wireless.js
-@@ -939,7 +939,7 @@
+@@ -940,7 +940,7 @@
  				o = ss.taboption('general', CBIWifiFrequencyValue, '_freq', '<br />' + _('Operating frequency'));
  				o.ucisection = s.section;
  
@@ -9,7 +9,7 @@
  					o = ss.taboption('general', form.Flag, 'legacy_rates', _('Allow legacy 802.11b rates'), _('Legacy or badly behaving devices may require legacy 802.11b rates to interoperate. Airtime efficiency may be significantly reduced where these are used. It is recommended to not allow 802.11b rates where possible.'));
  					o.depends({'_freq': '11g', '!contains': true});
  
-@@ -1067,7 +1067,7 @@
+@@ -1068,7 +1068,7 @@
  					}, this));
  				};
  
@@ -18,7 +18,7 @@
  					var mode = ss.children[0],
  					    bssid = ss.children[5],
  					    encr;
-@@ -1246,141 +1246,10 @@
+@@ -1247,141 +1247,10 @@
  
  
  				var crypto_modes = [];
@@ -163,7 +163,7 @@
  				crypto_modes.sort(function(a, b) { return b[2] - a[2] });
  
  				for (var i = 0; i < crypto_modes.length; i++) {
-@@ -1496,7 +1365,7 @@
+@@ -1497,7 +1366,7 @@
  				}
  
  
@@ -172,7 +172,7 @@
  					// Probe 802.11r support (and EAP support as a proxy for Openwrt)
  					var has_80211r = L.hasSystemFeature('hostapd', '11r') || L.hasSystemFeature('hostapd', 'eap');
  
-@@ -1673,7 +1542,7 @@
+@@ -1674,7 +1543,7 @@
  					o.password = true;
  
  
@@ -181,7 +181,7 @@
  						// ieee802.11w options
  						o = ss.taboption('encryption', form.ListValue, 'ieee80211w', _('802.11w Management Frame Protection'), _("Note: Some wireless drivers do not fully support 802.11w. E.g. mwlwifi may have problems"));
  						o.value('', _('Disabled'));
-@@ -1700,21 +1569,6 @@
+@@ -1701,21 +1570,6 @@
  						o.datatype = 'uinteger';
  						o.placeholder = '201';
  						o.rmempty = true;
@@ -2079,7 +2079,31 @@
 
 --- a/package/network/utils/iwinfo/Makefile
 +++ b/package/network/utils/iwinfo/Makefile
-@@ -31,7 +31,7 @@
+@@ -7,13 +7,13 @@
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=libiwinfo
+-PKG_RELEASE:=1
++PKG_RELEASE:=2
+ 
+ PKG_SOURCE_PROTO:=git
+ PKG_SOURCE_URL=$(PROJECT_GIT)/project/iwinfo.git
+-PKG_SOURCE_DATE:=2021-07-11
+-PKG_SOURCE_VERSION:=a0a0e02dd91d14a50155390d5fd3b95d6ec87bf4
+-PKG_MIRROR_HASH:=7b4f745c2cace836e57bd116399973d9ac32cee7f98d4628a17395caa3d0cebc
++PKG_SOURCE_DATE:=2021-06-28
++PKG_SOURCE_VERSION:=c9b1672f5a83c8dcb14fdbaee651f775a7defe52
++PKG_MIRROR_HASH:=f33779035153da6bd0b2f100f402f62f1554ab87ed6fbbd938d41df6b9947a1f
+ PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
+ PKG_LICENSE:=GPL-2.0
+ 
+@@ -26,12 +26,12 @@
+   SECTION:=libs
+   CATEGORY:=Libraries
+   TITLE:=Generalized Wireless Information Library (iwinfo)
+-  DEPENDS:=+libnl-tiny +libuci +libubus +libiwinfo-data
++  DEPENDS:=+libnl-tiny +libuci +libubus
+   ABI_VERSION:=$(IWINFO_ABI_VERSION)
  endef
  
  define Package/libiwinfo/description
@@ -2088,7 +2112,20 @@
    and wext driver interfaces.
  endef
  
-@@ -74,7 +74,7 @@
+@@ -50,12 +50,6 @@
+ endef
+ 
+ 
+-define Package/libiwinfo-data
+-  TITLE:=libiwinfo Lua binding
+-  HIDDEN:=1
+-endef
+-
+-
+ define Package/iwinfo
+   SECTION:=utils
+   CATEGORY:=Utilities
+@@ -80,7 +74,7 @@
  	FPIC="$(FPIC)" \
  	CFLAGS="$(TARGET_CFLAGS)" \
  	LDFLAGS="$(TARGET_LDFLAGS)" \
@@ -2097,6 +2134,33 @@
  	SOVERSION="$(IWINFO_ABI_VERSION)"
  
  define Build/InstallDev
+@@ -96,6 +90,8 @@
+ define Package/libiwinfo/install
+ 	$(INSTALL_DIR) $(1)/usr/lib
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/libiwinfo.so.$(IWINFO_ABI_VERSION) $(1)/usr/lib/libiwinfo.so.$(IWINFO_ABI_VERSION)
++	$(INSTALL_DIR) $(1)/usr/share/libiwinfo
++	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hardware.txt $(1)/usr/share/libiwinfo/hardware.txt
+ endef
+ 
+ define Package/libiwinfo-lua/install
+@@ -103,11 +99,6 @@
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/iwinfo.so $(1)/usr/lib/lua/iwinfo.so
+ endef
+ 
+-define Package/libiwinfo-data/install
+-	$(INSTALL_DIR) $(1)/usr/share/libiwinfo
+-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/devices.txt $(1)/usr/share/libiwinfo/devices.txt
+-endef
+-
+ define Package/iwinfo/install
+ 	$(INSTALL_DIR) $(1)/usr/bin
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/iwinfo $(1)/usr/bin/iwinfo
+@@ -115,5 +106,4 @@
+ 
+ $(eval $(call BuildPackage,libiwinfo))
+ $(eval $(call BuildPackage,libiwinfo-lua))
+-$(eval $(call BuildPackage,libiwinfo-data))
+ $(eval $(call BuildPackage,iwinfo))
 
 --- a/target/linux/ramips/dts/mt7621.dtsi
 +++ b/target/linux/ramips/dts/mt7621.dtsi

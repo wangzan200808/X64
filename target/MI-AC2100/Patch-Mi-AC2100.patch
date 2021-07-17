@@ -3432,7 +3432,7 @@
 
 --- a/target/linux/ramips/image/mt7621.mk
 +++ b/target/linux/ramips/image/mt7621.mk
-@@ -1538,11 +1538,27 @@
+@@ -1561,11 +1561,27 @@
  endef
  TARGET_DEVICES += xiaomi_mi-router-4a-gigabit
  
@@ -3466,7 +3466,7 @@
 
 --- a/target/linux/ramips/mt7621/base-files/etc/board.d/01_leds
 +++ b/target/linux/ramips/mt7621/base-files/etc/board.d/01_leds
-@@ -107,7 +107,7 @@
+@@ -114,7 +114,7 @@
  	ucidef_set_led_netdev "eth_link" "LAN link" "green:eth_link" "lan" "link"
  	;;
  xiaomi,mi-router-ac2100)
@@ -3488,7 +3488,7 @@
  		;;
  	asiarf,ap7621-001|\
  	winstars,ws-wn583a6)
-@@ -156,6 +157,10 @@
+@@ -157,6 +158,10 @@
  		wan_mac=$label_mac
  		lan_mac=$(macaddr_add $label_mac 1)
  		;;
