@@ -59,18 +59,6 @@
  		var tb = document.getElementById('aria2_status');
  		if (data && tb) {
 
---- a/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
-+++ b/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
-@@ -120,7 +120,7 @@
- 					next_update = epoch2date(epoch + force_seconds + check_seconds)
- 				end
- 
--				if pid > 0 and ( last_update + force_seconds - uptime ) <= 0 then
-+				if pid > 0 and ( last_update + force_seconds + check_seconds - uptime ) <= 0 then
- 					next_update = "Verify"
- 
- 				-- run once
-
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 @@ -167,6 +167,10 @@
@@ -799,7 +787,7 @@
  # - check if default mode has changed from being tcp_only
  #
 +PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
-+PKG_SOURCE_VERSION:=4bbbe212eb65e356be97a11bb98dbebb2e7923fc
++PKG_SOURCE_VERSION:=abcf85e98300762e4f31953cecf635ab182ef859
 +
  PKG_NAME:=shadowsocks-libev
 -PKG_VERSION:=3.3.5
@@ -1229,7 +1217,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/zerotier/ZeroTierOne.git
-+PKG_SOURCE_VERSION:=6faca86bb424d0b9643b6efa50571f73310d8276
++PKG_SOURCE_VERSION:=46387e2f2b2df539f2ba94ae540d0d19a202478e
  PKG_NAME:=zerotier
 -PKG_VERSION:=1.6.5
 +PKG_VERSION:=1.6.5_git-$(PKG_SOURCE_VERSION)

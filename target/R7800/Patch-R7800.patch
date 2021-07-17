@@ -35,14 +35,15 @@
 
 --- a/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
 +++ b/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
-@@ -1,2 +1,8 @@
+@@ -1,2 +1,9 @@
  
  config settings 'cpufreq'
 +	option mode0 'ondemand'
-+	option min0 '384000'
++	option min0 '600000'
 +	option max0 '1725000'
-+	option up0 '95'
-+	option rate0 '1'
++	option mode1 'ondemand'
++	option min1 '600000'
++	option max1 '1725000'
 +
 
 --- /dev/null
