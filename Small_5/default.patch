@@ -989,7 +989,7 @@
 +	option interface 'lan'
 +	option start '10'
 +	option limit '150'
-+	option leasetime '12h'
++	option leasetime '2h'
 +	option force '1'
  
 -config dhcp wan
