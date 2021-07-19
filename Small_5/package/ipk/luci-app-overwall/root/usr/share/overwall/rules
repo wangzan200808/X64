@@ -141,8 +141,14 @@ tp_rule(){
 	ip route add local 0.0.0.0/0 dev lo table 100
 	ipt="iptables -t mangle"
 	$ipt -N OVERWALL_TPROXY
-	$ipt -A OVERWALL_TPROXY -p udp --dport 80 -j DROP
-	$ipt -A OVERWALL_TPROXY -p udp --dport 443 -j DROP
+	if ipset list china_v4 >/dev/null 2>&1;then
+		[ $MODE = oversea ] && a= || a=!
+		$ipt -A OVERWALL_TPROXY -p udp -m set $a --match-set china_v4 dst --dport 80 -j DROP
+		$ipt -A OVERWALL_TPROXY -p udp -m set $a --match-set china_v4 dst --dport 443 -j DROP
+	elif ipset list blacklist >/dev/null 2>&1;then
+		$ipt -A OVERWALL_TPROXY -p udp -m set --match-set blacklist dst --dport 80 -j DROP
+		$ipt -A OVERWALL_TPROXY -p udp -m set --match-set blacklist dst --dport 443 -j DROP
+	fi
 	$ipt -A OVERWALL_TPROXY -p udp --dport 53 -j RETURN
 	$ipt -A OVERWALL_TPROXY -p udp -d $SERVER -j RETURN
 	$ipt -A OVERWALL_TPROXY -p udp -m set --match-set over_wan_ac dst -j RETURN
