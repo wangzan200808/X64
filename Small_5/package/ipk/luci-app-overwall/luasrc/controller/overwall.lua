@@ -77,7 +77,7 @@ function refresh()
 	local icount=0
 	local r
 	if set=="0" then
-		sret=CALL("curl -Lfso /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt")
+		sret=CALL("curl -Lfso /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/gVxoEuEit5EJeEm")
 		if sret==0 then
 			CALL("/usr/share/overwall/gfw")
 			icount=EXEC("cat /tmp/gfwnew.txt | wc -l")

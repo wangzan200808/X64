@@ -54,11 +54,11 @@ fi
 
 if [ "$C" = gfw -o "$(uci -q get overwall.@global[0].gfw_mode)" = 1 ];then
 	if [ $A = Y ];then
-		while ! curl -Lfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt;do
+		while ! curl -Lfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/gVxoEuEit5EJeEm;do
 			sleep 2
 		done
 	else
-		curl -Lfso /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt || curl -Lfso /tmp/gfw.b64 https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt
+		curl -Lfso /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/gVxoEuEit5EJeEm || curl -Lfso /tmp/gfw.b64 https://raw.githubusercontent.com/Lj2x16sRVDNJcuBv/lgtOgNsB/master/IwocS3gciO/gVxoEuEit5EJeEm
 	fi
 	$DIR/gfw
 	if ! cmp -s /tmp/gfwnew.txt $TMP/gfw.list;then
