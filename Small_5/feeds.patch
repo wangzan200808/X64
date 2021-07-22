@@ -73,6 +73,35 @@
  		o.modalonly = true;
  
 
+--- a/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
++++ b/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
+@@ -130,6 +130,9 @@
+ 		s.taboption('general', form.Flag, 'igdv1', _('Enable IGDv1 mode'),
+ 			_('Advertise as IGDv1 device instead of IGDv2')).default = '0'
+ 
++		s.taboption('general', form.Flag, 'ext_ip_reserved_ignore', _('Ignore address check'),
++			_('Ignore private/reserved address check'))
++
+ 		s.taboption('general', form.Flag, 'log_output', _('Enable additional logging'),
+ 			_('Puts extra debugging information into the system log'))
+ 
+
+--- a/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
++++ b/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
+@@ -231,6 +231,12 @@
+ msgid "Value in KByte/s, informational only"
+ msgstr "单位为 KByte/s，仅供参考"
+ 
++msgid "Ignore address check"
++msgstr "忽略地址检查"
++
++msgid "Ignore private/reserved address check"
++msgstr "忽略私有/保留地址检查"
++
+ #~ msgid "Collecting data..."
+ #~ msgstr "正在收集数据…"
+ 
+
 --- a/feeds/luci/modules/luci-base/root/etc/config/luci
 +++ b/feeds/luci/modules/luci-base/root/etc/config/luci
 @@ -1,5 +1,5 @@
