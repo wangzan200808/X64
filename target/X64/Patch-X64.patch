@@ -6,7 +6,7 @@
  			local sys = require "luci.sys"
 -			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'") }
 +			local rv = {}
-+			rv.cpufreq = sys.exec("echo $(grep MHz /proc/cpuinfo | cut -c11- | sed -n 1p) MHz $(sensors | grep 'Core 0' | cut -c12-)")
++			rv.cpufreq = sys.exec("echo $(grep MHz /proc/cpuinfo | cut -c11- | sed -n 1p) MHz $( (sensors | grep 'Core 0' || sensors | grep 'temp1') | cut -c12-)")
 +			rv.cpufree = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'")
 +			return rv
 +		end
