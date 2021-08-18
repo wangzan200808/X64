@@ -1,5 +1,14 @@
 --- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/wireless.js
 +++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/wireless.js
+@@ -126,7 +126,7 @@
+ 	if (radioDev.isUp())
+ 		L.itemlist(node.lastElementChild, [
+ 			_('Channel'), '%s (%s %s)'.format(channel || '?', frequency || '?', _('GHz')),
+-			_('Bitrate'), '%s %s'.format(bitrate || '?', _('Mbit/s'))
++			_('Bitrate'), '%s %s'.format(bitrate || '866', _('Mbit/s'))
+ 		], ' | ');
+ 	else
+ 		node.lastElementChild.appendChild(E('em', _('Device is not active')));
 @@ -940,7 +940,7 @@
  				o = ss.taboption('general', CBIWifiFrequencyValue, '_freq', '<br />' + _('Operating frequency'));
  				o.ucisection = s.section;
@@ -7,7 +16,7 @@
 -				if (hwtype == 'mac80211') {
 +				if (hwtype == 'mt_dbdc') {
  					o = ss.taboption('general', form.Flag, 'legacy_rates', _('Allow legacy 802.11b rates'), _('Legacy or badly behaving devices may require legacy 802.11b rates to interoperate. Airtime efficiency may be significantly reduced where these are used. It is recommended to not allow 802.11b rates where possible.'));
- 					o.depends({'_freq': '11g', '!contains': true});
+ 					o.depends({'_freq': '2g', '!contains': true});
  
 @@ -1068,7 +1068,7 @@
  					}, this));
@@ -224,7 +233,7 @@
  
  local encrypt_methods={
  "none",
-@@ -112,10 +110,8 @@
+@@ -120,10 +118,8 @@
  if luci.sys.call("which ssr-redir >/dev/null")==0 then
  o:value("ssr",translate("ShadowsocksR"))
  end
@@ -235,7 +244,7 @@
  if luci.sys.call("which trojan-plus >/dev/null")==0 then
  o:value("trojan",translate("Trojan"))
  end
-@@ -180,17 +176,13 @@
+@@ -188,17 +184,13 @@
  for _,v in ipairs(encrypt_methods_ss) do o:value(v) end
  o:depends("type","ss")
  
@@ -266,7 +275,7 @@
  
  local encrypt_methods_ss={
  "aes-128-gcm",
-@@ -112,17 +110,13 @@
+@@ -120,17 +118,13 @@
  for _,v in ipairs(encrypt_methods_ss) do o:value(v) end
  o:depends("type","ss")
  
@@ -400,7 +409,7 @@
  	[ $threads = 0 ] && threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
  	cmd=$(f_bin $ttype)
  	[ ! $cmd ] && log "Main Node      : Can't find $(echo $ttype | tr a-z A-Z) program, start failed!" && return 1
-@@ -1103,16 +1122,15 @@
+@@ -1104,16 +1123,15 @@
  }
  
  start_local(){
@@ -421,7 +430,7 @@
  			log "Socks5 Node : $name Started!";;
  		vmess|vless)
  			$BIN_DIR/genxrayconfig $SO_SERVER tcp 0 $socks5_port $socks5_ip > $CONFIG_SOCK5_FILE
-@@ -1145,8 +1163,13 @@
+@@ -1146,8 +1164,13 @@
  }
  EOF
  		plugin=$(uci_get_by_name $1 plugin)
@@ -437,7 +446,7 @@
  		fi
  	else
  		cat >$3 <<EOF
-@@ -1253,6 +1276,8 @@
+@@ -1254,6 +1277,8 @@
  }
  
  stop(){
@@ -446,7 +455,7 @@
  	kill -9 $(ps -w | grep $BIN_DIR/rules | grep -v grep | awk '{print$1}') 2>/dev/null
  	kill -9 $(ps -w | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
  	kill -9 $(ps -w | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
-@@ -1269,7 +1294,7 @@
+@@ -1270,7 +1295,7 @@
  		iptables -t filter -D INPUT -j OVERWALL-S-RULE
  		iptables -X OVERWALL-S-RULE 2>/dev/null
  	fi
@@ -4001,8 +4010,11 @@
  	return 0;
  }
  
-@@ -1371,21 +1394,13 @@
- 	const char *mac_addr;
+@@ -1368,27 +1391,22 @@
+ {
+ 	struct fe_priv *priv = netdev_priv(dev);
+ 	struct device_node *port;
++	const char *mac_addr;
  	int err;
  
 -	if (priv->soc->reset_fe)
@@ -4026,7 +4038,14 @@
  
  	fe_reset_phy(priv);
  
-@@ -1500,6 +1515,23 @@
+-	of_get_mac_address(priv->dev->of_node, dev->dev_addr);
++	mac_addr = of_get_mac_address(priv->dev->of_node);
++	if (!IS_ERR_OR_NULL(mac_addr))
++		ether_addr_copy(dev->dev_addr, mac_addr);
+ 
+ 	/* If the mac address is invalid, use random mac address  */
+ 	if (!is_valid_ether_addr(dev->dev_addr)) {
+@@ -1497,6 +1515,23 @@
  	return fe_open(dev);
  }
  
@@ -4050,7 +4069,7 @@
  static const struct net_device_ops fe_netdev_ops = {
  	.ndo_init		= fe_init,
  	.ndo_uninit		= fe_uninit,
-@@ -1517,6 +1549,9 @@
+@@ -1514,6 +1549,9 @@
  #ifdef CONFIG_NET_POLL_CONTROLLER
  	.ndo_poll_controller	= fe_poll_controller,
  #endif
@@ -4060,7 +4079,7 @@
  };
  
  static void fe_reset_pending(struct fe_priv *priv)
-@@ -1598,12 +1633,6 @@
+@@ -1595,12 +1633,6 @@
  		goto err_free_dev;
  	}
  
@@ -4073,7 +4092,7 @@
  	if (soc->init_data)
  		soc->init_data(soc, netdev);
  	netdev->vlan_features = netdev->hw_features &
-@@ -1618,6 +1647,8 @@
+@@ -1615,6 +1647,8 @@
  	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE])
  		netdev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
  
@@ -4082,7 +4101,7 @@
  	if (fe_reg_table[FE_REG_FE_COUNTER_BASE]) {
  		priv->hw_stats = kzalloc(sizeof(*priv->hw_stats), GFP_KERNEL);
  		if (!priv->hw_stats) {
-@@ -1705,7 +1736,7 @@
+@@ -1702,7 +1736,7 @@
  	.probe = fe_probe,
  	.remove = fe_remove,
  	.driver = {

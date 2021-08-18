@@ -158,7 +158,7 @@
 
 --- a/feeds/luci/modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json
 +++ b/feeds/luci/modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json
-@@ -102,7 +102,8 @@
+@@ -103,7 +103,8 @@
  			},
  			"ubus": {
  				"file": [ "list", "read" ],
@@ -597,14 +597,14 @@
  PKG_NAME:=smartdns
 -PKG_VERSION:=1.2020.30
 -PKG_RELEASE:=1
-+PKG_VERSION:=1.2021.02.06
++PKG_VERSION:=1.2021.08.09
 +PKG_RELEASE:=1
  
  PKG_SOURCE_PROTO:=git
  PKG_SOURCE_URL:=https://www.github.com/pymumu/smartdns.git
 -PKG_SOURCE_VERSION:=a6fe329105c7275d4683d17e95ab9d9f93a9c863
 -PKG_MIRROR_HASH:=d5affc45a533e38ee04f3ce47b441aecf316cb9cb68ff410eede67090ec0fcc7
-+PKG_SOURCE_VERSION:=e5eb562deeb93d74d2f60f38bc83acce5882344b
++PKG_SOURCE_VERSION:=8c271e34c118be0244262e621386913414f3886b
  
  PKG_MAINTAINER:=Nick Peng <pymumu@gmail.com>
  PKG_LICENSE:=GPL-3.0-or-later
@@ -769,7 +769,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/fatedier/frp.git
-+PKG_SOURCE_VERSION:=2a68c1152f4d20b07f112cdcd4ee84151a859a1f
++PKG_SOURCE_VERSION:=2f74f54f18a8437e8f0dfd6bcedbaa812d59d52b
 +
  PKG_NAME:=frp
 -PKG_VERSION:=0.37.0
@@ -803,25 +803,15 @@
 
 --- a/feeds/packages/net/https-dns-proxy/Makefile
 +++ b/feeds/packages/net/https-dns-proxy/Makefile
-@@ -1,14 +1,12 @@
- include $(TOPDIR)/rules.mk
- 
- PKG_NAME:=https-dns-proxy
--PKG_VERSION:=2021-06-03
-+PKG_VERSION:=2021-07-02
- PKG_RELEASE:=1
- 
- PKG_SOURCE_PROTO:=git
--PKG_SOURCE_URL:=https://github.com/aarond10/https_dns_proxy
--PKG_SOURCE_DATE:=2021-06-03
--PKG_SOURCE_VERSION:=5651b984f770a8bcecb14aeffc224703f8f82586
--PKG_MIRROR_HASH:=b65161936269aa3117debad0fcfce157024726b78d7e7da77c226f7aa8da5b4d
-+PKG_SOURCE_URL:=https://github.com/aarond10/https_dns_proxy.git
-+PKG_SOURCE_VERSION:=30b2f3616b29d34a9a11144724a5bc0abd168c7d
+@@ -8,7 +8,6 @@
+ PKG_SOURCE_URL:=https://github.com/aarond10/https_dns_proxy/
+ PKG_SOURCE_DATE:=2021-07-29
+ PKG_SOURCE_VERSION:=750c4dbdfe3d3c65edcd57349df181ffd1f6ceeb
+-PKG_MIRROR_HASH:=88f487d80f8f20b83d1f9940c30ad1d5b6a4eda6be48fbaea196c69e90c5429e
  PKG_MAINTAINER:=Stan Grishin <stangri@melmac.net>
  PKG_LICENSE:=MIT
  PKG_LICENSE_FILES:=LICENSE
-@@ -33,16 +31,9 @@
+@@ -33,17 +32,9 @@
  Please see https://docs.openwrt.melmac.net/https-dns-proxy/ for more information.
  endef
  
@@ -830,12 +820,13 @@
 -endef
 -
  define Package/https-dns-proxy/install
--	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/init.d ${1}/etc/config
+-	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/init.d ${1}/etc/config $(1)/etc/hotplug.d/iface
 +	$(INSTALL_DIR) $(1)/usr/sbin
  	$(INSTALL_BIN) $(PKG_BUILD_DIR)/https_dns_proxy $(1)/usr/sbin/https-dns-proxy
 -	$(INSTALL_BIN) ./files/https-dns-proxy.init $(1)/etc/init.d/https-dns-proxy
 -	$(SED) "s|^\(PKG_VERSION\).*|\1='$(PKG_VERSION)-$(PKG_RELEASE)'|" $(1)/etc/init.d/https-dns-proxy
 -	$(INSTALL_CONF) ./files/https-dns-proxy.config $(1)/etc/config/https-dns-proxy
+-	$(INSTALL_DATA) ./files/https-dns-proxy.hotplug.iface $(1)/etc/hotplug.d/iface/90-https-dns-proxy
  endef
  
  $(eval $(call BuildPackage,https-dns-proxy))
@@ -1076,19 +1067,17 @@
 
 --- a/feeds/packages/net/sqm-scripts/Makefile
 +++ b/feeds/packages/net/sqm-scripts/Makefile
-@@ -8,13 +8,12 @@
- include $(TOPDIR)/rules.mk
+@@ -9,12 +9,11 @@
  
  PKG_NAME:=sqm-scripts
--PKG_SOURCE_VERSION:=bb064ad6065dcfb4966662bfab15b9fcdbb48e5f
--PKG_VERSION:=1.5.0
-+PKG_SOURCE_VERSION:=5d7e7977e14e147d5bcfa8a5f01636c7ab230fa4
-+PKG_VERSION:=1.5.0_git-$(PKG_SOURCE_VERSION)
- PKG_RELEASE:=2
+ PKG_SOURCE_VERSION:=5d7e7977e14e147d5bcfa8a5f01636c7ab230fa4
+-PKG_VERSION:=1.5.1
++PKG_VERSION:=1.5.1_git-$(PKG_SOURCE_VERSION)
+ PKG_RELEASE:=1
  
  PKG_SOURCE_PROTO:=git
  PKG_SOURCE_URL:=https://github.com/tohojo/sqm-scripts
--PKG_MIRROR_HASH:=d41301ed1e318ea81c6c8f29c1847efdda3663573d12a3e0b855b4b8b8cf0610
+-PKG_MIRROR_HASH:=dad79a899da9e9389d8bdedb0c7b48235dd55f834edf6ed4b4e38c13eff46c19
  
  PKG_MAINTAINER:=Toke Høiland-Jørgensen <toke@toke.dk>
  PKG_LICENSE:=GPL-2.0-only

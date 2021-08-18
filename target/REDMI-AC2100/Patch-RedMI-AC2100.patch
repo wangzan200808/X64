@@ -2041,8 +2041,11 @@
  	return 0;
  }
  
-@@ -1371,21 +1394,13 @@
- 	const char *mac_addr;
+@@ -1368,27 +1391,22 @@
+ {
+ 	struct fe_priv *priv = netdev_priv(dev);
+ 	struct device_node *port;
++	const char *mac_addr;
  	int err;
  
 -	if (priv->soc->reset_fe)
@@ -2066,7 +2069,14 @@
  
  	fe_reset_phy(priv);
  
-@@ -1500,6 +1515,23 @@
+-	of_get_mac_address(priv->dev->of_node, dev->dev_addr);
++	mac_addr = of_get_mac_address(priv->dev->of_node);
++	if (!IS_ERR_OR_NULL(mac_addr))
++		ether_addr_copy(dev->dev_addr, mac_addr);
+ 
+ 	/* If the mac address is invalid, use random mac address  */
+ 	if (!is_valid_ether_addr(dev->dev_addr)) {
+@@ -1497,6 +1515,23 @@
  	return fe_open(dev);
  }
  
@@ -2090,7 +2100,7 @@
  static const struct net_device_ops fe_netdev_ops = {
  	.ndo_init		= fe_init,
  	.ndo_uninit		= fe_uninit,
-@@ -1517,6 +1549,9 @@
+@@ -1514,6 +1549,9 @@
  #ifdef CONFIG_NET_POLL_CONTROLLER
  	.ndo_poll_controller	= fe_poll_controller,
  #endif
@@ -2100,7 +2110,7 @@
  };
  
  static void fe_reset_pending(struct fe_priv *priv)
-@@ -1598,12 +1633,6 @@
+@@ -1595,12 +1633,6 @@
  		goto err_free_dev;
  	}
  
@@ -2113,7 +2123,7 @@
  	if (soc->init_data)
  		soc->init_data(soc, netdev);
  	netdev->vlan_features = netdev->hw_features &
-@@ -1618,6 +1647,8 @@
+@@ -1615,6 +1647,8 @@
  	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE])
  		netdev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
  
@@ -2122,7 +2132,7 @@
  	if (fe_reg_table[FE_REG_FE_COUNTER_BASE]) {
  		priv->hw_stats = kzalloc(sizeof(*priv->hw_stats), GFP_KERNEL);
  		if (!priv->hw_stats) {
-@@ -1705,7 +1736,7 @@
+@@ -1702,7 +1736,7 @@
  	.probe = fe_probe,
  	.remove = fe_remove,
  	.driver = {
