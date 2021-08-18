@@ -22,7 +22,7 @@
 
 --- a/feeds/luci/modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json
 +++ b/feeds/luci/modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json
-@@ -111,6 +111,15 @@
+@@ -112,6 +112,15 @@
  		}
  	},
  
