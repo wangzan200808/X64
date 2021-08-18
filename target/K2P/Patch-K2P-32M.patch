@@ -43,7 +43,7 @@
 
 --- a/.config
 +++ b/.config
-@@ -47,3 +47,8 @@
+@@ -46,3 +46,8 @@
  CONFIG_LIBCURL_MBEDTLS=y
  # CONFIG_LIBCURL_WOLFSSL is not set
  CONFIG_LIBCURL_NGHTTP2=y
