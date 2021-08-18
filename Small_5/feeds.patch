@@ -1067,11 +1067,13 @@
 
 --- a/feeds/packages/net/sqm-scripts/Makefile
 +++ b/feeds/packages/net/sqm-scripts/Makefile
-@@ -9,12 +9,11 @@
+@@ -8,13 +8,12 @@
+ include $(TOPDIR)/rules.mk
  
  PKG_NAME:=sqm-scripts
- PKG_SOURCE_VERSION:=5d7e7977e14e147d5bcfa8a5f01636c7ab230fa4
+-PKG_SOURCE_VERSION:=5d7e7977e14e147d5bcfa8a5f01636c7ab230fa4
 -PKG_VERSION:=1.5.1
++PKG_SOURCE_VERSION:=e789773feb5294197f2adbf4d9ffd7b3b62c01b9
 +PKG_VERSION:=1.5.1_git-$(PKG_SOURCE_VERSION)
  PKG_RELEASE:=1
  
