@@ -159,7 +159,7 @@ EOF
 start_dns(){
 	$(which smartdns) -c $DNS_T
 	case $dns_mode in
-		0)doh=$(echo $doh | sed 's/,/\n/g' | sed 's/ .*//');log "SmartDNS      : Use $(echo $doh | sed 's/ /,/g') to start on DoH mode (Foreign DNS)";;
+		0)doh=$(echo $doh | sed 's/,/\n/g' | sed -e 's/104.16.249.249/1.1.1.1/' -e 's/104.16.248.249/1.0.0.1/' -e 's/ .*//');log "SmartDNS      : Use $(echo $doh | sed 's/ /,/g') to start on DoH mode (Foreign DNS)";;
 		1)dns=$(echo $dns | sed 's/ /,/g');log "SmartDNS      : Use $dns to start on TCP mode (Foreign DNS)";;
 	esac
 	if [ "$YB" ];then
@@ -743,7 +743,7 @@ gen_dns(){
 
 	if [ $dns_mode = 0 ];then
 		case $dns in
-			1)doh="https://1.1.1.1/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com,https://1.0.0.1/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com";dns="1.1.1.1 1.0.0.1";;
+			1)doh="https://104.16.249.249/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com,https://104.16.248.249/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com";dns="104.16.249.249 104.16.248.249 1.1.1.1 1.0.0.1";;
 			2)doh="https://8.8.8.8/dns-query -tls-host-verify dns.google -http-host dns.google,https://8.8.4.4/dns-query -tls-host-verify dns.google -http-host dns.google";dns="8.8.8.8 8.8.4.4";;
 			3)doh="https://9.9.9.9/dns-query -tls-host-verify *.quad9.net -http-host dns.quad9.net,https://149.112.112.112/dns-query -tls-host-verify *.quad9.net -http-host dns.quad9.net";dns="9.9.9.9 149.112.112.112";;
 			4)doh="https://9.9.9.11/dns-query -tls-host-verify *.quad9.net -http-host dns11.quad9.net,https://149.112.112.11/dns-query -tls-host-verify *.quad9.net -http-host dns11.quad9.net";dns="9.9.9.11 149.112.112.11";;
@@ -756,6 +756,7 @@ gen_dns(){
 				*)ipset del over_wan_ac $i 2>/dev/null || ipset add over_wan_ac $i nomatch 2>/dev/null;;
 			esac
 		done
+		[ "$dns" = "104.16.249.249 104.16.248.249 1.1.1.1 1.0.0.1" ] && dns="1.1.1.1 1.0.0.1"
 	else
 		case $dns in
 			1)dns="1.1.1.1,1.0.0.1";;
@@ -779,7 +780,7 @@ gen_dns(){
 
 	if [ "$YB" -a $dns_mode_y = 0 ];then
 		case $dns_yb in
-			1)doh_yb="https://1.1.1.1/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com,https://1.0.0.1/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com";dns_yb="1.1.1.1 1.0.0.1";;
+			1)doh_yb="https://104.16.249.249/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com,https://104.16.248.249/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com";dns_yb="104.16.249.249 104.16.248.249";;
 			2)doh_yb="https://8.8.8.8/dns-query -tls-host-verify dns.google -http-host dns.google,https://8.8.4.4/dns-query -tls-host-verify dns.google -http-host dns.google";dns_yb="8.8.8.8 8.8.4.4";;
 			3)doh_yb="https://9.9.9.9/dns-query -tls-host-verify *.quad9.net -http-host dns.quad9.net,https://149.112.112.112/dns-query -tls-host-verify *.quad9.net -http-host dns.quad9.net";dns_yb="9.9.9.9 149.112.112.112";;
 			4)doh_yb="https://9.9.9.11/dns-query -tls-host-verify *.quad9.net -http-host dns11.quad9.net,https://149.112.112.11/dns-query -tls-host-verify *.quad9.net -http-host dns11.quad9.net";dns_yb="9.9.9.11 149.112.112.11";;
@@ -805,7 +806,7 @@ gen_dns(){
 
 	if [ "$NF" -a $dns_mode_n = 0 ];then
 		case $dns_nf in
-			1)doh_nf="https://1.1.1.1/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com,https://1.0.0.1/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com";dns_nf="1.1.1.1 1.0.0.1";;
+			1)doh_nf="https://104.16.249.249/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com,https://104.16.248.249/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com";dns_nf="104.16.249.249 104.16.248.249";;
 			2)doh_nf="https://8.8.8.8/dns-query -tls-host-verify dns.google -http-host dns.google,https://8.8.4.4/dns-query -tls-host-verify dns.google -http-host dns.google";dns_nf="8.8.8.8 8.8.4.4";;
 			3)doh_nf="https://9.9.9.9/dns-query -tls-host-verify *.quad9.net -http-host dns.quad9.net,https://149.112.112.112/dns-query -tls-host-verify *.quad9.net -http-host dns.quad9.net";dns_nf="9.9.9.9 149.112.112.112";;
 			4)doh_nf="https://9.9.9.11/dns-query -tls-host-verify *.quad9.net -http-host dns11.quad9.net,https://149.112.112.11/dns-query -tls-host-verify *.quad9.net -http-host dns11.quad9.net";dns_nf="9.9.9.11 149.112.112.11";;
@@ -831,7 +832,7 @@ gen_dns(){
 
 	if [ "$CU" -a $dns_mode_c = 0 ];then
 		case $dns_cu in
-			1)doh_cu="https://1.1.1.1/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com,https://1.0.0.1/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com";dns_cu="1.1.1.1 1.0.0.1";;
+			1)doh_cu="https://104.16.249.249/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com,https://104.16.248.249/dns-query -tls-host-verify cloudflare-dns.com -http-host cloudflare-dns.com";dns_cu="104.16.249.249 104.16.248.249";;
 			2)doh_cu="https://8.8.8.8/dns-query -tls-host-verify dns.google -http-host dns.google,https://8.8.4.4/dns-query -tls-host-verify dns.google -http-host dns.google";dns_cu="8.8.8.8 8.8.4.4";;
 			3)doh_cu="https://9.9.9.9/dns-query -tls-host-verify *.quad9.net -http-host dns.quad9.net,https://149.112.112.112/dns-query -tls-host-verify *.quad9.net -http-host dns.quad9.net";dns_cu="9.9.9.9 149.112.112.112";;
 			4)doh_cu="https://9.9.9.11/dns-query -tls-host-verify *.quad9.net -http-host dns11.quad9.net,https://149.112.112.11/dns-query -tls-host-verify *.quad9.net -http-host dns11.quad9.net";dns_cu="9.9.9.11 149.112.112.11";;
