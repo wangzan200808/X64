@@ -2282,7 +2282,7 @@
 
 --- a/package/utils/busybox/Makefile
 +++ b/package/utils/busybox/Makefile
-@@ -99,7 +99,7 @@
+@@ -96,7 +96,7 @@
  LDLIBS += $(call BUSYBOX_IF_ENABLED,PAM,pam pam_misc pthread)
  
  ifeq ($(CONFIG_USE_GLIBC),y)

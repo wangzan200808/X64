@@ -112,63 +112,6 @@
  	option resourcebase /luci-static/resources
  	option ubuspath /ubus/
 
---- a/feeds/luci/modules/luci-base/po/zh_Hans/base.po
-+++ b/feeds/luci/modules/luci-base/po/zh_Hans/base.po
-@@ -415,7 +415,7 @@
- 
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:254
- msgid "Active <abbr title=\"Internet Protocol Version 4\">IPv4</abbr>-Rules"
--msgstr ""
-+msgstr "活动的 <abbr title=\"Internet Protocol Version 4\">IPv4</abbr> 规则"
- 
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:261
- msgid "Active <abbr title=\"Internet Protocol Version 6\">IPv6</abbr>-Routes"
-@@ -423,7 +423,7 @@
- 
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:264
- msgid "Active <abbr title=\"Internet Protocol Version 6\">IPv6</abbr>-Rules"
--msgstr ""
-+msgstr "活动的 <abbr title=\"Internet Protocol Version 6\">IPv6</abbr> 规则"
- 
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/30_network.js:81
- msgid "Active Connections"
-@@ -2926,7 +2926,7 @@
- 
- #: modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json:47
- msgid "Grant access to routing status"
--msgstr ""
-+msgstr "授予查看路由表的权限"
- 
- #: modules/luci-mod-system/root/usr/share/rpcd/acl.d/luci-mod-system.json:42
- msgid "Grant access to startup configuration"
-@@ -3106,7 +3106,7 @@
- 
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:247
- msgid "IPv4 Routing"
--msgstr ""
-+msgstr "IPv4 路由表"
- 
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/30_network.js:29
- msgid "IPv4 Upstream"
-@@ -3202,7 +3202,7 @@
- 
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:257
- msgid "IPv6 Routing"
--msgstr ""
-+msgstr "IPv6 路由表"
- 
- #: modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js:634
- msgid "IPv6 Settings"
-@@ -6001,7 +6001,7 @@
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:244
- #: modules/luci-mod-status/root/usr/share/luci/menu.d/luci-mod-status.json:15
- msgid "Routing"
--msgstr ""
-+msgstr "路由表"
- 
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/iptables.js:218
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:198
-
 --- a/feeds/luci/modules/luci-base/root/usr/libexec/rpcd/luci
 +++ b/feeds/luci/modules/luci-base/root/usr/libexec/rpcd/luci
 @@ -43,6 +43,13 @@
@@ -1015,7 +958,7 @@
  # - check if default mode has changed from being tcp_only
  #
 +PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
-+PKG_SOURCE_VERSION:=abcf85e98300762e4f31953cecf635ab182ef859
++PKG_SOURCE_VERSION:=b9117559000e1bdee4a84383c537ca5b4b7fe8dc
 +
  PKG_NAME:=shadowsocks-libev
 -PKG_VERSION:=3.3.5
