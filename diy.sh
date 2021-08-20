@@ -14,6 +14,7 @@ case "$OP_TARGET" in
 	K2P-32M)path="K2P";A=1;;
 	MI-AC2100)path="MI-AC2100";A=1;;
 	REDMI-AC2100)path="REDMI-AC2100";A=1;;
+	CR660X)path="CR660X";A=1;;
 	R2S)path="R2S";A=2;;
 	R4S)path="R4S";A=2;;
 	R1-PLUS)path="R1-PLUS";A=2;;
