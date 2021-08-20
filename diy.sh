@@ -25,6 +25,12 @@ cp -r target/$path/. Small_5
 if [ $A = 1 ];then
 	rm -rf openwrt/target/linux/ramips
 	cp -r target/ramips/. Small_5
+	chmod 0775 Small_5/target/linux/ramips/mt76x8/base-files/etc/init.d/* Small_5/target/linux/ramips/mt76x8/base-files/lib/upgrade/*
+	chmod 0775 Small_5/target/linux/ramips/mt7620/base-files/etc/init.d/* Small_5/target/linux/ramips/mt7620/base-files/lib/upgrade/*
+	chmod 0775 Small_5/target/linux/ramips/mt7621/base-files/etc/init.d/* Small_5/target/linux/ramips/mt7621/base-files/lib/upgrade/platform.sh Small_5/target/linux/ramips/mt7621/base-files/sbin/*
+	chmod 0755 Small_5/target/linux/ramips/rt288x/base-files/lib/upgrade/*
+	chmod 0755 Small_5/target/linux/ramips/rt305x/base-files/lib/upgrade/*
+	chmod 0755 Small_5/target/linux/ramips/rt3883/base-files/lib/upgrade/*
 elif [ $A = 2 ];then
 	rm -rf openwrt/package/boot/uboot-rockchip openwrt/package/kernel/linux/modules/video.mk openwrt/target/linux/rockchip
 	cp -r target/rockchip/. Small_5
