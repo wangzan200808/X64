@@ -1,29 +1,18 @@
 --- a/target/linux/ramips/dts/mt7621_phicomm_k2p.dts
 +++ b/target/linux/ramips/dts/mt7621_phicomm_k2p.dts
-@@ -50,8 +50,8 @@
- 	flash@0 {
+@@ -51,6 +51,7 @@
  		compatible = "jedec,spi-nor";
  		reg = <0>;
--		spi-max-frequency = <80000000>;
--		m25p,fast-read;
-+		spi-max-frequency = <10000000>;
+ 		spi-max-frequency = <10000000>;
 +		broken-flash-reset;
  
  		partitions {
  			compatible = "fixed-partitions";
-@@ -77,15 +77,9 @@
- 			};
- 
+@@ -78,7 +79,7 @@
  			partition@50000 {
--				label = "permanent_config";
--				reg = <0x50000 0x50000>;
--				read-only;
--			};
--
--			partition@a0000 {
  				compatible = "denx,uimage";
  				label = "firmware";
--				reg = <0xa0000 0xf60000>;
+-				reg = <0x50000 0xfb0000>;
 +				reg = <0x50000 0x1fb0000>;
  			};
  		};
@@ -31,19 +20,19 @@
 
 --- a/target/linux/ramips/image/mt7621.mk
 +++ b/target/linux/ramips/image/mt7621.mk
-@@ -1158,7 +1158,7 @@
+@@ -1149,7 +1149,7 @@
+ TARGET_DEVICES += netis_wf2881
  
  define Device/phicomm_k2p
-   $(Device/dsa-migration)
--  IMAGE_SIZE := 15744k
+-  IMAGE_SIZE := 16064k
 +  IMAGE_SIZE := 32448k
    DEVICE_VENDOR := Phicomm
    DEVICE_MODEL := K2P
-   DEVICE_ALT0_VENDOR := Phicomm
+   SUPPORTED_DEVICES += k2p
 
 --- a/.config
 +++ b/.config
-@@ -46,3 +46,8 @@
+@@ -39,3 +39,8 @@
  CONFIG_LIBCURL_MBEDTLS=y
  # CONFIG_LIBCURL_WOLFSSL is not set
  CONFIG_LIBCURL_NGHTTP2=y
