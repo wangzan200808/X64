@@ -1551,12 +1551,28 @@ define Device/xiaomi_mi-router-4a-gigabit
 endef
 TARGET_DEVICES += xiaomi_mi-router-4a-gigabit
 
-define Device/xiaomi_mi-router-ac2100
-  $(Device/xiaomi_nand_separate)
-  DEVICE_MODEL := Mi Router AC2100
+define Device/xiaomi-ac2100
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4096k
   IMAGE_SIZE := 120320k
-  DEVICE_PACKAGES += kmod-mt7603e kmod-mt7615d luci-app-mtwifi \
-	-wpad-basic-wolfssl
+  UBINIZE_OPTS := -E 5
+  IMAGES += kernel1.bin rootfs0.bin factory.bin breed-factory.bin
+  IMAGE/kernel1.bin := append-kernel
+  IMAGE/rootfs0.bin := append-ubi | check-size
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size
+  IMAGE/breed-factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | \
+			     append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size
+  DEVICE_VENDOR := Xiaomi
+  DEVICE_PACKAGES := kmod-mt7603e kmod-mt7615d luci-app-mtwifi uboot-envtools -wpad-basic-wolfssl
+endef
+
+define Device/xiaomi_mi-router-ac2100
+  $(Device/xiaomi-ac2100)
+  DEVICE_MODEL := Mi Router AC2100
 endef
 TARGET_DEVICES += xiaomi_mi-router-ac2100
 
@@ -1580,11 +1596,8 @@ endef
 TARGET_DEVICES += xiaomi_mi-router-cr660x
 
 define Device/xiaomi_redmi-router-ac2100
-  $(Device/xiaomi_nand_separate)
+  $(Device/xiaomi-ac2100)
   DEVICE_MODEL := Redmi Router AC2100
-  IMAGE_SIZE := 120320k
-  DEVICE_PACKAGES += kmod-mt7603e kmod-mt7615d luci-app-mtwifi \
-	-wpad-basic-wolfssl
 endef
 TARGET_DEVICES += xiaomi_redmi-router-ac2100
 
