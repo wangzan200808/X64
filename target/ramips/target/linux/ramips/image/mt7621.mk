@@ -403,11 +403,11 @@ endef
 TARGET_DEVICES += dlink_dir-882-r1
 
 define Device/d-team_newifi-d2
+  $(Device/dsa-migration)
   $(Device/uimage-lzma-loader)
   IMAGE_SIZE := 32448k
   DEVICE_VENDOR := Newifi
   DEVICE_MODEL := D2
-  DEVICE_COMPAT_VERSION := 1.1
   DEVICE_PACKAGES := kmod-mt7603e kmod-mt76x2e kmod-usb3 \
 	kmod-usb-ledtrig-usbport luci-app-mtwifi -wpad-basic-wolfssl
 endef
@@ -1149,11 +1149,13 @@ endef
 TARGET_DEVICES += netis_wf2881
 
 define Device/phicomm_k2p
+  $(Device/dsa-migration)
   IMAGE_SIZE := 16064k
   DEVICE_VENDOR := Phicomm
   DEVICE_MODEL := K2P
+  DEVICE_ALT0_VENDOR := Phicomm
+  DEVICE_ALT0_MODEL := KE 2P
   SUPPORTED_DEVICES += k2p
-  DEVICE_COMPAT_VERSION := 1.1
   DEVICE_PACKAGES := -wpad-basic-wolfssl kmod-mt7615d_dbdc wireless-tools
 endef
 TARGET_DEVICES += phicomm_k2p
@@ -1602,10 +1604,10 @@ endef
 TARGET_DEVICES += xiaomi_redmi-router-ac2100
 
 define Device/xiaoyu_xy-c5
+  $(Device/dsa-migration)
   IMAGE_SIZE := 32448k
   DEVICE_VENDOR := XiaoYu
   DEVICE_MODEL := XY-C5
-  DEVICE_COMPAT_VERSION := 1.1
   DEVICE_PACKAGES := kmod-ata-ahci kmod-usb3 -wpad-basic-wolfssl
 endef
 TARGET_DEVICES += xiaoyu_xy-c5

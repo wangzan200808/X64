@@ -20,15 +20,15 @@
 
 --- a/target/linux/ramips/image/mt7621.mk
 +++ b/target/linux/ramips/image/mt7621.mk
-@@ -1149,7 +1149,7 @@
- TARGET_DEVICES += netis_wf2881
+@@ -1150,7 +1150,7 @@
  
  define Device/phicomm_k2p
+   $(Device/dsa-migration)
 -  IMAGE_SIZE := 16064k
 +  IMAGE_SIZE := 32448k
    DEVICE_VENDOR := Phicomm
    DEVICE_MODEL := K2P
-   SUPPORTED_DEVICES += k2p
+   DEVICE_ALT0_VENDOR := Phicomm
 
 --- a/.config
 +++ b/.config
