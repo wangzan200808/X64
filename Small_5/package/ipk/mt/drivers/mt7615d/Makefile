@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mt7615d
-P4REV:=8
+P4REV:=9
 PKG_VERSION:=5.0.4.0
 
 PKG_BUILD_PARALLEL:=1
@@ -201,7 +201,7 @@ endef
 define KernelPackage/mt7615d_dbdc
   CATEGORY:=Kernel modules
   TITLE:=MTK wifi AP driver
-  DEPENDS:=@TARGET_ramips +kmod-mt7615d +maccalc
+  DEPENDS:=@TARGET_ramips +kmod-mt7615d +maccalc +wireless-tools +mtk_apcli
   SUBMENU:=Wireless Drivers
   MENU:=1
 endef

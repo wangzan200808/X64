@@ -1156,7 +1156,7 @@ define Device/phicomm_k2p
   DEVICE_ALT0_VENDOR := Phicomm
   DEVICE_ALT0_MODEL := KE 2P
   SUPPORTED_DEVICES += k2p
-  DEVICE_PACKAGES := -wpad-basic-wolfssl kmod-mt7615d_dbdc wireless-tools
+  DEVICE_PACKAGES := -wpad-basic-wolfssl kmod-mt7615d_dbdc
 endef
 TARGET_DEVICES += phicomm_k2p
 
