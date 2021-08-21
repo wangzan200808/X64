@@ -32,15 +32,3 @@
  		];
  
  		var table = E('table', { 'class': 'table' });
-
---- a/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
-+++ b/package/ipk/luci-app-cpufreq/root/etc/config/cpufreq
-@@ -1,2 +1,8 @@
- 
- config settings 'cpufreq'
-+	option mode0 'ondemand'
-+	option min0 '600000'
-+	option max0 '1500000'
-+	option up0 '95'
-+	option rate0 '1'
-+
