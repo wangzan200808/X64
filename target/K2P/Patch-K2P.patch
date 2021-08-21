@@ -503,7 +503,7 @@
  
  uci_get_by_name(){
  	w=$(uci -q get $NAME.$1.$2)
-@@ -31,13 +34,17 @@
+@@ -32,13 +35,17 @@
  
  f_bin(){
  	w=
@@ -528,7 +528,7 @@
  	echo $w
  }
  
-@@ -66,8 +73,13 @@
+@@ -67,8 +74,13 @@
  }
  EOF
  			plugin=$(uci_get_by_name $1 plugin)
