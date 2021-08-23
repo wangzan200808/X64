@@ -897,6 +897,70 @@
  $(foreach component,$(KCPTUN_COMPONENTS), \
    $(eval $(call Package/kcptun/Default,$(component))) \
 
+--- a/feeds/packages/net/ksmbd-tools/files/ksmbd.init
++++ b/feeds/packages/net/ksmbd-tools/files/ksmbd.init
+@@ -39,7 +39,7 @@
+ 	    -e "s#|DESCRIPTION|#$description#g" \
+ 	    -e "s#|INTERFACES|#$interfaces#g" \
+ 	    /etc/ksmbd/smb.conf.template > /var/etc/ksmbd/smb.conf
+-		
++
+ 	{
+ 		printf "\n######### Dynamic written config options #########\n"
+ 
+@@ -149,10 +149,10 @@
+ 		logger -p daemon.error -t 'ksmbd' "missing config /etc/ksmbd/smb.conf!"
+ 		exit 1
+ 	fi
+-	
++
+ 	# NOTE: We don't do a soft-reload via signal, since [global] smb.conf setting changes will be ignored, so always reset hard.
+ 	kill_server
+-	
++
+ 	[ ! -e /sys/module/ksmbd ] && modprobe ksmbd 2> /dev/null
+ 	if [ ! -e /sys/module/ksmbd ]; then
+ 		logger -p daemon.error -t 'ksmbd' "modprobe of ksmbd module failed, can\'t start ksmbd!"
+@@ -172,19 +172,21 @@
+ {
+ 	logger -p daemon.notice -t 'ksmbd' "Stopping Ksmbd userspace service."
+ 	killall ksmbd.mountd > /dev/null 2>&1
+-	
++
+ 	[ -e /sys/module/ksmbd ] && rmmod ksmbd > /dev/null 2>&1
+ 	# kill server if we cant rmmod
+ 	[ -e /sys/module/ksmbd ] && kill_server
+ 	# next try
+ 	[ -e /sys/module/ksmbd ] && rmmod ksmbd > /dev/null 2>&1
+-	
++
+ 	if [ -e /sys/module/ksmbd ]; then
+ 		logger -p daemon.error -t 'ksmbd' "module still loaded after kill_server?"
+ 	fi
+ 	[ -f /tmp/ksmbd.lock ] && rm /tmp/ksmbd.lock
+ }
+ 
+-# reload_service() {
+-	# restart "$@"
+-# }
++boot(){
++	sleep 5
++	start
++	(sleep 15 && /etc/init.d/wsdd2 restart >/dev/null 2>&1) &
++}
+
+--- a/feeds/packages/net/ksmbd-tools/Makefile
++++ b/feeds/packages/net/ksmbd-tools/Makefile
+@@ -2,7 +2,7 @@
+ 
+ PKG_NAME:=ksmbd-tools
+ PKG_VERSION:=3.4.0
+-PKG_RELEASE:=2
++PKG_RELEASE:=3
+ 
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+ PKG_SOURCE_URL:=https://codeload.github.com/cifsd-team/ksmbd-tools/tar.gz/$(PKG_VERSION)?
+
 --- a/feeds/packages/net/miniupnpd/files/upnpd.config
 +++ b/feeds/packages/net/miniupnpd/files/upnpd.config
 @@ -1,28 +1,26 @@
