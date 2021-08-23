@@ -1281,7 +1281,7 @@
 -
 
 --- /dev/null
-+++ b/package/utils/busybox/patches/230-add_nslookup_lede.patch
++++ b/package/utils/busybox/patches/230-add.patch
 @@ -0,0 +1,971 @@
 +From ab0f8bb80527928f513297ab93e3ec8c8b48dd50 Mon Sep 17 00:00:00 2001
 +From: Jo-Philipp Wich <jo@mein.io>
