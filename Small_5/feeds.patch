@@ -1517,3 +1517,156 @@
 -$(eval $(call BuildPackage,zerotier))
 -
 +$(eval $(call BuildPackage,$(PKG_NAME)))
+
+--- a/feeds/packages/lang/golang/golang-compiler.mk
++++ b/feeds/packages/lang/golang/golang-compiler.mk
+@@ -95,6 +95,8 @@ define GoCompiler/Default/Install/Doc
+ 	$(call GoCompiler/Default/Install/make-dirs,$(2),$(3))
+ 
+ 	$(call GoCompiler/Default/Install/install-share-data,$(1),$(2),$(3),doc)
++	$(call GoCompiler/Default/Install/install-share-data,$(1),$(2),$(3),favicon.ico)
++	$(call GoCompiler/Default/Install/install-share-data,$(1),$(2),$(3),robots.txt)
+ endef
+ 
+ # $(1) source go root
+
+--- a/feeds/packages/lang/golang/golang-values.mk
++++ b/feeds/packages/lang/golang/golang-values.mk
+@@ -13,11 +13,10 @@ endif
+ # Unset environment variables
+ # There are more magic variables to track down, but ain't nobody got time for that
+ 
+-# From https://pkg.go.dev/cmd/go#hdr-Environment_variables
++# From https://golang.org/cmd/go/#hdr-Environment_variables
+ 
+ # General-purpose environment variables:
+ unexport \
+-  GO111MODULE \
+   GCCGO \
+   GOARCH \
+   GOBIN \
+@@ -65,20 +64,23 @@ unexport \
+ # Special-purpose environment variables:
+ unexport \
+   GCCGOTOOLDIR \
+-  GOEXPERIMENT \
+   GOROOT_FINAL \
+   GO_EXTLINK_ENABLED
+ # Unmodified:
+ #   GIT_ALLOW_PROTOCOL
+ 
+-# From https://pkg.go.dev/runtime#hdr-Environment_Variables
++# From https://golang.org/cmd/go/#hdr-Module_support
++unexport \
++  GO111MODULE
++
++# From https://golang.org/pkg/runtime/#hdr-Environment_Variables
+ unexport \
+   GOGC \
+   GOMAXPROCS \
+   GORACE \
+   GOTRACEBACK
+ 
+-# From https://pkg.go.dev/cmd/cgo#hdr-Using_cgo_with_the_go_command
++# From https://golang.org/cmd/cgo/#hdr-Using_cgo_with_the_go_command
+ unexport \
+   CC_FOR_TARGET \
+   CXX_FOR_TARGET
+@@ -110,6 +112,10 @@ unexport \
+   BOOT_GO_GCFLAGS \
+   BOOT_GO_LDFLAGS
+ 
++# From https://golang.org/src/cmd/dist/buildruntime.go
++unexport \
++  GOEXPERIMENT
++
+ # From https://golang.org/src/cmd/dist/buildtool.go
+ unexport \
+   GOBOOTSTRAP_TOOLEXEC
+@@ -193,7 +199,6 @@ GO_ARCH_DEPENDS:=@(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||pow
+ 
+ # ASLR/PIE
+ 
+-# From https://golang.org/src/cmd/internal/sys/supported.go
+ GO_PIE_SUPPORTED_OS_ARCH:= \
+   android_386  android_amd64  android_arm  android_arm64 \
+   linux_386    linux_amd64    linux_arm    linux_arm64 \
+@@ -201,7 +206,6 @@ GO_PIE_SUPPORTED_OS_ARCH:= \
+   windows_386  windows_amd64  windows_arm \
+   \
+   darwin_amd64 darwin_arm64 \
+-  ios_amd64    ios_arm64 \
+   \
+   freebsd_amd64 \
+   \
+@@ -209,7 +213,6 @@ GO_PIE_SUPPORTED_OS_ARCH:= \
+   \
+   linux_ppc64le linux_riscv64 linux_s390x
+ 
+-# From https://golang.org/src/cmd/go/internal/work/init.go
+ go_pie_install_suffix=$(if $(filter $(1),aix_ppc64 windows_386 windows_amd64 windows_arm),,shared)
+ 
+ ifneq ($(filter $(GO_HOST_OS_ARCH),$(GO_PIE_SUPPORTED_OS_ARCH)),)
+
+--- a/feeds/packages/lang/golang/golang/Makefile
++++ b/feeds/packages/lang/golang/golang/Makefile
+@@ -7,8 +7,8 @@
+ 
+ include $(TOPDIR)/rules.mk
+ 
+-GO_VERSION_MAJOR_MINOR:=1.17
+-GO_VERSION_PATCH:=
++GO_VERSION_MAJOR_MINOR:=1.16
++GO_VERSION_PATCH:=7
+ 
+ PKG_NAME:=golang
+ PKG_VERSION:=$(GO_VERSION_MAJOR_MINOR)$(if $(GO_VERSION_PATCH),.$(GO_VERSION_PATCH))
+@@ -20,7 +20,7 @@ GO_SOURCE_URLS:=https://dl.google.com/go/ \
+ 
+ PKG_SOURCE:=go$(PKG_VERSION).src.tar.gz
+ PKG_SOURCE_URL:=$(GO_SOURCE_URLS)
+-PKG_HASH:=3a70e5055509f347c0fb831ca07a2bf3b531068f349b14a3c652e9b5b67beb5d
++PKG_HASH:=1a9f2894d3d878729f7045072f30becebe243524cf2fce4e0a7b248b1e0654ac
+ 
+ PKG_MAINTAINER:=Jeffery To <jeffery.to@gmail.com>
+ PKG_LICENSE:=BSD-3-Clause
+@@ -49,9 +49,9 @@ HOST_GO_VALID_OS_ARCH:= \
+   linux_386    linux_amd64    linux_arm    linux_arm64 \
+   openbsd_386  openbsd_amd64  openbsd_arm  openbsd_arm64 \
+   netbsd_386   netbsd_amd64   netbsd_arm   netbsd_arm64 \
+-  windows_386  windows_amd64  windows_arm  windows_arm64 \
+   \
+   plan9_386    plan9_amd64    plan9_arm \
++  windows_386  windows_amd64  windows_arm \
+   \
+   darwin_amd64 darwin_arm64 \
+   ios_amd64    ios_arm64 \
+@@ -267,8 +267,6 @@ PKG_GO_ZBOOTSTRAP_MODS:= \
+ 	s/defaultGOMIPS64 = `[^`]*`/defaultGOMIPS64 = `$(or $(GO_MIPS64),hardfloat)`/; \
+ 	s/defaultGOPPC64 = `[^`]*`/defaultGOPPC64 = `power8`/;
+ 
+-PKG_GO_ZBOOTSTRAP_PATH:=$(PKG_BUILD_DIR)/src/internal/buildcfg/zbootstrap.go
+-
+ PKG_GO_VARS= \
+ 	GOCACHE="$(GO_BUILD_CACHE_DIR)" \
+ 	GOENV=off \
+@@ -311,17 +309,8 @@ define Build/Compile
+ 		$(PKG_GO_VARS) \
+ 	)
+ 
+-	$(SED) '$(PKG_GO_ZBOOTSTRAP_MODS)' "$(PKG_GO_ZBOOTSTRAP_PATH)"
+-
+-	( \
+-		if echo 'int main() { return 0; }' | $(TARGET_CC) -o $(PKG_BUILD_DIR)/test-ldso -x c - > /dev/null 2>&1; then \
+-			LDSO=$$$$( \
+-				readelf -l $(PKG_BUILD_DIR)/test-ldso | \
+-				sed -n -e 's/^.*interpreter: \(.*\)[]]/\1/p' \
+-			) ; \
+-		fi ; \
+-		$(SED) "s,defaultGO_LDSO = \`[^\`]*\`,defaultGO_LDSO = \`$$$$LDSO\`," "$(PKG_GO_ZBOOTSTRAP_PATH)" ; \
+-	)
++	$(SED) '$(PKG_GO_ZBOOTSTRAP_MODS)' \
++		"$(PKG_BUILD_DIR)/src/cmd/internal/objabi/zbootstrap.go"
+ 
+ 	@echo "Building target Go second stage"
+ 
