@@ -122,9 +122,8 @@ o.write=function(self,section)
 end
 
 o=s:option(Flag,"switch_enable",translate("Auto Switch"))
-o.rmempty=false
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or 1
+	return Value.cfgvalue(...) or 0
 end
 
 m:append(Template("overwall/server_list"))
