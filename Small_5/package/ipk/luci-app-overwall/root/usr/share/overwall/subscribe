@@ -193,6 +193,7 @@ local function processData(szType,content)
 		result.obfs_param=base64Decode(params.obfsparam)
 		result.protocol_param=base64Decode(params.protoparam)
 		local group=base64Decode(params.group)
+		result.alias=""
 		if group then result.alias="["..group.."] " end
 		result.alias=result.alias..base64Decode(params.remarks)
 	elseif szType=="ss" then
