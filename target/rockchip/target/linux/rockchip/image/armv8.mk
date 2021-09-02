@@ -8,7 +8,7 @@ define Device/friendlyarm_nanopi-r2s
   SOC := rk3328
   UBOOT_DEVICE_NAME := nanopi-r2s-rk3328
   IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r2s | pine64-bin | gzip | append-metadata
-  DEVICE_PACKAGES := kmod-usb-net-rtl8152
+  DEVICE_PACKAGES := kmod-usb-net-rtl8152-vendor
 endef
 TARGET_DEVICES += friendlyarm_nanopi-r2s
 
@@ -49,6 +49,6 @@ define Device/xunlong_orangepi-r1-plus
   SOC := rk3328
   UBOOT_DEVICE_NAME := orangepi-r1-plus-rk3328
   IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r2s | pine64-bin | gzip | append-metadata
-  DEVICE_PACKAGES := kmod-usb-net-rtl8152
+  DEVICE_PACKAGES := kmod-usb-net-rtl8152-vendor
 endef
 TARGET_DEVICES += xunlong_orangepi-r1-plus
