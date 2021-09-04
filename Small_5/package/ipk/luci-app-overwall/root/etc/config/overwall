@@ -20,7 +20,8 @@ config server_global
 
 config server_subscribe
 	option auto_update '1'
+	option auto_update_s '1'
 	option auto_update_time '2'
-	option proxy '0'
 	option filter_words '过期时间/剩余流量/QQ群/官网/防失联地址/回国'
+	option switch '1'
 
