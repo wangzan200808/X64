@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="V3.3.0-8"
+VERSION="V3.3.0-9"
 A=0
 B=0
 [ -n "$OP_TARGET" ] || OP_TARGET="X64"

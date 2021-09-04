@@ -604,7 +604,7 @@
  PKG_SOURCE_URL:=https://www.github.com/pymumu/smartdns.git
 -PKG_SOURCE_VERSION:=a6fe329105c7275d4683d17e95ab9d9f93a9c863
 -PKG_MIRROR_HASH:=d5affc45a533e38ee04f3ce47b441aecf316cb9cb68ff410eede67090ec0fcc7
-+PKG_SOURCE_VERSION:=8c271e34c118be0244262e621386913414f3886b
++PKG_SOURCE_VERSION:=f50e4dd0813da9300580f7188e44ed72a27ae79c
  
  PKG_MAINTAINER:=Nick Peng <pymumu@gmail.com>
  PKG_LICENSE:=GPL-3.0-or-later
@@ -769,7 +769,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/fatedier/frp.git
-+PKG_SOURCE_VERSION:=2f74f54f18a8437e8f0dfd6bcedbaa812d59d52b
++PKG_SOURCE_VERSION:=72a7fd948e83239c70f70571e12c5591bed7ba50
 +
  PKG_NAME:=frp
 -PKG_VERSION:=0.37.0
@@ -1022,7 +1022,7 @@
  # - check if default mode has changed from being tcp_only
  #
 +PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
-+PKG_SOURCE_VERSION:=b9117559000e1bdee4a84383c537ca5b4b7fe8dc
++PKG_SOURCE_VERSION:=365465811113ed5018ee4c8d5b078b41095387fc
 +
  PKG_NAME:=shadowsocks-libev
 -PKG_VERSION:=3.3.5
@@ -1137,7 +1137,7 @@
  PKG_NAME:=sqm-scripts
 -PKG_SOURCE_VERSION:=5d7e7977e14e147d5bcfa8a5f01636c7ab230fa4
 -PKG_VERSION:=1.5.1
-+PKG_SOURCE_VERSION:=e789773feb5294197f2adbf4d9ffd7b3b62c01b9
++PKG_SOURCE_VERSION:=c8bbb47031be97095594cd5cee6d758a5bdcd26b
 +PKG_VERSION:=1.5.1_git-$(PKG_SOURCE_VERSION)
  PKG_RELEASE:=1
  
@@ -1452,7 +1452,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/zerotier/ZeroTierOne.git
-+PKG_SOURCE_VERSION:=46387e2f2b2df539f2ba94ae540d0d19a202478e
++PKG_SOURCE_VERSION:=15380cfc14026f2f0896a614a3f75734491d73e1
  PKG_NAME:=zerotier
 -PKG_VERSION:=1.6.5
 +PKG_VERSION:=1.6.5_git-$(PKG_SOURCE_VERSION)
