@@ -213,6 +213,17 @@
  				}
  			});
 
+--- a/feeds/packages/net/xray-core/Makefile
++++ b/feeds/packages/net/xray-core/Makefile
+@@ -25,6 +25,7 @@
+ 
+ GO_PKG:=github.com/xtls/xray-core
+ GO_PKG_BUILD_PKG:=github.com/xtls/xray-core/main
++GO_PKG_LDFLAGS:=-s -w
+ GO_PKG_LDFLAGS_X:= \
+ 	$(GO_PKG)/core.build=OpenWrt \
+ 	$(GO_PKG)/core.version=$(PKG_VERSION)
+
 --- a/package/ipk/luci-app-flowoffload/root/etc/config/flowoffload
 +++ b/package/ipk/luci-app-flowoffload/root/etc/config/flowoffload
 @@ -1,4 +1,5 @@
