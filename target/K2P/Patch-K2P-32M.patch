@@ -1,14 +1,14 @@
 --- a/target/linux/ramips/dts/mt7621_phicomm_k2p.dts
 +++ b/target/linux/ramips/dts/mt7621_phicomm_k2p.dts
-@@ -51,6 +51,7 @@
- 		compatible = "jedec,spi-nor";
+@@ -52,6 +52,7 @@
  		reg = <0>;
- 		spi-max-frequency = <10000000>;
+ 		spi-max-frequency = <80000000>;
+ 		m25p,fast-read;
 +		broken-flash-reset;
  
  		partitions {
  			compatible = "fixed-partitions";
-@@ -78,7 +79,7 @@
+@@ -79,7 +80,7 @@
  			partition@50000 {
  				compatible = "denx,uimage";
  				label = "firmware";
