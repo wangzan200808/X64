@@ -140,15 +140,6 @@
  board_config_flush
  
 
---- a/package/base-files/files/etc/sysctl.d/10-default.conf
-+++ b/package/base-files/files/etc/sysctl.d/10-default.conf
-@@ -25,3 +25,5 @@
- 
- net.ipv6.conf.default.forwarding=1
- net.ipv6.conf.all.forwarding=1
-+net.ipv6.conf.default.accept_ra=2
-+net.ipv6.conf.all.accept_ra=2
-
 --- a/package/base-files/image-config.in
 +++ b/package/base-files/image-config.in
 @@ -183,7 +183,7 @@
