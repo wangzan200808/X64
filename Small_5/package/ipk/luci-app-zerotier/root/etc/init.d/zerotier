@@ -31,6 +31,7 @@ start_instance(){
 	procd_set_param command /usr/bin/$n-one $([ $port ] && echo "-p$port") $p
 	procd_set_param stderr 1
 	procd_close_instance
+	/usr/share/zerotier/nat up &
 }
 
 service_triggers(){
@@ -40,8 +41,6 @@ service_triggers(){
 start_service(){
 	config_load $n
 	config_foreach start_instance $n
-	kill -9 $(ps -w | grep $n/nat | grep -v grep | awk '{print$1}') 2>/dev/null
-	/usr/share/zerotier/nat up &
 }
 
 stop_service(){
