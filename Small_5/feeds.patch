@@ -1472,3 +1472,30 @@
 -$(eval $(call BuildPackage,zerotier))
 -
 +$(eval $(call BuildPackage,$(PKG_NAME)))
+
+--- a/feeds/luci/modules/luci-base/po/zh_Hans/base.po
++++ b/feeds/luci/modules/luci-base/po/zh_Hans/base.po
+@@ -363,19 +363,19 @@
+ 
+ #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:255
+ msgid "Active IPv4 Routes"
+-msgstr "活动的 <abbr title=\"互联网协议第 4 版\">IPv4</abbr> 路由"
++msgstr "活动的 IPv4 路由"
+ 
+ #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:258
+ msgid "Active IPv4 Rules"
+-msgstr "活跃的<abbr title=\"Internet Protocol Version 4\">IPv4</abbr>规则"
++msgstr "活动的 IPv4 规则"
+ 
+ #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:265
+ msgid "Active IPv6 Routes"
+-msgstr "活动的 <abbr title=\"互联网协议第 6 版\">IPv6</abbr> 路由"
++msgstr "活动的 IPv6 路由"
+ 
+ #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:268
+ msgid "Active IPv6 Rules"
+-msgstr "活跃的<abbr title=\"Internet Protocol Version 6\">IPv6</abbr>规则"
++msgstr "活动的 IPv6 规则"
+ 
+ #: protocols/luci-proto-bonding/htdocs/luci-static/resources/protocol/bonding.js:205
+ msgid "Active-Backup policy (active-backup, 1)"
