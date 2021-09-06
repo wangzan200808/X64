@@ -121,7 +121,7 @@
 +	getCPUInfo = {
 +		call = function()
 +			local sys = require "luci.sys"
-+			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'") }
++			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%\",100-$8)}'") }
 +		end
 +	},
 +
