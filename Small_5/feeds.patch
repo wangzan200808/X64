@@ -212,6 +212,37 @@
  
  		var table = E('table', { 'class': 'table' });
 
+--- a/feeds/packages/net/aria2/files/aria2.conf
++++ b/feeds/packages/net/aria2/files/aria2.conf
+@@ -1,12 +1,4 @@
+ 
+-# You can use most aria2 command-line options, replace '-' with '_'.
+-# eg. 'rpc-secret' ==> 'rpc_secret'
+-#
+-# We do not support all options at this time. But you can add any option
+-# with 'list extra_settings'.
+-#
+-# You can also add new config sections to define multi instance.
+-#
+ config aria2 'main'
+ 	option enabled '0'
+ 	option user 'aria2'
+@@ -18,14 +10,3 @@
+ 	option file_allocation 'none'
+ 	option save_session_interval '30'
+ 
+-	# Add addition Headers here.
+-	# eg. list header 'Content-Encoding: gzip'
+-	list header ''
+-
+-	# Add BT trackers here.
+-	# eg. list bt_tracker 'http://tracker.example.com/announce'
+-	list bt_tracker ''
+-
+-	# Add extra settings here.
+-	# eg. list extra_settings 'option=value'
+-	list extra_settings ''
+
 --- a/feeds/packages/net/miniupnpd/files/miniupnpd.init
 +++ b/feeds/packages/net/miniupnpd/files/miniupnpd.init
 @@ -62,6 +62,7 @@
@@ -1372,77 +1403,6 @@
 -$(eval $(call BuildPackage,xray-example))
 -$(eval $(call BuildPackage,xray-geodata))
 
---- a/feeds/packages/net/zerotier/files/etc/init.d/zerotier
-+++ b/feeds/packages/net/zerotier/files/etc/init.d/zerotier
-@@ -1,18 +1,17 @@
- #!/bin/sh /etc/rc.common
- 
- START=90
--
- USE_PROCD=1
- 
- PROG=/usr/bin/zerotier-one
- CONFIG_PATH=/var/lib/zerotier-one
- 
--section_enabled() {
-+section_enabled(){
- 	config_get_bool enabled "$1" 'enabled' 0
- 	[ $enabled -ne 0 ]
- }
- 
--start_instance() {
-+start_instance(){
- 	local cfg="$1"
- 	local port secret config_path local_conf path
- 	local args=""
-@@ -79,33 +78,41 @@
- 		ln -s "$local_conf" $path/local.conf
- 	fi
- 
--	add_join() {
-+	add_join(){
- 		# an (empty) config file will cause ZT to join a network
- 		touch $path/networks.d/$1.conf
- 	}
- 
- 	config_list_foreach $cfg 'join' add_join
--
- 	procd_open_instance
- 	procd_set_param command $PROG $args $path
- 	procd_set_param stderr 1
- 	procd_close_instance
- }
- 
--start_service() {
-+service_triggers(){
-+	procd_add_reload_trigger 'zerotier'
-+}
-+
-+start_service(){
- 	config_load 'zerotier'
- 	config_foreach start_instance 'zerotier'
- }
- 
--stop_instance() {
-+stop_instance(){
- 	local cfg="$1"
- 
- 	# Remove existing link or folder
- 	rm -rf ${CONFIG_PATH}_${cfg}
- }
- 
--stop_service() {
-+stop_service(){
- 	config_load 'zerotier'
- 	config_foreach stop_instance 'zerotier'
- 	rm -f ${CONFIG_PATH}
- }
-+
-+reload_service(){
-+	stop
-+	start
-+}
-
 --- a/feeds/packages/net/zerotier/Makefile
 +++ b/feeds/packages/net/zerotier/Makefile
 @@ -5,14 +5,14 @@
@@ -1501,15 +1461,12 @@
  	$(INSTALL_DIR) $(1)/usr/bin
  	$(INSTALL_BIN) $(PKG_BUILD_DIR)/zerotier-one $(1)/usr/bin/
  	$(LN) zerotier-one $(1)/usr/bin/zerotier-cli
-@@ -72,8 +68,10 @@
+@@ -71,9 +67,6 @@
+ ifeq ($(CONFIG_ZEROTIER_ENABLE_SELFTEST),y)
  	$(INSTALL_BIN) $(PKG_BUILD_DIR)/zerotier-selftest $(1)/usr/bin/
  endif
- 
+-
 -	$(CP) ./files/* $(1)/
-+	$(INSTALL_DIR) $(1)/etc/config
-+	$(INSTALL_CONF) ./files/etc/config/zerotier $(1)/etc/config/zerotier
-+	$(INSTALL_DIR) $(1)/etc/init.d/
-+	$(INSTALL_BIN) ./files/etc/init.d/zerotier $(1)/etc/init.d/zerotier
  endef
  
 -$(eval $(call BuildPackage,zerotier))
