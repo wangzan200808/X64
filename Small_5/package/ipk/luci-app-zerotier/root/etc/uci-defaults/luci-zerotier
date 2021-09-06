@@ -1,4 +1,4 @@
-uci batch <<-EOF
+uci batch <<EOF
 	delete firewall.zerotier
 	set firewall.zerotier=include
 	set firewall.zerotier.type=script
