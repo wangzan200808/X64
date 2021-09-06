@@ -2,7 +2,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-zerotier
 PKG_VERSION:=1.0
-PKG_RELEASE:=4
+PKG_RELEASE:=1
+PKG_MAINTAINER:=Small_5
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -20,24 +21,20 @@ define Package/$(PKG_NAME)/description
 endef
 
 define Build/Prepare
-	$(foreach po,$(wildcard ${CURDIR}/luasrc/i18n/*.po), \
-		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
+	chmod -R 755 luasrc/* root/*
+	find luasrc -type f -exec chmod 644 {} \;
+	find root -type f -exec chmod 644 {} \;
+	chmod 755 root/etc/init.d/* root/usr/share/zerotier/*
 endef
 
 define Build/Compile
 endef
 
 define Package/$(PKG_NAME)/install
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/controller
-	$(INSTALL_DATA) ./luasrc/controller/*.lua $(1)/usr/lib/lua/luci/controller/
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/model/cbi/zerotier
-	$(INSTALL_DATA) ./luasrc/model/cbi/zerotier/*.lua $(1)/usr/lib/lua/luci/model/cbi/zerotier/
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/view/zerotier
-	$(INSTALL_DATA) ./luasrc/view/zerotier/*.htm $(1)/usr/lib/lua/luci/view/zerotier/
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/zerotier.*.lmo $(1)/usr/lib/lua/luci/i18n/
-	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
-	$(INSTALL_DATA) ./root/acl.d/* $(1)/usr/share/rpcd/acl.d/
+	cp -pr luasrc/* $(1)/usr/lib/lua/luci
+	cp -pr root/* $(1)/
+	po2lmo po/zh-cn/zerotier.po $(1)/usr/lib/lua/luci/i18n/zerotier.zh-cn.lmo
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
