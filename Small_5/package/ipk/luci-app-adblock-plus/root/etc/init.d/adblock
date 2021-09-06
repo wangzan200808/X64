@@ -92,8 +92,7 @@ add_rule(){
 	gen
 	extract_rules(){
 		echo "*$1"
-		iptables-save -t $1 | grep ADBLOCK |\
-			sed -e "s/^-A \(OUTPUT\|FORWARD\)/-I \1 1/"
+		iptables-save -t $1 | grep ADBLOCK | sed -e "s/^-A \(OUTPUT\|FORWARD\)/-I \1 1/"
 		echo 'COMMIT'
 	}
 	cat <<-EOF >> $FWI
