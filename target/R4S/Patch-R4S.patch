@@ -4,10 +4,10 @@
  	getCPUInfo = {
  		call = function()
  			local sys = require "luci.sys"
--			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'") }
+-			return { result = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%\",100-$8)}'") }
 +			local rv = {}
 +			rv.cpufreq = sys.exec("echo A72:$(expr $(cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq) / 1000) MHz A53:$(expr $(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq) / 1000) MHz +$(awk '{printf(\"%.1f°C\",$0/1000)}' /sys/class/thermal/thermal_zone0/temp)")
-+			rv.cpufree = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%%\",100-$8)}'")
++			rv.cpufree = sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%\",100-$8)}'")
 +			return rv
 +		end
 +	},
