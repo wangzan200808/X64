@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="V3.3.0-10"
+VERSION="V3.3.0-11"
 A=0
 B=0
 [ -n "$OP_TARGET" ] || OP_TARGET="X64"
@@ -19,6 +19,8 @@ case "$OP_TARGET" in
 	R2S)path="R2S";A=2;;
 	R4S)path="R4S";A=2;;
 	R1-PLUS)path="R1-PLUS";A=2;;
+	R2S-RTL)path="R2S-RTL";A=2;;
+	R1-PLUS-RTL)path="R1-PLUS-RTL";A=2;;
 	*)echo "No adaptation target!";exit 1;;
 esac
 cp -r target/$path/. Small_5
