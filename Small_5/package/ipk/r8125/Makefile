@@ -1,8 +1,3 @@
-# Attribution: https://gist.github.com/lenew/9b41ba901c3393047ede0766760f9d55
-
-#Put this source to 'package/kernel/r8125' folder of OpenWRT/LEDE SDK
-#Build(make menuconfig, make defconfig, make)
-
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
