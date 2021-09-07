@@ -13,7 +13,9 @@ for i in $(ifconfig | grep 'zt' | awk '{print $1}');do
 	$X -I FORWARD -i $i -m comment --comment $n -j ACCEPT
 	$X -I FORWARD -o $i -m comment --comment $n -j ACCEPT
 	$X -I INPUT -i $i -m comment --comment $n -j ACCEPT
-	$X -t nat -I POSTROUTING -o $i -m comment --comment $n -j MASQUERADE
+	$X -t mangle -I POSTROUTING -o $i -m comment --comment $n -j MARK --set-mark 9
+	$X -t mangle -I PREROUTING -i $i -m comment --comment $n -j MARK --set-mark 9
+	$X -t nat -I POSTROUTING -m mark --mark 9 -m comment --comment $n -j MASQUERADE
 done
 
 cat <<-EOF >> /var/etc/$n.include
@@ -21,5 +23,6 @@ cat <<-EOF >> /var/etc/$n.include
 	iptables-restore -n <<-EOT
 	$(extract_rules filter)
 	$(extract_rules nat)
+	$(extract_rules mangle)
 	EOT
 EOF

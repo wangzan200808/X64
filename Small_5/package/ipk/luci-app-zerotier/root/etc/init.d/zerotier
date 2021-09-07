@@ -1,5 +1,5 @@
 #!/bin/sh /etc/rc.common
-START=90
+START=99
 USE_PROCD=1
 n=zerotier
 p=/var/lib/$n-one
@@ -24,7 +24,8 @@ start_instance(){
 		uci commit $n
 	fi
 	[ $secret ] && echo "$secret" > $p/identity.secret
-	for i in $(uci -q get $n.$1.join);do
+	a=$(uci -q get $n.$1.join) || return 1
+	for i in $a;do
 		touch $p/networks.d/$i.conf
 	done
 	procd_open_instance
@@ -48,6 +49,7 @@ stop_service(){
 	gen
 	flush filter
 	flush nat
+	flush mangle
 }
 
 reload_service(){
