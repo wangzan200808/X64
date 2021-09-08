@@ -19,8 +19,6 @@ case "$OP_TARGET" in
 	R2S)path="R2S";A=2;;
 	R4S)path="R4S";A=2;;
 	R1-PLUS)path="R1-PLUS";A=2;;
-	R2S-RTL)path="R2S-RTL";A=2;;
-	R1-PLUS-RTL)path="R1-PLUS-RTL";A=2;;
 	XY-C5)path="XY-C5";A=2;;
 	*)echo "No adaptation target!";exit 1;;
 esac
