@@ -9,7 +9,15 @@ extract_rules(){
 	echo 'COMMIT'
 }
 
-while [ $(ifconfig | grep -c zt) -lt $a ];do sleep 1;done
+check(){
+	r=1
+	while [ $(ifconfig | grep -c zt) -lt $a ];do
+		[ $r -gt 3 ] && return 1 || let r++
+		sleep 1
+	done
+}
+! check && [ $(ifconfig | grep -c zt) = 0 ] && exit
+
 for i in $(ifconfig | grep 'zt' | awk '{print $1}');do
 	$X -I FORWARD -i $i -m comment --comment $n -j ACCEPT
 	$X -I FORWARD -o $i -m comment --comment $n -j ACCEPT
