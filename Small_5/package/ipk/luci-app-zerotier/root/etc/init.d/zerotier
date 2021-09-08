@@ -24,7 +24,7 @@ start_instance(){
 		uci commit $n
 	fi
 	[ $secret ] && echo "$secret" > $p/identity.secret
-	a=$(uci -q get $n.$1.join) || return 1
+	a=$(uci -q get $n.$1.join)
 	for i in $a;do
 		touch $p/networks.d/$i.conf
 	done
@@ -32,7 +32,7 @@ start_instance(){
 	procd_set_param command /usr/bin/$n-one $([ $port ] && echo "-p$port") $p
 	procd_set_param stderr 1
 	procd_close_instance
-	/usr/share/zerotier/nat up &
+	/usr/share/zerotier/nat up "$a" &
 }
 
 service_triggers(){

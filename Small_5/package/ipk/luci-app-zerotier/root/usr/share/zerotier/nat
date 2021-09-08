@@ -1,14 +1,15 @@
 #!/bin/sh
 n=zerotier
-[ "$1" = up -a "$(uci -q get $n.@$n[0].nat)" = 1 ] || exit
+[ "$1" = up -a "$(uci -q get $n.@$n[0].nat)" = 1 -a "$2" ] || exit
 X=iptables
+let a=$(echo $2 | awk '{print NF-1}')+1
 extract_rules(){
 	echo "*$1"
 	iptables-save -t $1 | grep $n | sed -e "s/^-A \(FORWARD\|POSTROUTING\)/-I \1 1/"
 	echo 'COMMIT'
 }
 
-while ! ifconfig | grep zt >/dev/null;do sleep 1;done
+while [ $(ifconfig | grep -c zt) -lt $a ];do sleep 1;done
 for i in $(ifconfig | grep 'zt' | awk '{print $1}');do
 	$X -I FORWARD -i $i -m comment --comment $n -j ACCEPT
 	$X -I FORWARD -o $i -m comment --comment $n -j ACCEPT
