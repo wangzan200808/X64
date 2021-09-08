@@ -9,12 +9,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=xray-plugin
-PKG_VERSION:=1.4.2
+PKG_VERSION:=1.4.3
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/teddysun/xray-plugin.git
-PKG_SOURCE_VERSION:=88459fe77da1828ea56022523fe219a5d8e4ceb1
+PKG_SOURCE_URL:=https://github.com/Lj2x16sRVDNJcuBv/xray-plugin.git
+PKG_SOURCE_VERSION:=f8d72dd95098db120531dd4357a7f99ee14401c3
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)/$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION)
@@ -32,7 +32,7 @@ PKG_BUILD_DEPENDS:=golang/host
 PKG_BUILD_PARALLEL:=1
 PKG_USE_MIPS16:=0
 
-GO_PKG:=github.com/teddysun/xray-plugin
+GO_PKG:=github.com/Lj2x16sRVDNJcuBv/xray-plugin
 GO_PKG_LDFLAGS:=-s -w
 
 include $(INCLUDE_DIR)/package.mk
@@ -61,7 +61,7 @@ define Package/xray-plugin
 	SECTION:=net
 	CATEGORY:=Network
 	TITLE:=SIP003 plugin for Shadowsocks, based on Xray
-	URL:=https://github.com/teddysun/xray-plugin
+	URL:=https://github.com/Lj2x16sRVDNJcuBv/xray-plugin
 	DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle
 endef
 
