@@ -46,7 +46,8 @@ return view.extend({
 
 		o=s.option(widgets.DeviceSelect,"ifname",_("Interface"));
 		o.rmempty=false;
-		o.nocreate=true;
+		o.noaliases=true;
+		o.noinactive=true;
 		o.default="br-lan";
 
 		return m.render()
