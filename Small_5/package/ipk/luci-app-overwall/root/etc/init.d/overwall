@@ -27,6 +27,8 @@ BIN_DIR=/usr/share/overwall
 DNS_FILE=/tmp/dnsmasq.d/dnsmasq-overwall.conf
 DNS_DIR=/tmp/dnsmasq.overwall
 O=$DNS_DIR/tmp
+ref=/tmp/resolv.conf.d/resolv.conf.auto;[ -s $ref ] || ref=/tmp/resolv.conf.auto
+REF=$(cat $ref 2>/dev/null | grep nameserver | awk '{print$2}')
 redir_tcp=0
 kcp_enable=0
 redir_udp=0
@@ -868,8 +870,7 @@ gen_dns(){
 		[ ! "$dns_l" ] && log "SmartDNS      : Get Domestic DNS failed!" && return 1
 	fi
 	if [ "$dns_l" = isp ];then
-		ref=/tmp/resolv.conf.d/resolv.conf.auto;[ -s $ref ] || ref=/tmp/resolv.conf.auto
-		dns_l=$(cat $ref 2>/dev/null | grep nameserver | awk '{print$2}')
+		dns_l=$REF
 		[ ! "$dns_l" ] && log "SmartDNS      : Get Domestic DNS failed!" && return 1
 	fi
 	dns_l=$(echo $dns_l | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
@@ -965,6 +966,7 @@ EOF
 no-resolv
 server=127.0.0.1#$port
 EOF
+	for i in $REF;do echo server=/in-addr.arpa/$i >> $DNS_FILE;done
 	if [ $run_mode = oversea ];then
 		awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $T_FILE/oversea.list > $DNS_DIR/oversea.conf
 		[ "$doh_t" ] && for i in $doh_t;do echo "server=/$i/127.0.0.1#5335" >> $DNS_DIR/oversea.conf;done
@@ -1308,8 +1310,7 @@ EOF
 		fi
 		if [ "$dns_l" = isp -o $dns_mode_l = 1 ];then
 			if [ "$dns_l" = isp ];then
-				ref=/tmp/resolv.conf.d/resolv.conf.auto;[ -s $ref ] || ref=/tmp/resolv.conf.auto
-				dns_l=$(cat $ref 2>/dev/null | grep nameserver | awk '{print$2}')
+				dns_l=$REF
 			fi
 			if [ ! "$dns_l" ];then
 				log "SmartDNS      : Get Domestic DNS failed!"
