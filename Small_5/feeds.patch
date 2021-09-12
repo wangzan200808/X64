@@ -947,7 +947,7 @@
  	[ ! -e /sys/module/ksmbd ] && modprobe ksmbd 2> /dev/null
  	if [ ! -e /sys/module/ksmbd ]; then
  		logger -p daemon.error -t 'ksmbd' "modprobe of ksmbd module failed, can\'t start ksmbd!"
-@@ -172,19 +172,21 @@
+@@ -172,19 +172,20 @@
  {
  	logger -p daemon.notice -t 'ksmbd' "Stopping Ksmbd userspace service."
  	killall ksmbd.mountd > /dev/null 2>&1
@@ -972,7 +972,6 @@
 +boot(){
 +	sleep 5
 +	start
-+	(sleep 20 && /etc/init.d/wsdd2 restart >/dev/null 2>&1) &
 +}
 
 --- a/feeds/packages/net/ksmbd-tools/Makefile
