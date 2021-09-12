@@ -133,6 +133,7 @@ aliyun_transfer(){
 		InvalidAccessKeyId.NotFound)__ERR="无效AccessKey ID";;
 		SignatureDoesNotMatch)__ERR="无效AccessKey Secret";;
 		InvalidDomainName.NoExist)__ERR="无效域名";;
+		Forbidden.RAM)__ERR="RAM权限不足";;
 	esac
 	local A="$(date +%H%M%S) ERROR : [$__ERR] - 终止进程"
 	logger -p user.err -t ddns-scripts[$$] $SECTION_ID: ${A:15}
