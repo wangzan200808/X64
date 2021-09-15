@@ -39,7 +39,7 @@ elif [ $A = 2 ];then
 	rm -rf openwrt/package/boot/uboot-rockchip openwrt/package/kernel/linux/modules/video.mk openwrt/target/linux/rockchip
 	cp -r target/rockchip/. Small_5
 elif [ $A = 3 ];then
-	rm -rf openwrt/package/firmware/ipq-wifi openwrt/target/linux/ipq40xx
+	rm -rf openwrt/package/boot/uboot-envtools openwrt/package/boot/uboot-fritz4040 openwrt/package/firmware/ipq-wifi openwrt/target/linux/ipq40xx
 	cp -r target/ipq40xx/. Small_5
 	chmod 0775 Small_5/target/linux/ipq40xx/base-files/etc/init.d/* Small_5/target/linux/ipq40xx/base-files/lib/upgrade/*
 fi
