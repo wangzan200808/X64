@@ -5,8 +5,6 @@ B=0
 [ -n "$OP_TARGET" ] || OP_TARGET="X64"
 case "$OP_TARGET" in
 	X64)path="X64";;
-	AC58U)path="AC58U";;
-	ACRH17)path="ACRH17";;
 	R7800)path="R7800";;
 	N1)path="N1";;
 	RPI-4)path="RPI-4";;
@@ -20,6 +18,9 @@ case "$OP_TARGET" in
 	R4S)path="R4S";A=2;;
 	R1-PLUS)path="R1-PLUS";A=2;;
 	XY-C5)path="XY-C5";A=2;;
+	AC58U)path="AC58U";A=3;;
+	ACRH17)path="ACRH17";A=3;;
+	R619AC-128M)path="R619AC-128M";A=3;;
 	*)echo "No adaptation target!";exit 1;;
 esac
 cp -r target/$path/. Small_5
@@ -37,6 +38,10 @@ if [ $A = 1 ];then
 elif [ $A = 2 ];then
 	rm -rf openwrt/package/boot/uboot-rockchip openwrt/package/kernel/linux/modules/video.mk openwrt/target/linux/rockchip
 	cp -r target/rockchip/. Small_5
+elif [ $A = 3 ];then
+	rm -rf openwrt/package/firmware/ipq-wifi openwrt/target/linux/ipq40xx
+	cp -r target/ipq40xx/. Small_5
+	chmod 0775 Small_5/target/linux/ipq40xx/base-files/etc/init.d/* Small_5/target/linux/ipq40xx/base-files/lib/upgrade/*
 fi
 
 cp -r Small_5/. openwrt
