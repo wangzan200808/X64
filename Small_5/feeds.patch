@@ -272,27 +272,7 @@
 
 --- /dev/null
 +++ b/feeds/packages/net/miniupnpd/patches/301-options-force_forwarding-support.patch
-@@ -0,0 +1,108 @@
-+From 1037e70c96c546b3f4d27efe7830d9c09092b97e Mon Sep 17 00:00:00 2001
-+From: Chen Minqiang <ptpt52@gmail.com>
-+Date: Sun, 5 Jul 2020 10:42:52 +0800
-+Subject: [PATCH] options: force_forwarding support
-+
-+This make the port forwarding force to work even
-+when the router is behind NAT
-+
-+Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
-+---
-+ miniupnpd/miniupnpd.c      | 4 ++++
-+ miniupnpd/miniupnpd.conf   | 2 ++
-+ miniupnpd/options.c        | 1 +
-+ miniupnpd/options.h        | 1 +
-+ miniupnpd/testgetifaddr.c  | 2 ++
-+ miniupnpd/testportinuse.c  | 2 ++
-+ miniupnpd/upnpglobalvars.h | 2 ++
-+ miniupnpd/upnpredirect.c   | 2 +-
-+ 8 files changed, 15 insertions(+), 1 deletion(-)
-+
+@@ -0,0 +1,100 @@
 +--- a/miniupnpd.c
 ++++ b/miniupnpd.c
 +@@ -1241,6 +1241,10 @@ init(int argc, char * * argv, struct run
@@ -381,6 +361,18 @@
 + 		return -1;
 + 	if(add_redirect_rule2(ext_if_name, rhost, eport, iaddr, iport, proto,
 + 	                      desc, timestamp) < 0) {
++
++--- a/upnpsoap.c
+++++ b/upnpsoap.c
++@@ -346,7 +346,7 @@
++ 			syslog(LOG_ERR, "Failed to get ip address for interface %s",
++ 				ext_if_name);
++ 			ext_ip_addr[0] = '\0';
++-		} else if (addr_is_reserved(&addr)) {
+++		} else if (addr_is_reserved(&addr) && !GETFLAG(FORCEFORWARDINGMASK)) {
++ 			syslog(LOG_NOTICE, "private/reserved address %s is not suitable for external IP", ext_ip_addr);
++ 			ext_ip_addr[0] = '\0';
++ 		}
 
 --- a/feeds/packages/net/miniupnpd/Makefile
 +++ b/feeds/packages/net/miniupnpd/Makefile
