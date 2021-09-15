@@ -412,7 +412,7 @@
  		tg_local_port=$(uci_get_by_name $TG_SERVER local_port 1234)
  		[ $tg_local_port = $local_port ] && let tg_local_port=local_port+1
  		[ "$utype" = trojan -o $gtype = trojan ] && [ $tg_local_port = "$udp_local_port" ] && let tg_local_port=tg_local_port+1
-@@ -472,6 +490,7 @@
+@@ -473,6 +491,7 @@
  		service_start $cmd -r $kcp_server:$kcp_port -l :$server_port $password $kcp_param
  	fi
  	threads=$(uci_get_by_type global threads 0)
@@ -466,10 +466,10 @@
  	kill -9 $(ps -w | grep $BIN_DIR/rules | grep -v grep | awk '{print$1}') 2>/dev/null
  	kill -9 $(ps -w | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
  	kill -9 $(ps -w | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
-@@ -1285,7 +1310,7 @@
- 		iptables -t filter -D INPUT -j OVERWALL-S-RULE
- 		iptables -X OVERWALL-S-RULE 2>/dev/null
- 	fi
+@@ -1280,7 +1305,7 @@
+ 	killall -q -9 smartdns chinadns-ng kcptun-client xray-plugin microsocks
+ 	$BIN_DIR/rules -f
+ 	[ $(iptables -nL | grep OVERWALL-S-RULE | wc -l) = 0 ] || (iptables -F OVERWALL-S-RULE && iptables -X OVERWALL-S-RULE;while iptables -D INPUT -j OVERWALL-S-RULE 2>/dev/null;do :;done)
 -	rm -rf $DNS_DIR $VAR*.json $DNS_FILE $CON_T /var/lock/overwall-update.lock $LOC_UCI
 +	rm -rf $DNS_DIR $VAR*.json $DNS_FILE $CON_T /var/lock/overwall-update.lock $LOC_UCI $K/bin
  	[ $run_mode = gfw -o $gfw_mode = 1 ] || rm -f $K/gfw.list
