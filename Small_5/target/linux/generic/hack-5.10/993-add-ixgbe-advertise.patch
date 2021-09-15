@@ -1,0 +1,11 @@
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -5532,8 +5532,6 @@
+ 	if (!speed && hw->mac.ops.get_link_capabilities) {
+ 		ret = hw->mac.ops.get_link_capabilities(hw, &speed,
+ 							&autoneg);
+-		speed &= ~(IXGBE_LINK_SPEED_5GB_FULL |
+-			   IXGBE_LINK_SPEED_2_5GB_FULL);
+ 	}
+ 
+ 	if (ret)
