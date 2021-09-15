@@ -71,10 +71,10 @@
 
 --- a/target/linux/rockchip/armv8/base-files/etc/board.d/01_leds
 +++ b/target/linux/rockchip/armv8/base-files/etc/board.d/01_leds
-@@ -10,8 +10,8 @@
- case $board in
+@@ -11,8 +11,8 @@
  friendlyarm,nanopi-r2s|\
- xunlong,orangepi-r1-plus)
+ xunlong,orangepi-r1-plus|\
+ embedfire,doornet1)
 -	ucidef_set_led_netdev "wan" "WAN" "$boardname:green:wan" "eth0"
 -	ucidef_set_led_netdev "lan" "LAN" "$boardname:green:lan" "eth1"
 +	ucidef_set_led_netdev "wan" "WAN" "$boardname:green:wan" "eth1"
@@ -85,10 +85,10 @@
 
 --- a/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 +++ b/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
-@@ -10,7 +10,7 @@
- 	friendlyarm,nanopi-r2s|\
+@@ -11,7 +11,7 @@
  	friendlyarm,nanopi-r4s|\
- 	xunlong,orangepi-r1-plus)
+ 	xunlong,orangepi-r1-plus|\
+ 	embedfire,doornet1)
 -		ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
 +		ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
  		;;
