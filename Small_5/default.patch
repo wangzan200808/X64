@@ -658,10 +658,10 @@
 -	option output		ACCEPT
 -	option forward		ACCEPT
 +	option name 'lan'
-+	option network 'lan'
 +	option input 'ACCEPT'
 +	option output 'ACCEPT'
 +	option forward 'ACCEPT'
++	list network 'lan'
  
  config zone
 -	option name		wan
@@ -673,13 +673,13 @@
 -	option masq		1
 -	option mtu_fix		1
 +	option name 'wan'
-+	list network 'wan'
 +	option input 'DROP'
 +	option output 'ACCEPT'
 +	option forward 'DROP'
 +	option masq '1'
 +	option mtu_fix '1'
 +	option fullcone '1'
++	list network 'wan'
  
  config forwarding
 -	option src		lan
@@ -703,8 +703,8 @@
 -	option icmp_type	echo-request
 -	option family		ipv4
 -	option target		ACCEPT
-+	option dest 'wan'
 +	option src 'lan'
++	option dest 'wan'
  
  config rule
 -	option name		Allow-IGMP
