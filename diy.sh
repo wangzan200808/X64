@@ -1,7 +1,6 @@
 #!/bin/bash
-VERSION="V3.3.0-10R3"
+VERSION="V3.3.0-10R4 Beta"
 A=0
-B=0
 [ -n "$OP_TARGET" ] || OP_TARGET="X64"
 case "$OP_TARGET" in
 	X64)path="X64";;
@@ -14,33 +13,33 @@ case "$OP_TARGET" in
 	REDMI-AC2100)path="REDMI-AC2100";A=1;;
 	CR660X)path="CR660X";A=1;;
 	D2)path="D2";A=1;;
+	XY-C5)path="XY-C5";A=1;;
 	R2S)path="R2S";A=2;;
 	R4S)path="R4S";A=2;;
 	R1-PLUS)path="R1-PLUS";A=2;;
-	XY-C5)path="XY-C5";A=2;;
 	AC58U)path="AC58U";A=3;;
 	ACRH17)path="ACRH17";A=3;;
 	R619AC-128M)path="R619AC-128M";A=3;;
 	*)echo "No adaptation target!";exit 1;;
 esac
 cp -r target/$path/. Small_5
-[ $B = 1 ] && rm -f Small_5/Patch-K2P-32M.patch
 
 if [ $A = 1 ];then
 	rm -rf openwrt/target/linux/ramips
-	cp -r target/ramips/. Small_5
+	cp -r target/target/ramips/. Small_5
 	chmod 0775 Small_5/target/linux/ramips/mt76x8/base-files/etc/init.d/* Small_5/target/linux/ramips/mt76x8/base-files/lib/upgrade/*
 	chmod 0775 Small_5/target/linux/ramips/mt7620/base-files/etc/init.d/* Small_5/target/linux/ramips/mt7620/base-files/lib/upgrade/*
 	chmod 0775 Small_5/target/linux/ramips/mt7621/base-files/etc/init.d/* Small_5/target/linux/ramips/mt7621/base-files/lib/upgrade/platform.sh Small_5/target/linux/ramips/mt7621/base-files/sbin/*
 	chmod 0755 Small_5/target/linux/ramips/rt288x/base-files/lib/upgrade/*
 	chmod 0755 Small_5/target/linux/ramips/rt305x/base-files/lib/upgrade/*
 	chmod 0755 Small_5/target/linux/ramips/rt3883/base-files/lib/upgrade/*
+	[ "$B" = 1 ] && rm -f Small_5/Patch-K2P-32M.patch
 elif [ $A = 2 ];then
 	rm -rf openwrt/package/boot/uboot-rockchip openwrt/package/kernel/linux/modules/video.mk openwrt/target/linux/rockchip
-	cp -r target/rockchip/. Small_5
+	cp -r target/target/rockchip/. Small_5
 elif [ $A = 3 ];then
 	rm -rf openwrt/package/boot/uboot-envtools openwrt/package/boot/uboot-fritz4040 openwrt/package/firmware/ipq-wifi openwrt/target/linux/ipq40xx
-	cp -r target/ipq40xx/. Small_5
+	cp -r target/target/ipq40xx/. Small_5
 	chmod 0775 Small_5/target/linux/ipq40xx/base-files/etc/init.d/* Small_5/target/linux/ipq40xx/base-files/lib/upgrade/*
 fi
 

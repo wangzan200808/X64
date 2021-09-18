@@ -59,3 +59,15 @@
  		];
  
  		var table = E('table', { 'class': 'table' });
+
+--- a/target/linux/x86/64/config-5.10
++++ b/target/linux/x86/64/config-5.10
+@@ -377,7 +377,7 @@
+ CONFIG_SCHED_MC_PRIO=y
+ CONFIG_SCHED_SMT=y
+ CONFIG_SCSI_VIRTIO=y
+-# CONFIG_SENSORS_AMD_ENERGY is not set
++CONFIG_SENSORS_AMD_ENERGY=y
+ CONFIG_SENSORS_CORETEMP=y
+ CONFIG_SENSORS_FAM15H_POWER=y
+ CONFIG_SENSORS_I5500=y
