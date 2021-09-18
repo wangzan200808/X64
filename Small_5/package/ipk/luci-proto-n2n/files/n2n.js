@@ -45,26 +45,8 @@ return network.registerProtocol('n2n', {
 	renderFormOptions: function(s) {
 		var dev = this.getL3Device() || this.getDevice(), o;
 
-		o = s.taboption('general', form.Value, 'server', _('Supernode address'));
-		o.datatype = 'host';
-		o.rmempty = false;
-		o.password = true;
-
-		o = s.taboption('general', form.Value, 'port', _('Supernode port'));
-		o.datatype = 'port';
-		o.rmempty = false;
-
-		o = s.taboption('general', form.Flag, 'slave', _('Enable Slave Supernode'));
-
-		o = s.taboption('general', form.Value, 'server2', _('Slave Supernode address'));
-		o.datatype = 'host';
-		o.depends("slave","1");
-		o.rmempty = false;
-		o.password = true;
-
-		o = s.taboption('general', form.Value, 'port2', _('Slave Supernode port'));
-		o.datatype = 'port';
-		o.depends("slave","1");
+		o = s.taboption('general', form.DynamicList, 'server', _('Supernode address'), _('The format is [Address]:[Port]<br/>For example: 192.168.1.1:3333 or supernode.ntop.org:7777'));
+		o.datatype = 'hostport';
 		o.rmempty = false;
 
 		o = s.taboption('general', form.Value, 'community', _('Community Name'));
@@ -188,7 +170,7 @@ return network.registerProtocol('n2n', {
 		o = s.taboption('general', form.Flag, 'peerdns6', _('Use DNS servers advertised by peer'), _('If unchecked, the advertised DNS server addresses are ignored'));
 		o.depends("mode6","dhcp");
 
-		o = s.taboption('general', form.Value, 'dns6', _('Use custom DNS servers'));
+		o = s.taboption('general', form.DynamicList, 'dns6', _('Use custom DNS servers'));
 		o.depends("peerdns6","0");
 		o.depends("mode6","static");
 		o.datatype = 'ip6addr';
@@ -219,8 +201,8 @@ return network.registerProtocol('n2n', {
 		o.placeholder = "0";
 		o.datatype = 'uinteger';
 
-		o = s.taboption('advanced', form.Value, 'localport', _('Local UDP Port'));
-		o.datatype = 'port';
+		o = s.taboption('advanced', form.Value, 'bind_addr', _('Bind UDP port and IP'), _('Bind local UDP port and local IP address only (IP address is optional,the default is any)<br/>For example: 192.168.1.1:3333 or 3333'));
+		o.datatype = 'or(ip4addrport, port)';
 
 		o = s.taboption('advanced', form.Value, 'mgmtport', _('Management UDP Port'), _("For multiple edges on a machine"));
 		o.datatype = 'port';

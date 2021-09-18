@@ -1,17 +1,8 @@
 msgid "Supernode address"
 msgstr "超级节点地址"
 
-msgid "Supernode port"
-msgstr "超级节点端口"
-
-msgid "Enable Slave Supernode"
-msgstr "启用第二超级节点"
-
-msgid "Slave Supernode address"
-msgstr "第二超级节点地址"
-
-msgid "Slave Supernode port"
-msgstr "第二超级节点端口"
+msgid "The format is [Address]:[Port]<br/>For example: 192.168.1.1:3333 or supernode.ntop.org:7777"
+msgstr "格式为: [地址]:[端口]<br/>例如: 192.168.1.1:3333 或 supernode.ntop.org:7777"
 
 msgid "Community Name"
 msgstr "网络组名称"
@@ -46,8 +37,11 @@ msgstr "设置NAT打孔间隔(默认20秒)"
 msgid "For registration packet when UDP NAT hole punching through supernode (default 0 for not set)"
 msgstr "设置NAT通过超级节点打孔的数据包的TTL值(默认为0，不设置)"
 
-msgid "Local UDP Port"
-msgstr "本地UDP端口"
+msgid "Bind UDP port and IP"
+msgstr "绑定UDP端口和IP"
+
+msgid "Bind local UDP port and local IP address only (IP address is optional,the default is any)<br/>For example: 192.168.1.1:3333 or 3333"
+msgstr "绑定本地UDP端口和本地IP地址 (IP地址可选，只填端口则绑定所有地址)<br/>例如: 192.168.1.1:3333 或 3333"
 
 msgid "Management UDP Port"
 msgstr "UDP管理端口"

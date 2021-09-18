@@ -6,20 +6,26 @@
 	init_proto "$@"
 }
 
+add_param(){
+	append $3 "$([ $3 = SERVER ] && echo -l) $1"
+}
+
 proto_n2n_setup() {
 	local cfg="$1"
 	local device="n2n-$cfg"
-	local server port server2 port2 community cipher_suite key mode4 ipaddr netmask gateway hostname broadcast defaultroute peerdns dns metric clientid vendorid mode6 ip6addr ip6prefixlen ip6gw reqaddress reqprefix defaultroute6 ip6prefix peerdns6 dns6 clientid6 metric6 mac mtu_n2n reg_interval reg_ttl localport mgmtport forwarding header comp verbose pmtu nop2p multi
-	json_get_vars server port server2 port2 community cipher_suite key mode4 ipaddr netmask gateway hostname broadcast defaultroute peerdns dns metric clientid vendorid mode6 ip6addr ip6prefixlen ip6gw reqaddress reqprefix defaultroute6 ip6prefix peerdns6 dns6 clientid6 metric6 mac mtu_n2n reg_interval reg_ttl localport mgmtport forwarding header comp verbose pmtu nop2p multi
+	local SERVER community cipher_suite key mode4 ipaddr netmask gateway hostname broadcast defaultroute peerdns metric clientid vendorid mode6 ip6addr ip6prefixlen ip6gw reqaddress reqprefix defaultroute6 IP6PREFIX peerdns6 DNS6 clientid6 metric6 mac mtu_n2n reg_interval reg_ttl bind_addr mgmtport forwarding header comp verbose pmtu nop2p multi
+	json_get_vars community cipher_suite key mode4 ipaddr netmask gateway hostname broadcast defaultroute peerdns metric clientid vendorid mode6 ip6addr ip6prefixlen ip6gw reqaddress reqprefix defaultroute6 peerdns6 clientid6 metric6 mac mtu_n2n reg_interval reg_ttl bind_addr mgmtport forwarding header comp verbose pmtu nop2p multi
 	if [ -n "$ipaddr" ];then
 		[ -z "$netmask" ] && netmask="255.255.255.0"
 		eval $(ipcalc.sh $ipaddr $netmask)
 		addr=$ipaddr/$PREFIX
 	fi
+	json_for_each_item add_param server SERVER
+	json_for_each_item add_param dns6 DNS6
+	json_for_each_item add_param ip6prefix IP6PREFIX
 	proto_run_command "$cfg" /usr/bin/edge -f \
 		-d "$device" \
-		-l "${server}:${port}" \
-		$([ -n "$server2" -a -n "$port2" ] && echo -l "${server2}:${port2}") \
+		$SERVER \
 		-c "$community" -$cipher_suite \
 		$([ -n "$key" ] && echo -k $key) \
 		$([ "$mode4" = dhcp ] && echo -a dhcp:0.0.0.0 || ([ "$mode4" != auto ] && echo -a $addr)) \
@@ -27,7 +33,7 @@ proto_n2n_setup() {
 		$([ -n "$mtu_n2n" ] && echo -M $mtu_n2n) \
 		$([ -n "$reg_interval" ] && echo -i $reg_interval) \
 		$([ -n "$reg_ttl" ] && echo -L $reg_ttl) \
-		$([ -n "$localport" ] && echo -p $localport) \
+		$([ -n "$bind_addr" ] && echo -p $bind_addr) \
 		$([ -n "$mgmtport" ] && echo -t $mgmtport) \
 		$([ "$forwarding" = 0 ] || echo -r) \
 		$([ "$header" = 0 ] || echo -H) \
@@ -47,9 +53,6 @@ proto_n2n_setup() {
 		done
 		proto_add_ipv4_address "$ipaddr" "$netmask"
 		[ -n "$gateway" ] && proto_add_ipv4_route 0.0.0.0 0 "$gateway" "" "$metric"
-		for dns in $dns; do
-			proto_add_dns_server "$dns"
-		done
 	fi
 	if [ "$mode4" = auto ];then
 		while :;do
@@ -76,7 +79,6 @@ proto_n2n_setup() {
 		[ -n "$broadcast" ] && json_add_boolean broadcast "$broadcast"
 		[ "$defaultroute" = 1 ] || json_add_boolean defaultroute 0
 		[ "$peerdns" = 1 ] || json_add_boolean peerdns 0
-		[ -n "$dns" ] && json_add_array dns "$dns"
 		[ -n "$metric" ] && json_add_int metric "$metric"
 		[ -n "$clientid" ] && json_add_string clientid "$clientid"
 		[ -n "$vendorid" ] && json_add_string vendorid "$vendorid"
@@ -93,9 +95,9 @@ proto_n2n_setup() {
 		[ -n "$reqaddress" ] && json_add_string reqaddress "$reqaddress"
 		[ -n "$reqprefix" ] && json_add_string reqprefix "$reqprefix"
 		[ "$defaultroute6" = 1 ] || json_add_boolean defaultroute 0
-		[ -n "$ip6prefix" ] && json_add_array ip6prefix "$ip6prefix"
+		[ -n "$IP6PREFIX" ] && proto_add_ipv6_prefix "$IP6PREFIX"
 		[ "$peerdns6" = 1 ] || json_add_boolean peerdns 0
-		[ -n "$dns6" ] && json_add_array dns "$dns6"
+		[ -n "$DNS6" ] && proto_add_dns_server "$DNS6"
 		[ -n "$clientid6" ] && json_add_string clientid "$clientid6"
 		[ -n "$ZONE" ] && json_add_string zone "$ZONE"
 		json_close_object
@@ -116,50 +118,46 @@ proto_n2n_teardown() {
 proto_n2n_init_config() {
 	no_device=1
 	available=1
-	proto_config_add_string "server"
-	proto_config_add_int "port"
-	proto_config_add_string "server2"
-	proto_config_add_int "port2"
-	proto_config_add_string "community"
-	proto_config_add_string "cipher_suite"
-	proto_config_add_string "key"
-	proto_config_add_string "mode4"
-	proto_config_add_string "ipaddr"
-	proto_config_add_string "netmask"
-	proto_config_add_string "gateway"
-	proto_config_add_string "hostname"
-	proto_config_add_boolean "broadcast"
-	proto_config_add_boolean "defaultroute"
-	proto_config_add_boolean "peerdns"
-	proto_config_add_string "dns"
-	proto_config_add_int "metric"
-	proto_config_add_string "clientid"
-	proto_config_add_string "vendorid"
-	proto_config_add_string "mode6"
-	proto_config_add_string "ip6addr"
-	proto_config_add_int "ip6prefixlen"
-	proto_config_add_string "ip6gw"
-	proto_config_add_string "reqaddress"
-	proto_config_add_string "reqprefix"
-	proto_config_add_boolean "defaultroute6"
-	proto_config_add_array 'ip6prefix'
-	proto_config_add_boolean "peerdns6"
-	proto_config_add_string "dns6"
-	proto_config_add_string "clientid6"
-	proto_config_add_int "metric6"
-	proto_config_add_string "mac"
-	proto_config_add_int "mtu_n2n"
-	proto_config_add_string "reg_interval"
-	proto_config_add_string "reg_ttl"
-	proto_config_add_int "localport"
-	proto_config_add_int "mgmtport"
-	proto_config_add_boolean "forwarding"
-	proto_config_add_boolean "header"
-	proto_config_add_boolean "comp"
-	proto_config_add_boolean "verbose"
-	proto_config_add_boolean "pmtu"
-	proto_config_add_boolean "nop2p"
-	proto_config_add_boolean "multi"
+	proto_config_add_array 'server:list(string)'
+	proto_config_add_string community
+	proto_config_add_string cipher_suite
+	proto_config_add_string key
+	proto_config_add_string mode4
+	proto_config_add_string ipaddr
+	proto_config_add_string netmask
+	proto_config_add_string gateway
+	proto_config_add_string hostname
+	proto_config_add_boolean broadcast
+	proto_config_add_boolean defaultroute
+	proto_config_add_boolean peerdns
+	proto_config_add_int metric
+	proto_config_add_string clientid
+	proto_config_add_string vendorid
+	proto_config_add_string mode6
+	proto_config_add_string ip6addr
+	proto_config_add_int ip6prefixlen
+	proto_config_add_string ip6gw
+	proto_config_add_string reqaddress
+	proto_config_add_string reqprefix
+	proto_config_add_boolean defaultroute6
+	proto_config_add_array 'ip6prefix:list(ip6addr)'
+	proto_config_add_boolean peerdns6
+	proto_config_add_array 'dns6:list(ip6addr)'
+	proto_config_add_string clientid6
+	proto_config_add_int metric6
+	proto_config_add_string mac
+	proto_config_add_int mtu_n2n
+	proto_config_add_string reg_interval
+	proto_config_add_string reg_ttl
+	proto_config_add_string bind_addr
+	proto_config_add_int mgmtport
+	proto_config_add_boolean forwarding
+	proto_config_add_boolean header
+	proto_config_add_boolean comp
+	proto_config_add_boolean verbose
+	proto_config_add_boolean pmtu
+	proto_config_add_boolean nop2p
+	proto_config_add_boolean multi
 }
 
 [ -n "$INCLUDE_ONLY" ] || {
