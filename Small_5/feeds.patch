@@ -59,6 +59,56 @@
  		var tb = document.getElementById('aria2_status');
  		if (data && tb) {
 
+--- a/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
++++ b/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
+@@ -70,7 +70,7 @@
+ 			local res = {}
+ 
+ 			uci:foreach("ddns", "service", function (s)
+-				local ip, last_update, next_update
++				local ip, last_update, next_update, converted_last_update, time_diff
+ 				local section	= s[".name"]
+ 				if fs.access("%s/%s.ip" % { rundir, section }) then
+ 					ip = fs.readfile("%s/%s.ip" % { rundir, section })
+@@ -96,7 +96,6 @@
+ 				end
+ 
+ 				local last_update = tonumber(fs.readfile("%s/%s.update" % { rundir, section } ) or 0)
+-				local next_update, converted_last_update
+ 				local pid  = tonumber(fs.readfile("%s/%s.pid" % { rundir, section } ) or 0)
+ 
+ 				if pid > 0 and not nixio.kill(pid, 0) then
+@@ -117,16 +116,24 @@
+ 					local epoch = os.time() - uptime + last_update
+ 					-- use linux date to convert epoch
+ 					converted_last_update = epoch2date(epoch,date_format)
+-					next_update = epoch2date(epoch + force_seconds + check_seconds)
++					if force_seconds <= check_seconds then
++						time_diff = check_seconds
++					else
++						time_diff = force_seconds - check_seconds
++						while time_diff > check_seconds do
++							time_diff = time_diff - check_seconds
++						end
++					end
++					next_update = epoch2date(epoch + force_seconds + check_seconds - time_diff)
+ 				end
+ 
+-				if pid > 0 and ( last_update + force_seconds + check_seconds - uptime ) <= 0 then
+-					next_update = "Verify"
+-
+ 				-- run once
+-				elseif force_seconds == 0 then
++				if force_seconds == 0 then
+ 					next_update = "Run once"
+ 
++				elseif pid > 0 and ( last_update + force_seconds + check_seconds - time_diff - uptime ) <= 0 then
++					next_update = "Verify"
++
+ 				-- no process running and NOT enabled
+ 				elseif pid == 0 and s['enabled'] == '0' then
+ 					next_update  = "Disabled"
+
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 @@ -167,6 +167,10 @@
