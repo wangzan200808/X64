@@ -73,6 +73,18 @@
  		o.modalonly = true;
  
 
+--- a/feeds/luci/applications/luci-app-ksmbd/root/usr/share/luci/menu.d/luci-app-ksmbd.json
++++ b/feeds/luci/applications/luci-app-ksmbd/root/usr/share/luci/menu.d/luci-app-ksmbd.json
+@@ -1,6 +1,7 @@
+ {
+-	"admin/services/ksmbd": {
++	"admin/nas/ksmbd": {
+ 		"title": "Network Shares",
++		"order": 2,
+ 		"action": {
+ 			"type": "view",
+ 			"path": "ksmbd"
+
 --- a/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
 +++ b/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
 @@ -130,6 +130,9 @@
