@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ddns-scripts-dnspod
 PKG_VERSION:=1.0.3
-PKG_RELEASE:=5
+PKG_RELEASE:=6
 
 PKG_LICENSE:=GPLv2
 PKG_MAINTAINER:=Small_5
@@ -15,13 +15,13 @@ define Package/$(PKG_NAME)
 	SECTION:=net
 	CATEGORY:=Network
 	SUBMENU:=IP Addresses and Names
-	TITLE:=DDNS extension for Dnspod.com/Dnspod.cn
+	TITLE:=DDNS extension for Dnspod
 	PKGARCH:=all
-	DEPENDS:=+ddns-scripts +curl +jsonfilter
+	DEPENDS:=+ddns-scripts +curl +jsonfilter +openssl-util
 endef
 
 define Package/$(PKG_NAME)/description
-	Dynamic DNS Client scripts extension for Dnspod.com/Dnspod.cn
+	Dynamic DNS Client scripts extension for Dnspod
 endef
 
 define Build/Configure

@@ -7,10 +7,11 @@
 # 检查外部调用工具
 [ -n "$CURL_SSL" ] || write_log 13 "Dnspod communication require cURL with SSL support. Please install"
 [ -n "$CURL_PROXY" ] || write_log 13 "cURL: libcurl compiled without Proxy support"
+command -v openssl >/dev/null 2>&1 || write_log 13 "Openssl-util support is required to use Dnspod API, please install first"
 
 # 变量声明
-local __URLBASE __HOST __DOMAIN __TYPE __CMDBASE __POST __POST1 __RECIP __RECID __TTL
-__URLBASE="https://dnsapi.cn"
+local __APIHOST __HOST __DOMAIN __TYPE __CMDBASE __POST __POST1 __POST2 __POST3 __RECIP __RECID __TTL __CNT __A
+__APIHOST=dnspod.tencentcloudapi.com
 
 # 从 $domain 分离主机和域名
 [ "${domain:0:2}" = "@." ] && domain="${domain/./}" # 主域名处理
@@ -53,16 +54,34 @@ build_command(){
 	__CMDBASE="$__CMDBASE -d"
 }
 
+# 用于生成签名
+HMAC(){
+	echo -en $1 | openssl dgst -sha256 -mac HMAC -macopt hexkey:$2 | awk '{print $2}'
+}
+
+# 生成链接
+URL(){
+	local __DATE __STAMP A B C D E 
+	__DATE=$(date -u +%Y-%m-%d)
+	__STAMP=$(date +%s)
+	A="POST\n/\n\ncontent-type:application/json\nhost:$__APIHOST\n\ncontent-type;host\n$(echo -n $1 | sha256sum | awk '{print $1}')"
+	B="TC3-HMAC-SHA256\n$__STAMP\n$__DATE/dnspod/tc3_request\n$(echo -en $A | sha256sum | awk '{print $1}')"
+	C=$(HMAC tc3_request $(HMAC dnspod $(echo -n $__DATE | openssl dgst -sha256 -hmac TC3$password | awk '{print $2}')))
+	D="TC3-HMAC-SHA256 Credential=$username/$__DATE/dnspod/tc3_request,SignedHeaders=content-type;host,Signature=$(HMAC $B $C)"
+	E="-H 'Authorization: $D' -H 'X-TC-Timestamp: $__STAMP' -H 'Content-Type: application/json' -H 'X-TC-Version: 2021-03-23' -H 'X-TC-Language: zh-CN'"
+	__A="$__CMDBASE '$1' $E -H 'X-TC-Action: $2' https://$__APIHOST"
+}
+
 # 用于Dnspod API的通信函数
 dnspod_transfer(){
 	__CNT=0
 	case "$1" in
-		0)__A="$__CMDBASE '$__POST' $__URLBASE/Record.List";;
-		1)__A="$__CMDBASE '$__POST1' $__URLBASE/Record.Create";;
-		2)__A="$__CMDBASE '$__POST1&record_id=$__RECID&ttl=$__TTL' $__URLBASE/Record.Modify";;
+		1)URL $__POST1 DescribeRecordList;;
+		2)URL $__POST2 CreateRecord;;
+		3)__POST3="${__POST2%\}*},\"RecordId\":$__RECID,\"TTL\":$__TTL}";URL $__POST3 ModifyRecord;;
 	esac
 
-	write_log 7 "#> $__A"
+	write_log 7 "#> $(echo -e "$__A" | sed "s/默认/Default/g")"
 	while ! __TMP=`eval $__A 2>&1`;do
 		write_log 3 "[$__TMP]"
 		if [ $VERBOSE -gt 1 ];then
@@ -77,10 +96,10 @@ dnspod_transfer(){
 		wait $PID_SLEEP
 		PID_SLEEP=0
 	done
-	__ERR=`jsonfilter -s "$__TMP" -e "@.status.code"`
-	[ $__ERR = 1 ] && return 0
-	[ $__ERR = 10 ] && [ $1 = 0 ] && return 0
-	__TMP=`jsonfilter -s "$__TMP" -e "@.status.message"`
+	__ERR=`jsonfilter -s "$__TMP" -e "@.Response.Error.Code"`
+	[ ! $__ERR -o $__ERR = ResourceNotFound.NoDataOfRecord ] && return 0
+	[ $__TMP = AuthFailure.SignatureExpire ] && printf "%s\n" " $(date +%H%M%S)       : 时间戳错误,2秒后重试" >> $LOGFILE && return 1
+	__TMP=`jsonfilter -s "$__TMP" -e "@.Response.Error.Message"`
 	local A="$(date +%H%M%S) ERROR : [$__TMP] - 终止进程"
 	logger -p user.err -t ddns-scripts[$$] $SECTION_ID: ${A:15}
 	printf "%s\n" " $A" >> $LOGFILE
@@ -89,14 +108,14 @@ dnspod_transfer(){
 
 # 添加解析记录
 add_domain(){
-	dnspod_transfer 1
+	while ! dnspod_transfer 2;do sleep 2;done
 	printf "%s\n" " $(date +%H%M%S)       : 添加解析记录成功: [$([ "$__HOST" = @ ] || echo $__HOST.)$__DOMAIN],[IP:$__IP]" >> $LOGFILE
 	return 0
 }
 
 # 修改解析记录
 update_domain(){
-	dnspod_transfer 2
+	while ! dnspod_transfer 3;do sleep 2;done
 	printf "%s\n" " $(date +%H%M%S)       : 修改解析记录成功: [$([ "$__HOST" = @ ] || echo $__HOST.)$__DOMAIN],[IP:$__IP],[TTL:$__TTL]" >> $LOGFILE
 	return 0
 }
@@ -104,18 +123,19 @@ update_domain(){
 # 获取域名解析记录
 describe_domain(){
 	ret=0
-	__POST="login_token=$username,$password&format=json&domain=$__DOMAIN&sub_domain=$__HOST"
-	__POST1="$__POST&value=$__IP&record_type=$__TYPE&record_line_id=0"
-	dnspod_transfer 0
-	__TMP=`jsonfilter -s "$__TMP" -e "@.records[@.type='$__TYPE' && @.line_id='0']"`
+	__POST="{\"Domain\":\"$__DOMAIN\""
+	__POST1="$__POST,\"Subdomain\":\"$__HOST\"}"
+	__POST2="$__POST,\"SubDomain\":\"$__HOST\",\"Value\":\"$__IP\",\"RecordType\":\"$__TYPE\",\"RecordLine\":\"默认\"}"
+	while ! dnspod_transfer 1;do sleep 2;done
+	__TMP=`jsonfilter -s "$__TMP" -e "@.Response.RecordList[@.Type='$__TYPE' && @.Line='默认']"`
 	if [ -z "$__TMP" ];then
 		printf "%s\n" " $(date +%H%M%S)       : 解析记录不存在: [$([ "$__HOST" = @ ] || echo $__HOST.)$__DOMAIN]" >> $LOGFILE
 		ret=1
 	else
-		__RECIP=`jsonfilter -s "$__TMP" -e "@.value"`
+		__RECIP=`jsonfilter -s "$__TMP" -e "@.Value"`
 		if [ "$__RECIP" != "$__IP" ];then
-			__RECID=`jsonfilter -s "$__TMP" -e "@.id"`
-			__TTL=`jsonfilter -s "$__TMP" -e "@.ttl"`
+			__RECID=`jsonfilter -s "$__TMP" -e "@.RecordId"`
+			__TTL=`jsonfilter -s "$__TMP" -e "@.TTL"`
 			printf "%s\n" " $(date +%H%M%S)       : 解析记录需要更新: [解析记录IP:$__RECIP] [本地IP:$__IP]" >> $LOGFILE
 			ret=2
 		fi
