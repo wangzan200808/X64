@@ -263,7 +263,7 @@
  
  		luciversion = luciversion.filter(function(l) {
  			return l.match(/^\s*(luciname|luciversion)\s*=/);
-@@ -62,7 +69,8 @@
+@@ -63,7 +70,8 @@
  				systeminfo.load[0] / 65535.0,
  				systeminfo.load[1] / 65535.0,
  				systeminfo.load[2] / 65535.0
@@ -1282,18 +1282,18 @@
 @@ -1,18 +1,24 @@
  include $(TOPDIR)/rules.mk
 +PKG_SOURCE_URL:=https://github.com/XTLS/Xray-core.git
-+PKG_SOURCE_VERSION:=b0b2aaa70ce6681b44fee5a90f4c18ff9d39a76f
++PKG_SOURCE_VERSION:=7033f7cf5f08fbdde93145f8dbb124c92490b954
  
  PKG_NAME:=xray-core
--PKG_VERSION:=1.4.3
+-PKG_VERSION:=1.4.4
 -PKG_RELEASE:=$(AUTORELEASE)
-+PKG_VERSION:=1.4.3_git-$(PKG_SOURCE_VERSION)
++PKG_VERSION:=1.4.4_git-$(PKG_SOURCE_VERSION)
 +PKG_RELEASE:=1
  
 +PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 -PKG_SOURCE_URL:=https://codeload.github.com/XTLS/Xray-core/tar.gz/v$(PKG_VERSION)?
--PKG_HASH:=222c03855aa22cd47a648c63b8fa82d37b36983b5c99dc0e2f3c61a79edbb850
+-PKG_HASH:=57d0bb681811cd7f806e77e0ee13235e4d66da130dd9a79e8b3e4b47b04a06c2
 +PKG_SOURCE_PROTO:=git
  
  PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
@@ -1553,3 +1553,14 @@
  
  #: protocols/luci-proto-bonding/htdocs/luci-static/resources/protocol/bonding.js:205
  msgid "Active-Backup policy (active-backup, 1)"
+@@ -6871,6 +6871,10 @@
+ msgid "Target network"
+ msgstr "目标网络"
+ 
++#: protocols/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js:63
++msgid "Target Platform"
++msgstr "目标平台"
++
+ #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/processes.js:50
+ msgid "Terminate"
+ msgstr "关闭"
