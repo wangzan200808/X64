@@ -110,7 +110,7 @@ aliyun_transfer(){
 	# 附加签名参数
 	string="Signature=$signature";__URLARGS="$__URLARGS&"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
 	__A="$__CMDBASE 'https://alidns.aliyuncs.com/?$__URLARGS'"
-	write_log 7 "#> $__A"
+	# write_log 7 "#> $__A"
 	while ! __TMP=`eval $__A 2>&1`;do
 		write_log 3 "[$__TMP]"
 		if [ $VERBOSE -gt 1 ];then

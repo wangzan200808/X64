@@ -61,27 +61,27 @@ HMAC(){
 
 # 生成链接
 URL(){
-	local __DATE __STAMP A B C D E 
-	__DATE=$(date -u +%Y-%m-%d)
-	__STAMP=$(date +%s)
-	A="POST\n/\n\ncontent-type:application/json\nhost:$__APIHOST\n\ncontent-type;host\n$(echo -n $1 | sha256sum | awk '{print $1}')"
-	B="TC3-HMAC-SHA256\n$__STAMP\n$__DATE/dnspod/tc3_request\n$(echo -en $A | sha256sum | awk '{print $1}')"
-	C=$(HMAC tc3_request $(HMAC dnspod $(echo -n $__DATE | openssl dgst -sha256 -hmac TC3$password | awk '{print $2}')))
-	D="TC3-HMAC-SHA256 Credential=$username/$__DATE/dnspod/tc3_request,SignedHeaders=content-type;host,Signature=$(HMAC $B $C)"
-	E="-H 'Authorization: $D' -H 'X-TC-Timestamp: $__STAMP' -H 'Content-Type: application/json' -H 'X-TC-Version: 2021-03-23' -H 'X-TC-Language: zh-CN'"
-	__A="$__CMDBASE '$1' $E -H 'X-TC-Action: $2' https://$__APIHOST"
+	local A B C D E F G
+	A=$(date -u +%Y-%m-%d)
+	B=$(date +%s)
+	C="POST\n/\n\ncontent-type:application/json\nhost:$__APIHOST\n\ncontent-type;host\n$(echo -n $1 | sha256sum | awk '{print $1}')"
+	D="TC3-HMAC-SHA256\n$B\n$A/dnspod/tc3_request\n$(echo -en $C | sha256sum | awk '{print $1}')"
+	E=$(HMAC tc3_request $(HMAC dnspod $(echo -n $A | openssl dgst -sha256 -hmac TC3$password | awk '{print $2}')))
+	F="TC3-HMAC-SHA256 Credential=$username/$A/dnspod/tc3_request,SignedHeaders=content-type;host,Signature=$(HMAC $D $E)"
+	G="-H 'Authorization: $F' -H 'X-TC-Timestamp: $B' -H 'Content-Type: application/json' -H 'X-TC-Version: 2021-03-23' -H 'X-TC-Language: zh-CN'"
+	__A="$__CMDBASE '$1' $G -H 'X-TC-Action: $2' https://$__APIHOST"
 }
 
 # 用于Dnspod API的通信函数
 dnspod_transfer(){
 	__CNT=0
-	case "$1" in
+	case $1 in
 		1)URL $__POST1 DescribeRecordList;;
 		2)URL $__POST2 CreateRecord;;
 		3)__POST3="${__POST2%\}*},\"RecordId\":$__RECID,\"TTL\":$__TTL}";URL $__POST3 ModifyRecord;;
 	esac
 
-	write_log 7 "#> $(echo -e "$__A" | sed "s/默认/Default/g")"
+	# write_log 7 "#> $(echo -e "$__A" | sed "s/默认/Default/g")"
 	while ! __TMP=`eval $__A 2>&1`;do
 		write_log 3 "[$__TMP]"
 		if [ $VERBOSE -gt 1 ];then
@@ -97,9 +97,13 @@ dnspod_transfer(){
 		PID_SLEEP=0
 	done
 	__ERR=`jsonfilter -s "$__TMP" -e "@.Response.Error.Code"`
-	[ ! $__ERR -o $__ERR = ResourceNotFound.NoDataOfRecord ] && return 0
-	[ $__TMP = AuthFailure.SignatureExpire ] && printf "%s\n" " $(date +%H%M%S)       : 时间戳错误,2秒后重试" >> $LOGFILE && return 1
-	__TMP=`jsonfilter -s "$__TMP" -e "@.Response.Error.Message"`
+	[ $__ERR ] || return 0
+	case $__ERR in
+		ResourceNotFound.NoDataOfRecord)return 0;;
+		AuthFailure.SignatureExpire)printf "%s\n" " $(date +%H%M%S)       : 时间戳错误,2秒后重试" >> $LOGFILE && return 1;;
+		AuthFailure.SignatureFailure)__TMP="SecretKey错误,签名验证失败";;
+		*)__TMP=`jsonfilter -s "$__TMP" -e "@.Response.Error.Message"`;;
+	esac
 	local A="$(date +%H%M%S) ERROR : [$__TMP] - 终止进程"
 	logger -p user.err -t ddns-scripts[$$] $SECTION_ID: ${A:15}
 	printf "%s\n" " $A" >> $LOGFILE
