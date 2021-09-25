@@ -7,6 +7,7 @@ rockchip_setup_interfaces()
 	local board="$1"
 
 	case "$board" in
+	friendlyarm,nanopi-r2c|\
 	friendlyarm,nanopi-r2s|\
 	friendlyarm,nanopi-r4s|\
 	xunlong,orangepi-r1-plus|\
@@ -34,6 +35,7 @@ rockchip_setup_macs()
 	local label_mac=""
 
 	case "$board" in
+	friendlyarm,nanopi-r2c|\
 	friendlyarm,nanopi-r2s|\
 	embedfire,doornet1)
 		wan_mac=$(nanopi_r2s_generate_mac)
