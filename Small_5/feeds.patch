@@ -933,7 +933,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/xtaci/kcptun.git
-+PKG_SOURCE_VERSION:=9a5b31b4706aba4c67bcb6ebfe108fdb564a9053
++PKG_SOURCE_VERSION:=94c9cacf4f87118e5e7716a7c1c41835f4fc04c9
 +
  PKG_NAME:=kcptun
 -PKG_VERSION:=20201010
@@ -1294,12 +1294,12 @@
 @@ -1,18 +1,24 @@
  include $(TOPDIR)/rules.mk
 +PKG_SOURCE_URL:=https://github.com/XTLS/Xray-core.git
-+PKG_SOURCE_VERSION:=7033f7cf5f08fbdde93145f8dbb124c92490b954
++PKG_SOURCE_VERSION:=9f9059c7b1fe6312d6eb6a46e1199524a8d32bf6
  
  PKG_NAME:=xray-core
 -PKG_VERSION:=1.4.4
 -PKG_RELEASE:=$(AUTORELEASE)
-+PKG_VERSION:=1.4.4_git-$(PKG_SOURCE_VERSION)
++PKG_VERSION:=1.4.5_git-$(PKG_SOURCE_VERSION)
 +PKG_RELEASE:=1
  
 +PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
@@ -1476,10 +1476,10 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/zerotier/ZeroTierOne.git
-+PKG_SOURCE_VERSION:=15380cfc14026f2f0896a614a3f75734491d73e1
++PKG_SOURCE_VERSION:=19f3a97a8de0dd9a4d5b29b57147e41c46672de3
  PKG_NAME:=zerotier
 -PKG_VERSION:=1.6.5
-+PKG_VERSION:=1.6.5_git-$(PKG_SOURCE_VERSION)
++PKG_VERSION:=1.6.6_git-$(PKG_SOURCE_VERSION)
  PKG_RELEASE:=1
 -
 +PKG_SOURCE_PROTO:=git
@@ -1541,7 +1541,7 @@
 
 --- a/feeds/luci/modules/luci-base/po/zh_Hans/base.po
 +++ b/feeds/luci/modules/luci-base/po/zh_Hans/base.po
-@@ -363,19 +363,19 @@
+@@ -369,19 +369,19 @@
  
  #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/routes.js:255
  msgid "Active IPv4 Routes"
@@ -1565,7 +1565,7 @@
  
  #: protocols/luci-proto-bonding/htdocs/luci-static/resources/protocol/bonding.js:205
  msgid "Active-Backup policy (active-backup, 1)"
-@@ -6871,6 +6871,10 @@
+@@ -6912,6 +6912,10 @@
  msgid "Target network"
  msgstr "目标网络"
  
