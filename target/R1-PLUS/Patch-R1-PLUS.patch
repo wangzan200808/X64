@@ -71,7 +71,7 @@
 
 --- a/target/linux/rockchip/armv8/base-files/etc/board.d/01_leds
 +++ b/target/linux/rockchip/armv8/base-files/etc/board.d/01_leds
-@@ -11,8 +11,8 @@
+@@ -12,8 +12,8 @@
  friendlyarm,nanopi-r2s|\
  xunlong,orangepi-r1-plus|\
  embedfire,doornet1)
@@ -85,7 +85,7 @@
 
 --- a/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 +++ b/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
-@@ -11,7 +11,7 @@
+@@ -12,7 +12,7 @@
  	friendlyarm,nanopi-r4s|\
  	xunlong,orangepi-r1-plus|\
  	embedfire,doornet1)
