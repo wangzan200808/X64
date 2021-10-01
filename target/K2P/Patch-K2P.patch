@@ -189,8 +189,8 @@
 +					if (hwtype == 'mt_dbdc') {
  						// ieee802.11w options
  						o = ss.taboption('encryption', form.ListValue, 'ieee80211w', _('802.11w Management Frame Protection'), _("Note: Some wireless drivers do not fully support 802.11w. E.g. mwlwifi may have problems"));
- 						o.value('', _('Disabled'));
-@@ -1701,21 +1570,6 @@
+ 						o.value('0', _('Disabled'));
+@@ -1708,21 +1577,6 @@
  						o.datatype = 'uinteger';
  						o.placeholder = '201';
  						o.rmempty = true;
