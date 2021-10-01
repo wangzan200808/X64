@@ -22,14 +22,7 @@ command -v sed >/dev/null 2>&1 || write_log 13 "Sed support is required to use A
 command -v openssl >/dev/null 2>&1 || write_log 13 "Openssl-util support is required to use Alibaba Cloud API, please install first"
 
 # 变量声明
-local __HOST __DOMAIN __TYPE __CMDBASE __RECID __TTL
-
-# 从 $domain 分离主机和域名
-[ "${domain:0:2}" = "@." ] && domain="${domain/./}" # 主域名处理
-[ "$domain" = "${domain/@/}" ] && domain="${domain/./@}" # 未找到分隔符，兼容常用域名格式
-__HOST="${domain%%@*}"
-__DOMAIN="${domain#*@}"
-[ -z "$__HOST" -o "$__HOST" = "$__DOMAIN" ] && __HOST=@
+local __TMP __N __I __D __HOST __DOMAIN __TYPE __CMDBASE __RECID __TTL
 
 # 设置记录类型
 [ $use_ipv6 = 0 ] && __TYPE=A || __TYPE=AAAA
@@ -80,6 +73,11 @@ percentEncode(){
 	fi
 }
 
+# 处理JSON
+JSON(){
+	echo $(ddnsjson -k "$__TMP" -x "$1")
+}
+
 # 用于阿里云API的通信函数
 aliyun_transfer(){
 	__CNT=0;__URLARGS=
@@ -125,8 +123,8 @@ aliyun_transfer(){
 		wait $PID_SLEEP
 		PID_SLEEP=0
 	done
-	__ERR=`jsonfilter -s "$__TMP" -e "@.Code"`
-	[ -z "$__ERR" ] && return 0
+	__ERR=`JSON @.Code`
+	[ $__ERR ] || return 0
 	case $__ERR in
 		LastOperationNotFinished)printf "%s\n" " $(date +%H%M%S)       : 最后一次操作未完成,2秒后重试" >> $LOGFILE;return 1;;
 		InvalidTimeStamp.Expired)printf "%s\n" " $(date +%H%M%S)       : 时间戳错误,2秒后重试" >> $LOGFILE;return 1;;
@@ -143,47 +141,55 @@ aliyun_transfer(){
 
 # 添加解析记录
 add_domain(){
-	while ! aliyun_transfer "Action=AddDomainRecord" "DomainName=$__DOMAIN" "RR=$__HOST" "Type=$__TYPE" "Value=$__IP";do
-		sleep 2
-	done
+	while ! aliyun_transfer "Action=AddDomainRecord" "DomainName=$__DOMAIN" "RR=$__HOST" "Type=$__TYPE" "Value=$__IP";do sleep 2;done
 	printf "%s\n" " $(date +%H%M%S)       : 添加解析记录成功: [$([ "$__HOST" = @ ] || echo $__HOST.)$__DOMAIN],[IP:$__IP]" >> $LOGFILE
 }
 
 # 启用解析记录
 enable_domain(){
-	while ! aliyun_transfer "Action=SetDomainRecordStatus" "RecordId=$__RECID" "Status=Enable";do
-		sleep 2
-	done
+	while ! aliyun_transfer "Action=SetDomainRecordStatus" "RecordId=$__RECID" "Status=Enable";do sleep 2;done
 	printf "%s\n" " $(date +%H%M%S)       : 启用解析记录成功" >> $LOGFILE
 }
 
 # 修改解析记录
 update_domain(){
-	while ! aliyun_transfer "Action=UpdateDomainRecord" "RecordId=$__RECID" "RR=$__HOST" "Type=$__TYPE" "Value=$__IP" "TTL=$__TTL";do
-		sleep 2
-	done
+	while ! aliyun_transfer "Action=UpdateDomainRecord" "RecordId=$__RECID" "RR=$__HOST" "Type=$__TYPE" "Value=$__IP" "TTL=$__TTL";do sleep 2;done
 	printf "%s\n" " $(date +%H%M%S)       : 修改解析记录成功: [$([ "$__HOST" = @ ] || echo $__HOST.)$__DOMAIN],[IP:$__IP],[TTL:$__TTL]" >> $LOGFILE
 }
 
 # 获取子域名解析记录列表
 describe_domain(){
-	ret=0
-	while ! aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=$__HOST.$__DOMAIN" "Type=$__TYPE";do
-		sleep 2
+	while ! aliyun_transfer "Action=DescribeDomains" "PageSize=100";do sleep 2;done
+	let __N=`JSON @.TotalCount`-1
+	for __I in $(seq 0 $__N);do
+		__D="$__D $(JSON @.Domains.Domain[$__I].PunyCode)"
 	done
-	__TMP=`jsonfilter -s "$__TMP" -e "@.DomainRecords.Record[@]"`
+	for __I in $__D;do
+		if echo $domain | grep -wq $__I;then __DOMAIN=$__I;break;fi
+	done
+	if [ ! $__DOMAIN ];then
+		local A="$(date +%H%M%S) ERROR : [无效域名] - 终止进程"
+		logger -p user.err -t ddns-scripts[$$] $SECTION_ID: ${A:15}
+		printf "%s\n" " $A" >> $LOGFILE
+		exit 1
+	fi
+	__HOST=$(echo $domain | sed -e "s/$__DOMAIN//" -e 's/\.$//')
+	[ $__HOST ] || __HOST=@
+	ret=0
+	while ! aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=$__HOST.$__DOMAIN" "Type=$__TYPE";do sleep 2;done
+	__TMP=`JSON @.DomainRecords.Record[@]`
 	if [ -z "$__TMP" ];then
 		printf "%s\n" " $(date +%H%M%S)       : 解析记录不存在: [$([ "$__HOST" = @ ] || echo $__HOST.)$__DOMAIN]" >> $LOGFILE
 		ret=1
 	else
-		__STATUS=`jsonfilter -s "$__TMP" -e "@.Status"`
-		__RECIP=`jsonfilter -s "$__TMP" -e "@.Value"`
+		__STATUS=`JSON @.Status`
+		__RECIP=`JSON @.Value`
 		if [ "$__STATUS" != ENABLE ];then
 			printf "%s\n" " $(date +%H%M%S)       : 解析记录被禁用" >> $LOGFILE
 			ret=$(( $ret | 2 ))
 		fi
 		if [ "$__RECIP" != "$__IP" ];then
-			__TTL=`jsonfilter -s "$__TMP" -e "@.TTL"`
+			__TTL=`JSON @.TTL`
 			printf "%s\n" " $(date +%H%M%S)       : 解析记录需要更新: [解析记录IP:$__RECIP] [本地IP:$__IP]" >> $LOGFILE
 			ret=$(( $ret | 4 ))
 		fi
@@ -198,7 +204,7 @@ elif [ $ret = 1 ];then
 	sleep 3
 	add_domain
 else
-	__RECID=`jsonfilter -s "$__TMP" -e "@.RecordId"`
+	__RECID=`JSON @.RecordId`
 	[ $(( $ret & 2 )) -ne 0 ] && sleep 3 && enable_domain
 	[ $(( $ret & 4 )) -ne 0 ] && sleep 3 && update_domain
 fi

@@ -2,9 +2,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ddns-scripts-dnspod
 PKG_VERSION:=1.0.3
-PKG_RELEASE:=6
+PKG_RELEASE:=7
 
-PKG_LICENSE:=GPLv2
 PKG_MAINTAINER:=Small_5
 
 PKG_BUILD_PARALLEL:=1
@@ -17,7 +16,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=IP Addresses and Names
 	TITLE:=DDNS extension for Dnspod
 	PKGARCH:=all
-	DEPENDS:=+ddns-scripts +curl +jsonfilter +openssl-util
+	DEPENDS:=+ddns-scripts +curl +ddnsjson +openssl-util
 endef
 
 define Package/$(PKG_NAME)/description

@@ -10,15 +10,8 @@
 command -v openssl >/dev/null 2>&1 || write_log 13 "Openssl-util support is required to use Dnspod API, please install first"
 
 # 变量声明
-local __APIHOST __HOST __DOMAIN __TYPE __CMDBASE __POST __POST1 __POST2 __POST3 __RECIP __RECID __TTL __CNT __A
+local __TMP __N __I __D __APIHOST __HOST __DOMAIN __TYPE __CMDBASE __POST __POST1 __POST2 __POST3 __RECIP __RECID __TTL __CNT __A
 __APIHOST=dnspod.tencentcloudapi.com
-
-# 从 $domain 分离主机和域名
-[ "${domain:0:2}" = "@." ] && domain="${domain/./}" # 主域名处理
-[ "$domain" = "${domain/@/}" ] && domain="${domain/./@}" # 未找到分隔符，兼容常用域名格式
-__HOST="${domain%%@*}"
-__DOMAIN="${domain#*@}"
-[ -z "$__HOST" -o "$__HOST" = "$__DOMAIN" ] && __HOST=@
 
 # 设置记录类型
 [ $use_ipv6 = 0 ] && __TYPE=A || __TYPE=AAAA
@@ -72,10 +65,16 @@ URL(){
 	__A="$__CMDBASE '$1' $G -H 'X-TC-Action: $2' https://$__APIHOST"
 }
 
+# 处理JSON
+JSON(){
+	echo $(ddnsjson -k "$__TMP" -x "$1")
+}
+
 # 用于Dnspod API的通信函数
 dnspod_transfer(){
 	__CNT=0
 	case $1 in
+		0)URL "{}" DescribeDomainList;;
 		1)URL $__POST1 DescribeRecordList;;
 		2)URL $__POST2 CreateRecord;;
 		3)__POST3="${__POST2%\}*},\"RecordId\":$__RECID,\"TTL\":$__TTL}";URL $__POST3 ModifyRecord;;
@@ -96,13 +95,13 @@ dnspod_transfer(){
 		wait $PID_SLEEP
 		PID_SLEEP=0
 	done
-	__ERR=`jsonfilter -s "$__TMP" -e "@.Response.Error.Code"`
+	__ERR=`JSON @.Response.Error.Code`
 	[ $__ERR ] || return 0
 	case $__ERR in
 		ResourceNotFound.NoDataOfRecord)return 0;;
 		AuthFailure.SignatureExpire)printf "%s\n" " $(date +%H%M%S)       : 时间戳错误,2秒后重试" >> $LOGFILE && return 1;;
 		AuthFailure.SignatureFailure)__TMP="SecretKey错误,签名验证失败";;
-		*)__TMP=`jsonfilter -s "$__TMP" -e "@.Response.Error.Message"`;;
+		*)__TMP=`JSON @.Response.Error.Message`;;
 	esac
 	local A="$(date +%H%M%S) ERROR : [$__TMP] - 终止进程"
 	logger -p user.err -t ddns-scripts[$$] $SECTION_ID: ${A:15}
@@ -126,20 +125,36 @@ update_domain(){
 
 # 获取域名解析记录
 describe_domain(){
+	while ! dnspod_transfer 0;do sleep 2;done
+	let __N=`JSON @.Response.DomainCountInfo.DomainTotal`-1
+	for __I in $(seq 0 $__N);do
+		__D="$__D $(JSON @.Response.DomainList[$__I].Punycode)"
+	done
+	for __I in $__D;do
+		if echo $domain | grep -wq $__I;then __DOMAIN=$__I;break;fi
+	done
+	if [ ! $__DOMAIN ];then
+		local A="$(date +%H%M%S) ERROR : [无效域名] - 终止进程"
+		logger -p user.err -t ddns-scripts[$$] $SECTION_ID: ${A:15}
+		printf "%s\n" " $A" >> $LOGFILE
+		exit 1
+	fi
+	__HOST=$(echo $domain | sed -e "s/$__DOMAIN//" -e 's/\.$//')
+	[ $__HOST ] || __HOST=@
 	ret=0
 	__POST="{\"Domain\":\"$__DOMAIN\""
 	__POST1="$__POST,\"Subdomain\":\"$__HOST\"}"
 	__POST2="$__POST,\"SubDomain\":\"$__HOST\",\"Value\":\"$__IP\",\"RecordType\":\"$__TYPE\",\"RecordLine\":\"默认\"}"
 	while ! dnspod_transfer 1;do sleep 2;done
-	__TMP=`jsonfilter -s "$__TMP" -e "@.Response.RecordList[@.Type='$__TYPE' && @.Line='默认']"`
+	__TMP=`JSON "@.Response.RecordList[@.Type='$__TYPE' && @.Line='默认']"`
 	if [ -z "$__TMP" ];then
 		printf "%s\n" " $(date +%H%M%S)       : 解析记录不存在: [$([ "$__HOST" = @ ] || echo $__HOST.)$__DOMAIN]" >> $LOGFILE
 		ret=1
 	else
-		__RECIP=`jsonfilter -s "$__TMP" -e "@.Value"`
+		__RECIP=`JSON @.Value`
 		if [ "$__RECIP" != "$__IP" ];then
-			__RECID=`jsonfilter -s "$__TMP" -e "@.RecordId"`
-			__TTL=`jsonfilter -s "$__TMP" -e "@.TTL"`
+			__RECID=`JSON @.RecordId`
+			__TTL=`JSON @.TTL`
 			printf "%s\n" " $(date +%H%M%S)       : 解析记录需要更新: [解析记录IP:$__RECIP] [本地IP:$__IP]" >> $LOGFILE
 			ret=2
 		fi
