@@ -59,6 +59,59 @@
  		var tb = document.getElementById('aria2_status');
  		if (data && tb) {
 
+--- a/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
++++ b/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
+@@ -56,6 +56,18 @@
+ 		expect: {  }
+ 	}),
+ 
++	callReloadDDnsRule: rpc.declare({
++		object: 'luci.ddns',
++		method: 'reload_ddns_rule',
++		params: [ 'id' ]
++	}),
++
++	callStopDDnsRule: rpc.declare({
++		object: 'luci.ddns',
++		method: 'stop_ddns_rule',
++		params: [ 'id' ]
++	}),
++
+ 	services: {},
+ 
+ 	/*
+@@ -150,17 +162,14 @@
+ 	},
+ 
+ 	handleReloadDDnsRule: function(m, section_id, ev) {
+-		return fs.exec('/usr/lib/ddns/dynamic_dns_lucihelper.sh',
+-							[ '-S', section_id, '--', 'start' ])
+-			.then(L.bind(m.load, m))
+-			.then(L.bind(m.render, m))
++		return this.callReloadDDnsRule(section_id)
++			.then(L.bind(this.render, this))
+ 			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
+ 	},
+ 
+ 	HandleStopDDnsRule: function(m, section_id, ev) {
+-		return fs.exec('/usr/lib/ddns/dynamic_dns_lucihelper.sh',
+-							[ '-S', section_id, '--', 'start' ])
+-			.then(L.bind(m.render, m))
++		return this.callStopDDnsRule(section_id)
++			.then(L.bind(this.render, this))
+ 			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
+ 	},
+ 
+@@ -174,7 +183,7 @@
+ 
+ 	handleRestartDDns: function(m, ev) {
+ 		return this.callInitAction('ddns', 'restart')
+-			.then(L.bind(m.render, m));
++			.then(L.bind(this.render, this));
+ 	},
+ 
+ 	poll_status: function(map, data) {
+
 --- a/feeds/luci/applications/luci-app-ddns/po/zh_Hans/ddns.po
 +++ b/feeds/luci/applications/luci-app-ddns/po/zh_Hans/ddns.po
 @@ -603,7 +603,7 @@
@@ -120,6 +173,37 @@
  				-- no process running and NOT enabled
  				elseif pid == 0 and s['enabled'] == '0' then
  					next_update  = "Disabled"
+@@ -275,6 +282,18 @@
+ 
+ 			return res
+ 		end
++	},
++	reload_ddns_rule = {
++		args = { id = "" },
++		call = function(args)
++			return (sys.call( [[/usr/lib/ddns/dynamic_dns_lucihelper.sh -S ]]..args.id..[[ -- start &]] ) == 0)
++		end
++	},
++	stop_ddns_rule = {
++		args = { id = "" },
++		call = function(args)
++			return (sys.call( [[kill $(cat /tmp/run/ddns/]]..args.id..[[.pid) 2>/dev/null]] ) == 0)
++		end
+ 	}
+ }
+ 
+
+--- a/feeds/luci/applications/luci-app-ddns/root/usr/share/rpcd/acl.d/luci-app-ddns.json
++++ b/feeds/luci/applications/luci-app-ddns/root/usr/share/rpcd/acl.d/luci-app-ddns.json
+@@ -3,7 +3,7 @@
+ 		"description": "Grant access to ddns procedures",
+ 		"read": {
+ 			"ubus": {
+-				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log" ],
++				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log", "reload_ddns_rule", "stop_ddns_rule" ],
+ 				"luci": [ "setInitAction" ]
+ 			},
+ 			"file": {
 
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
@@ -221,7 +305,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1007,6 +1009,7 @@
+@@ -1012,6 +1014,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
@@ -865,7 +949,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/fatedier/frp.git
-+PKG_SOURCE_VERSION:=72a7fd948e83239c70f70571e12c5591bed7ba50
++PKG_SOURCE_VERSION:=0cee1877e36abbce9a0473c3c1da7e548c199621
 +
  PKG_NAME:=frp
 -PKG_VERSION:=0.37.0
@@ -899,11 +983,22 @@
 
 --- a/feeds/packages/net/https-dns-proxy/Makefile
 +++ b/feeds/packages/net/https-dns-proxy/Makefile
-@@ -8,7 +8,6 @@
+@@ -1,14 +1,13 @@
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=https-dns-proxy
+-PKG_VERSION:=2021-07-29
+-PKG_RELEASE:=2
++PKG_VERSION:=2021-09-28
++PKG_RELEASE:=1
+ 
+ PKG_SOURCE_PROTO:=git
  PKG_SOURCE_URL:=https://github.com/aarond10/https_dns_proxy/
- PKG_SOURCE_DATE:=2021-07-29
- PKG_SOURCE_VERSION:=750c4dbdfe3d3c65edcd57349df181ffd1f6ceeb
+-PKG_SOURCE_DATE:=2021-07-29
+-PKG_SOURCE_VERSION:=750c4dbdfe3d3c65edcd57349df181ffd1f6ceeb
 -PKG_MIRROR_HASH:=88f487d80f8f20b83d1f9940c30ad1d5b6a4eda6be48fbaea196c69e90c5429e
++PKG_SOURCE_DATE:=2021-09-28
++PKG_SOURCE_VERSION:=da2501f542a732167a78f1851a511d9c0abc2fd8
  PKG_MAINTAINER:=Stan Grishin <stangri@melmac.net>
  PKG_LICENSE:=MIT
  PKG_LICENSE_FILES:=LICENSE
@@ -1294,7 +1389,7 @@
 @@ -1,18 +1,24 @@
  include $(TOPDIR)/rules.mk
 +PKG_SOURCE_URL:=https://github.com/XTLS/Xray-core.git
-+PKG_SOURCE_VERSION:=9f9059c7b1fe6312d6eb6a46e1199524a8d32bf6
++PKG_SOURCE_VERSION:=a97d45c93a100bbdc9d42353791fb73b1add1780
  
  PKG_NAME:=xray-core
 -PKG_VERSION:=1.4.5
@@ -1476,16 +1571,16 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/zerotier/ZeroTierOne.git
-+PKG_SOURCE_VERSION:=19f3a97a8de0dd9a4d5b29b57147e41c46672de3
++PKG_SOURCE_VERSION:=190e9464ce5db59e30ff21fdfff4d3f2f5a4a380
  PKG_NAME:=zerotier
--PKG_VERSION:=1.6.5
+-PKG_VERSION:=1.6.6
 +PKG_VERSION:=1.6.6_git-$(PKG_SOURCE_VERSION)
  PKG_RELEASE:=1
 -
 +PKG_SOURCE_PROTO:=git
  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 -PKG_SOURCE_URL:=https://codeload.github.com/zerotier/ZeroTierOne/tar.gz/$(PKG_VERSION)?
--PKG_HASH:=a437ec9e8a4987ed48c0e5af3895a057dcc0307ab38af90dd7729a131097f222
+-PKG_HASH:=6c95ffca4a64bf948abbf3e550a0c4881b17cf45ff2f55e2a389d095f9be81a5
 -PKG_BUILD_DIR:=$(BUILD_DIR)/ZeroTierOne-$(PKG_VERSION)
 +PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
  
@@ -1565,7 +1660,29 @@
  
  #: protocols/luci-proto-bonding/htdocs/luci-static/resources/protocol/bonding.js:205
  msgid "Active-Backup policy (active-backup, 1)"
-@@ -6912,6 +6912,10 @@
+@@ -868,6 +868,10 @@
+ msgid "Automatically check filesystem for errors before mounting"
+ msgstr "在挂载前自动检查文件系统错误"
+ 
++#: modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js:956
++msgid "Automatically handle multiple uplink interfaces using source-based policy routing."
++msgstr "使用基于源的策略路由自动处理多个上行接口"
++
+ #: modules/luci-mod-system/htdocs/luci-static/resources/view/system/mounts.js:170
+ msgid "Automatically mount filesystems on hotplug"
+ msgstr "通过热插拔事件自动挂载磁盘"
+@@ -3261,6 +3265,10 @@
+ msgid "IPv6 routed prefix"
+ msgstr "IPv6 路由前缀"
+ 
++#: modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js:956
++msgid "IPv6 source routing"
++msgstr "IPv6 源路由"
++
+ #: modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js:1003
+ msgid "IPv6 suffix"
+ msgstr "IPv6 后缀"
+@@ -6912,6 +6920,10 @@
  msgid "Target network"
  msgstr "目标网络"
  
