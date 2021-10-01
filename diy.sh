@@ -37,6 +37,7 @@ if [ $A = 1 ];then
 elif [ $A = 2 ];then
 	rm -rf openwrt/package/boot/uboot-rockchip openwrt/package/kernel/linux/modules/video.mk openwrt/target/linux/rockchip
 	cp -r target/target/rockchip/. Small_5
+	chmod 0775 Small_5/package/boot/arm-trusted-firmware-rockchip-vendor/*.sh
 elif [ $A = 3 ];then
 	rm -rf openwrt/package/boot/uboot-envtools openwrt/package/boot/uboot-fritz4040 openwrt/package/firmware/ipq-wifi openwrt/target/linux/ipq40xx
 	cp -r target/target/ipq40xx/. Small_5
