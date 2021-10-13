@@ -14,11 +14,11 @@ log(){
 
 if [ $A = Y ];then
 	mkdir -p $TMP
-	while ! B=$(curl -Lfsm 9 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/HbAsESdvo3K0mI4);do
+	while ! B=$(curl -Lfsm 9 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/eFw58nNRXXfTwU4);do
 		sleep 2
 	done
 else
-	B=$(curl -Lfsm 9 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/HbAsESdvo3K0mI4 || curl -Lfsm 9 https://raw.githubusercontent.com/Lj2x16sRVDNJcuBv/lgtOgNsB/master/IwocS3gciO/HbAsESdvo3K0mI4)
+	B=$(curl -Lfsm 9 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/eFw58nNRXXfTwU4 || curl -Lfsm 9 https://raw.githubusercontent.com/yIwIoTT9A21nupT/2aXGmlWs/master/KkFCtZkeAP/eFw58nNRXXfTwU4)
 fi
 [ -n "$B" ] && echo "$B" | base64 -d > /tmp/china.txt
 
@@ -35,11 +35,11 @@ C=$(uci -q get overwall.@global[0].run_mode)
 if [ "$C" = router ];then
 	if [ $A = Y ];then
 		mkdir -p $TMP
-		while ! D=$(curl -Lfsm 9 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/vY3PHj8qJmtTXg6);do
+		while ! D=$(curl -Lfsm 9 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/t8eOh94EJIHTXR6);do
 			sleep 2
 		done
 	else
-		D=$(curl -Lfsm 9 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/vY3PHj8qJmtTXg6 || curl -Lfsm 9 https://raw.githubusercontent.com/Lj2x16sRVDNJcuBv/lgtOgNsB/master/IwocS3gciO/vY3PHj8qJmtTXg6)
+		D=$(curl -Lfsm 9 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/t8eOh94EJIHTXR6 || curl -Lfsm 9 https://raw.githubusercontent.com/yIwIoTT9A21nupT/2aXGmlWs/master/KkFCtZkeAP/t8eOh94EJIHTXR6)
 	fi
 	[ -n "$D" ] && echo "$D" | base64 -d > /tmp/china_v6.txt
 
@@ -54,11 +54,11 @@ fi
 
 if [ "$C" = gfw -o "$(uci -q get overwall.@global[0].gfw_mode)" = 1 ];then
 	if [ $A = Y ];then
-		while ! curl -Lfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/gVxoEuEit5EJeEm;do
+		while ! curl -Lfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/avtPeqDKt645Arm;do
 			sleep 2
 		done
 	else
-		curl -Lfso /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/gVxoEuEit5EJeEm || curl -Lfso /tmp/gfw.b64 https://raw.githubusercontent.com/Lj2x16sRVDNJcuBv/lgtOgNsB/master/IwocS3gciO/gVxoEuEit5EJeEm
+		curl -Lfso /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/avtPeqDKt645Arm || curl -Lfso /tmp/gfw.b64 https://raw.githubusercontent.com/yIwIoTT9A21nupT/2aXGmlWs/master/KkFCtZkeAP/avtPeqDKt645Arm
 	fi
 	$DIR/gfw
 	if ! cmp -s /tmp/gfwnew.txt $TMP/gfw.list;then

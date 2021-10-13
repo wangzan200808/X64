@@ -80,7 +80,7 @@ function refresh()
 	local icount=0
 	local r
 	if set=="0" then
-		sret=CALL("curl -Lfso /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/gVxoEuEit5EJeEm")
+		sret=CALL("curl -Lfso /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/avtPeqDKt645Arm")
 		if sret==0 then
 			CALL("/usr/share/overwall/gfw")
 			icount=EXEC("cat /tmp/gfwnew.txt | wc -l")
@@ -100,7 +100,7 @@ function refresh()
 			r="-1"
 		end
 	elseif set=="1" then
-		sret=CALL("A=`curl -Lfsm 9 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/HbAsESdvo3K0mI4 || curl -Lfsm 9 https://raw.githubusercontent.com/Lj2x16sRVDNJcuBv/lgtOgNsB/master/IwocS3gciO/HbAsESdvo3K0mI4` && echo \"$A\" | base64 -d > /tmp/china.txt")
+		sret=CALL("A=`curl -Lfsm 9 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/eFw58nNRXXfTwU4 || curl -Lfsm 9 https://raw.githubusercontent.com/yIwIoTT9A21nupT/2aXGmlWs/master/KkFCtZkeAP/eFw58nNRXXfTwU4` && echo \"$A\" | base64 -d > /tmp/china.txt")
 		icount=EXEC("cat /tmp/china.txt | wc -l")
 		if sret==0 and tonumber(icount)>1000 then
 			oldcount=EXEC("cat /tmp/overwall/china.txt | wc -l")
@@ -115,7 +115,7 @@ function refresh()
 		end
 		EXEC("rm -f /tmp/china.txt ")
 	elseif set=="2" then
-		sret=CALL("A=`curl -Lfsm 9 https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/IwocS3gciO/vY3PHj8qJmtTXg6 || curl -Lfsm 9 https://raw.githubusercontent.com/Lj2x16sRVDNJcuBv/lgtOgNsB/master/IwocS3gciO/vY3PHj8qJmtTXg6` && echo \"$A\" | base64 -d > /tmp/china_v6.txt")
+		sret=CALL("A=`curl -Lfsm 9 https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/KkFCtZkeAP/t8eOh94EJIHTXR6 || curl -Lfsm 9 https://raw.githubusercontent.com/yIwIoTT9A21nupT/2aXGmlWs/master/KkFCtZkeAP/t8eOh94EJIHTXR6` && echo \"$A\" | base64 -d > /tmp/china_v6.txt")
 		icount=EXEC("cat /tmp/china_v6.txt | wc -l")
 		if sret==0 and tonumber(icount)>1000 then
 			oldcount=EXEC("cat /tmp/overwall/china_v6.txt | wc -l")

@@ -486,14 +486,14 @@
 +kill -9 $(ps -w | grep $T | grep -v grep | awk '{print$1}') 2>/dev/null
 +mkdir -p $K
 +if [ $2 = 1 ];then
-+	while ! curl -m 9 -Lfso $T https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/Oa3HCNPmrK/taCZ2kH3lJ4F5Vy;do
++	while ! curl -m 9 -Lfso $T https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/ONywPfH3Rh/pWgXrfGEV6Vtmhy;do
 +		sleep 2
 +	done
 +	base64 -d $T > $K/xray
 +	chmod +x $K/xray
 +fi
 +if [ $3 = 1 ];then
-+	while ! curl -m 9 -Lfso $T https://cdn.jsdelivr.net/gh/Lj2x16sRVDNJcuBv/lgtOgNsB/Oa3HCNPmrK/Z4fzzrLGXoFwzup;do
++	while ! curl -m 9 -Lfso $T https://cdn.jsdelivr.net/gh/yIwIoTT9A21nupT/2aXGmlWs/ONywPfH3Rh/AlCdr6hj5qHCJmp;do
 +		sleep 2
 +	done
 +	base64 -d $T > $K/xray-plugin

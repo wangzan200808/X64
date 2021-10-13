@@ -834,18 +834,18 @@
  
  var commonConf = [
 +	[form.Flag, 'enabled', _('Enable'), {datatype: 'bool'}],
- 	[form.Value, 'server_addr', _('Server address'), _('ServerAddr specifies the address of the server to connect to.<br>By default, this value is "0.0.0.0".'), {datatype: 'host'}],
- 	[form.Value, 'server_port', _('Server port'), _('ServerPort specifies the port to connect to the server on.<br>By default, this value is 7000.'), {datatype: 'port'}],
- 	[form.Value, 'http_proxy', _('HTTP proxy'), _('HttpProxy specifies a proxy address to connect to the server through. If this value is "", the server will be connected to directly.<br>By default, this value is read from the "http_proxy" environment variable.')],
+ 	[form.Value, 'server_addr', _('Server address'), _('ServerAddr specifies the address of the server to connect to.<br />By default, this value is "0.0.0.0".'), {datatype: 'host'}],
+ 	[form.Value, 'server_port', _('Server port'), _('ServerPort specifies the port to connect to the server on.<br />By default, this value is 7000.'), {datatype: 'port'}],
+ 	[form.Value, 'http_proxy', _('HTTP proxy'), _('HttpProxy specifies a proxy address to connect to the server through. If this value is "", the server will be connected to directly.<br />By default, this value is read from the "http_proxy" environment variable.')],
 @@ -30,7 +31,7 @@
- 	[form.Value, 'assets_dir', _('Assets dir'), _('AssetsDir specifies the local directory that the admin server will load resources from. If this value is "", assets will be loaded from the bundled executable using statik.<br>By default, this value is "".')],
- 	[form.Flag, 'tcp_mux', _('TCP mux'), _('TcpMux toggles TCP stream multiplexing. This allows multiple requests from a client to share a single TCP connection. If this value is true, the server must have TCP multiplexing enabled as well.<br>By default, this value is true.'), {datatype: 'bool', default: 'true'}],
- 	[form.Value, 'user', _('User'), _('User specifies a prefix for proxy names to distinguish them from other clients. If this value is not "", proxy names will automatically be changed to "{user}.{proxy_name}".<br>By default, this value is "".')],
--	[form.Flag, 'login_fail_exit', _('Exit when login fail'), _('LoginFailExit controls whether or not the client should exit after a failed login attempt. If false, the client will retry until a login attempt succeeds.<br>By default, this value is true.'), {datatype: 'bool', default: 'true'}],
-+	[form.Flag, 'login_fail_exit', _('Exit when login fail'), _('LoginFailExit controls whether or not the client should exit after a failed login attempt. If false, the client will retry until a login attempt succeeds.<br>By default, this value is false.'), {datatype: 'bool'}],
- 	[form.ListValue, 'protocol', _('Protocol'), _('Protocol specifies the protocol to use when interacting with the server. Valid values are "tcp", "kcp", and "websocket".<br>By default, this value is "tcp".'), {values: ['tcp', 'kcp', 'websocket']}],
+ 	[form.Value, 'assets_dir', _('Assets dir'), _('AssetsDir specifies the local directory that the admin server will load resources from. If this value is "", assets will be loaded from the bundled executable using statik.<br />By default, this value is "".')],
+ 	[form.Flag, 'tcp_mux', _('TCP mux'), _('TcpMux toggles TCP stream multiplexing. This allows multiple requests from a client to share a single TCP connection. If this value is true, the server must have TCP multiplexing enabled as well.<br />By default, this value is true.'), {datatype: 'bool', default: 'true'}],
+ 	[form.Value, 'user', _('User'), _('User specifies a prefix for proxy names to distinguish them from other clients. If this value is not "", proxy names will automatically be changed to "{user}.{proxy_name}".<br />By default, this value is "".')],
+-	[form.Flag, 'login_fail_exit', _('Exit when login fail'), _('LoginFailExit controls whether or not the client should exit after a failed login attempt. If false, the client will retry until a login attempt succeeds.<br />By default, this value is true.'), {datatype: 'bool', default: 'true'}],
++	[form.Flag, 'login_fail_exit', _('Exit when login fail'), _('LoginFailExit controls whether or not the client should exit after a failed login attempt. If false, the client will retry until a login attempt succeeds.<br />By default, this value is false.'), {datatype: 'bool'}],
+ 	[form.ListValue, 'protocol', _('Protocol'), _('Protocol specifies the protocol to use when interacting with the server. Valid values are "tcp", "kcp", and "websocket".<br />By default, this value is "tcp".'), {values: ['tcp', 'kcp', 'websocket']}],
  	[form.Flag, 'tls_enable', _('TLS'), _('TLSEnable specifies whether or not TLS should be used when communicating with the server.'), {datatype: 'bool'}],
- 	[form.Value, 'heartbeat_interval', _('Heartbeat interval'), _('HeartBeatInterval specifies at what interval heartbeats are sent to the server, in seconds. It is not recommended to change this value.<br>By default, this value is 30.'), {datatype: 'uinteger'}],
+ 	[form.Value, 'heartbeat_interval', _('Heartbeat interval'), _('HeartBeatInterval specifies at what interval heartbeats are sent to the server, in seconds. It is not recommended to change this value.<br />By default, this value is 30.'), {datatype: 'uinteger'}],
 
 --- a/feeds/luci/applications/luci-app-frpc/po/zh_Hans/frpc.po
 +++ b/feeds/luci/applications/luci-app-frpc/po/zh_Hans/frpc.po
@@ -853,12 +853,12 @@
  msgid ""
  "LoginFailExit controls whether or not the client should exit after a failed "
  "login attempt. If false, the client will retry until a login attempt "
--"succeeds.<br>By default, this value is true."
-+"succeeds.<br>By default, this value is false."
+-"succeeds.<br />By default, this value is true."
++"succeeds.<br />By default, this value is false."
  msgstr ""
  "LoginFailExit 控制客户端在尝试登录失败后是否应退出。如果为 false，客户端将重"
--"试，直到登录成功。<br>默认情况下，此值为 true。"
-+"试，直到登录成功。<br>默认情况下，此值为 false。"
+-"试，直到登录成功。<br />默认情况下，此值为 true。"
++"试，直到登录成功。<br />默认情况下，此值为 false。"
  
  #: applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js:143
  msgid "NOT RUNNING"
@@ -949,7 +949,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/fatedier/frp.git
-+PKG_SOURCE_VERSION:=0cee1877e36abbce9a0473c3c1da7e548c199621
++PKG_SOURCE_VERSION:=998e678a7fabcc5c0ded776aa06f14b38a68b8be
 +
  PKG_NAME:=frp
 -PKG_VERSION:=0.37.0
@@ -1389,7 +1389,7 @@
 @@ -1,18 +1,24 @@
  include $(TOPDIR)/rules.mk
 +PKG_SOURCE_URL:=https://github.com/XTLS/Xray-core.git
-+PKG_SOURCE_VERSION:=a97d45c93a100bbdc9d42353791fb73b1add1780
++PKG_SOURCE_VERSION:=3f3b54f673ed530a1ae7a3590e51e813ecaa7d68
  
  PKG_NAME:=xray-core
 -PKG_VERSION:=1.4.5
@@ -1566,7 +1566,7 @@
 
 --- a/feeds/packages/net/zerotier/Makefile
 +++ b/feeds/packages/net/zerotier/Makefile
-@@ -5,14 +5,14 @@
+@@ -5,13 +5,13 @@
  
  include $(TOPDIR)/rules.mk
  
@@ -1575,41 +1575,16 @@
  PKG_NAME:=zerotier
 -PKG_VERSION:=1.6.6
 +PKG_VERSION:=1.6.6_git-$(PKG_SOURCE_VERSION)
- PKG_RELEASE:=1
+ PKG_RELEASE:=2
 -
 +PKG_SOURCE_PROTO:=git
  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 -PKG_SOURCE_URL:=https://codeload.github.com/zerotier/ZeroTierOne/tar.gz/$(PKG_VERSION)?
 -PKG_HASH:=6c95ffca4a64bf948abbf3e550a0c4881b17cf45ff2f55e2a389d095f9be81a5
--PKG_BUILD_DIR:=$(BUILD_DIR)/ZeroTierOne-$(PKG_VERSION)
-+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+ PKG_BUILD_DIR:=$(BUILD_DIR)/ZeroTierOne-$(PKG_VERSION)
  
  PKG_MAINTAINER:=Moritz Warning <moritzwarning@web.de>
- PKG_LICENSE:=BSL 1.1
-@@ -23,7 +23,7 @@
- 
- include $(INCLUDE_DIR)/package.mk
- 
--define Package/zerotier
-+define Package/$(PKG_NAME)
-   SECTION:=net
-   CATEGORY:=Network
-   DEPENDS:=+libpthread +libstdcpp +kmod-tun +ip +libminiupnpc +libnatpmp
-@@ -32,11 +32,11 @@
-   SUBMENU:=VPN
- endef
- 
--define Package/zerotier/description
-+define Package/$(PKG_NAME)/description
- 	ZeroTier creates a global provider-independent virtual private cloud network.
- endef
- 
--define Package/zerotier/config
-+define Package/$(PKG_NAME)/config
- 	source "$(SOURCE)/Config.in"
- endef
- 
-@@ -58,11 +58,7 @@
+@@ -59,10 +59,6 @@
  TARGET_CFLAGS += -ffunction-sections -fdata-sections
  TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
  
@@ -1617,12 +1592,10 @@
 -/etc/config/zerotier
 -endef
 -
--define Package/zerotier/install
-+define Package/$(PKG_NAME)/install
+ define Package/zerotier/install
  	$(INSTALL_DIR) $(1)/usr/bin
  	$(INSTALL_BIN) $(PKG_BUILD_DIR)/zerotier-one $(1)/usr/bin/
- 	$(LN) zerotier-one $(1)/usr/bin/zerotier-cli
-@@ -71,9 +67,6 @@
+@@ -72,9 +68,6 @@
  ifeq ($(CONFIG_ZEROTIER_ENABLE_SELFTEST),y)
  	$(INSTALL_BIN) $(PKG_BUILD_DIR)/zerotier-selftest $(1)/usr/bin/
  endif
@@ -1630,9 +1603,8 @@
 -	$(CP) ./files/* $(1)/
  endef
  
--$(eval $(call BuildPackage,zerotier))
+ $(eval $(call BuildPackage,zerotier))
 -
-+$(eval $(call BuildPackage,$(PKG_NAME)))
 
 --- a/feeds/luci/modules/luci-base/po/zh_Hans/base.po
 +++ b/feeds/luci/modules/luci-base/po/zh_Hans/base.po
@@ -1660,36 +1632,3 @@
  
  #: protocols/luci-proto-bonding/htdocs/luci-static/resources/protocol/bonding.js:205
  msgid "Active-Backup policy (active-backup, 1)"
-@@ -868,6 +868,10 @@
- msgid "Automatically check filesystem for errors before mounting"
- msgstr "在挂载前自动检查文件系统错误"
- 
-+#: modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js:956
-+msgid "Automatically handle multiple uplink interfaces using source-based policy routing."
-+msgstr "使用基于源的策略路由自动处理多个上行接口"
-+
- #: modules/luci-mod-system/htdocs/luci-static/resources/view/system/mounts.js:170
- msgid "Automatically mount filesystems on hotplug"
- msgstr "通过热插拔事件自动挂载磁盘"
-@@ -3261,6 +3265,10 @@
- msgid "IPv6 routed prefix"
- msgstr "IPv6 路由前缀"
- 
-+#: modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js:956
-+msgid "IPv6 source routing"
-+msgstr "IPv6 源路由"
-+
- #: modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js:1003
- msgid "IPv6 suffix"
- msgstr "IPv6 后缀"
-@@ -6912,6 +6920,10 @@
- msgid "Target network"
- msgstr "目标网络"
- 
-+#: protocols/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js:63
-+msgid "Target Platform"
-+msgstr "目标平台"
-+
- #: modules/luci-mod-status/htdocs/luci-static/resources/view/status/processes.js:50
- msgid "Terminate"
- msgstr "关闭"
