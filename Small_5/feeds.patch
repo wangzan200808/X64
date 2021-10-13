@@ -1566,7 +1566,7 @@
 
 --- a/feeds/packages/net/zerotier/Makefile
 +++ b/feeds/packages/net/zerotier/Makefile
-@@ -5,13 +5,13 @@
+@@ -5,14 +5,14 @@
  
  include $(TOPDIR)/rules.mk
  
@@ -1581,9 +1581,11 @@
  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 -PKG_SOURCE_URL:=https://codeload.github.com/zerotier/ZeroTierOne/tar.gz/$(PKG_VERSION)?
 -PKG_HASH:=6c95ffca4a64bf948abbf3e550a0c4881b17cf45ff2f55e2a389d095f9be81a5
- PKG_BUILD_DIR:=$(BUILD_DIR)/ZeroTierOne-$(PKG_VERSION)
+-PKG_BUILD_DIR:=$(BUILD_DIR)/ZeroTierOne-$(PKG_VERSION)
++PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
  
  PKG_MAINTAINER:=Moritz Warning <moritzwarning@web.de>
+ PKG_LICENSE:=BSL 1.1
 @@ -59,10 +59,6 @@
  TARGET_CFLAGS += -ffunction-sections -fdata-sections
  TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
