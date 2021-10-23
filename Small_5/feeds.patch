@@ -949,7 +949,7 @@
  include $(TOPDIR)/rules.mk
  
 +PKG_SOURCE_URL:=https://github.com/fatedier/frp.git
-+PKG_SOURCE_VERSION:=998e678a7fabcc5c0ded776aa06f14b38a68b8be
++PKG_SOURCE_VERSION:=f1a51eba18a85649122006289f5ac9c8a62b8c6e
 +
  PKG_NAME:=frp
 -PKG_VERSION:=0.37.0
@@ -983,26 +983,17 @@
 
 --- a/feeds/packages/net/https-dns-proxy/Makefile
 +++ b/feeds/packages/net/https-dns-proxy/Makefile
-@@ -1,14 +1,13 @@
- include $(TOPDIR)/rules.mk
- 
- PKG_NAME:=https-dns-proxy
--PKG_VERSION:=2021-07-29
--PKG_RELEASE:=2
-+PKG_VERSION:=2021-09-28
-+PKG_RELEASE:=1
+@@ -6,9 +6,7 @@
  
  PKG_SOURCE_PROTO:=git
  PKG_SOURCE_URL:=https://github.com/aarond10/https_dns_proxy/
--PKG_SOURCE_DATE:=2021-07-29
--PKG_SOURCE_VERSION:=750c4dbdfe3d3c65edcd57349df181ffd1f6ceeb
--PKG_MIRROR_HASH:=88f487d80f8f20b83d1f9940c30ad1d5b6a4eda6be48fbaea196c69e90c5429e
-+PKG_SOURCE_DATE:=2021-09-28
-+PKG_SOURCE_VERSION:=da2501f542a732167a78f1851a511d9c0abc2fd8
+-PKG_SOURCE_DATE:=2021-09-27
+ PKG_SOURCE_VERSION:=da2501f542a732167a78f1851a511d9c0abc2fd8
+-PKG_MIRROR_HASH:=62c01f896947b9c285eb44dc1cede17ccd4dcb9c97136c99f3fe2e91a09aeaaf
  PKG_MAINTAINER:=Stan Grishin <stangri@melmac.net>
  PKG_LICENSE:=MIT
  PKG_LICENSE_FILES:=LICENSE
-@@ -33,17 +32,9 @@
+@@ -33,17 +31,9 @@
  Please see https://docs.openwrt.melmac.net/https-dns-proxy/ for more information.
  endef
  
@@ -1144,7 +1135,7 @@
 @@ -2,7 +2,7 @@
  
  PKG_NAME:=ksmbd-tools
- PKG_VERSION:=3.4.1
+ PKG_VERSION:=3.4.2
 -PKG_RELEASE:=1
 +PKG_RELEASE:=2
  
@@ -1389,12 +1380,12 @@
 @@ -1,18 +1,24 @@
  include $(TOPDIR)/rules.mk
 +PKG_SOURCE_URL:=https://github.com/XTLS/Xray-core.git
-+PKG_SOURCE_VERSION:=3f3b54f673ed530a1ae7a3590e51e813ecaa7d68
++PKG_SOURCE_VERSION:=7038bded7bf77317f7be970c25c70f09aa4d75f0
  
  PKG_NAME:=xray-core
 -PKG_VERSION:=1.4.5
 -PKG_RELEASE:=$(AUTORELEASE)
-+PKG_VERSION:=1.4.5_git-$(PKG_SOURCE_VERSION)
++PKG_VERSION:=1.5.0_git-$(PKG_SOURCE_VERSION)
 +PKG_RELEASE:=1
  
 +PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
