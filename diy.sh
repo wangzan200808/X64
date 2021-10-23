@@ -20,6 +20,7 @@ case "$OP_TARGET" in
 	AC58U)path="AC58U";A=3;;
 	ACRH17)path="ACRH17";A=3;;
 	R619AC-128M)path="R619AC-128M";A=3;;
+	NANOPI-NEO2)path="NANOPI-NEO2";;
 	*)echo "No adaptation target!";exit 1;;
 esac
 cp -r target/$path/. Small_5

@@ -14,8 +14,8 @@ endef
 
 define Package/autocore-arm
 	TITLE:=ARM auto core loadbalance script.
-	DEPENDS:=@(TARGET_bcm27xx||TARGET_bcm53xx||TARGET_ipq40xx||TARGET_ipq806x||TARGET_mvebu||TARGET_rockchip) \
-		+TARGET_rockchip:ethtool +TARGET_bcm27xx:bcm27xx-userland +TARGET_bcm53xx:nvram
+	DEPENDS:=@(TARGET_bcm27xx||TARGET_bcm53xx||TARGET_ipq40xx||TARGET_ipq806x||TARGET_mvebu||TARGET_rockchip||TARGET_sunxi) \
+		+(TARGET_rockchip||TARGET_sunxi):ethtool +TARGET_bcm27xx:bcm27xx-userland +TARGET_bcm53xx:nvram
 endef
 
 define Package/autocore/description
