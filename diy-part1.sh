@@ -19,4 +19,4 @@
 sed -i '$a src-git https://github.com/kenzok8/small-package' feeds.conf.default
 
 #添加overwall
-git clone https://github.com/wangzan200808/luci-app-overwall.git package/overwall
+git clone https://github.com/wangzan200808/luci-app-overwall package/overwall
