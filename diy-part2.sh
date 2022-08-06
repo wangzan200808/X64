@@ -12,3 +12,6 @@
 
 # Modify default IP
 sed -i 's/192.168.1.1/10.0.0.1/g' package/base-files/files/bin/config_generate
+
+#添加overwall
+git clone https://github.com/wangzan200808/luci-app-overwall package/overwall
