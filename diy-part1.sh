@@ -17,6 +17,3 @@
 #echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.default
 #echo 'src-git passwall https://github.com/xiaorouji/openwrt-passwall' >>feeds.conf.default
 sed -i '$a src-git https://github.com/kenzok8/small-package' feeds.conf.default
-
-#添加overwall
-git clone https://github.com/wangzan200808/luci-app-overwall package/overwall
