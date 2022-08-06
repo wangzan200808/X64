@@ -19,3 +19,4 @@
 #sed -i '$a src-git-all https://github.com/kenzok8/small-package' feeds.conf.default
 #git clone https://github.com/wangzan200808/packages package/wangzan200808
 git clone https://github.com/kenzok8/small-package package/small-package
+git clone https://github.com/wangzan200808/luci-app-overwall package/overwall
