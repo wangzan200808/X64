@@ -18,4 +18,3 @@
 #echo 'src-git passwall https://github.com/xiaorouji/openwrt-passwall' >>feeds.conf.default
 sed -i '$a src-git kenzo https://github.com/kenzok8/openwrt-packages' feeds.conf.default
 git clone https://github.com/wangzan200808/packages package/wangzan200808
-git clone https://github.com/wangzan200808/luci-app-overwall package/overwall
