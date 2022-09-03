@@ -61,7 +61,7 @@ cat > version.patch  <<EOF
 +OPENWRT_RELEASE="%D $VERSION By Small_5 %C"
 EOF
 
-patch -p1 -E < ./Small_5/default.patch && patch -p1 -E < feeds.patch && patch -p1 -E < version.patch && rm -f default.patch feeds.patch version.patch
+patch -p1 -E < Small_5/default.patch && patch -p1 -E < feeds.patch && patch -p1 -E < version.patch && rm -f default.patch feeds.patch version.patch
 for i in $(find -maxdepth 1 -name 'Patch-*.patch' | sed 's#.*/##');do
 	patch -p1 -E < $i
 done
