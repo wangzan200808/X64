@@ -14,33 +14,6 @@
 sed -i 's/192.168.1.1/10.0.0.1/g' package/base-files/files/bin/config_generate
 
 VERSION="V3.3.0-12"
-A=0
-[ -n "$OP_TARGET" ] || OP_TARGET="X64"
-case "$OP_TARGET" in
-	X64)path="X64";;
-	*)echo "No adaptation target!";exit 1;;
-esac
-cp -r target/$path/. Small_5
-
-if [ $A = 1 ];then
-	rm -rf openwrt/target/linux/ramips
-	cp -r target/target/ramips/. Small_5
-	chmod 0775 Small_5/target/linux/ramips/mt76x8/base-files/etc/init.d/* Small_5/target/linux/ramips/mt76x8/base-files/lib/upgrade/*
-	chmod 0775 Small_5/target/linux/ramips/mt7620/base-files/etc/init.d/* Small_5/target/linux/ramips/mt7620/base-files/lib/upgrade/*
-	chmod 0775 Small_5/target/linux/ramips/mt7621/base-files/etc/init.d/* Small_5/target/linux/ramips/mt7621/base-files/lib/upgrade/platform.sh Small_5/target/linux/ramips/mt7621/base-files/sbin/*
-	chmod 0755 Small_5/target/linux/ramips/rt288x/base-files/lib/upgrade/*
-	chmod 0755 Small_5/target/linux/ramips/rt305x/base-files/lib/upgrade/*
-	chmod 0755 Small_5/target/linux/ramips/rt3883/base-files/lib/upgrade/*
-	[ "$B" = 1 ] && rm -f Small_5/Patch-K2P-32M.patch
-elif [ $A = 2 ];then
-	rm -rf openwrt/package/boot/uboot-rockchip openwrt/package/kernel/linux/modules/video.mk openwrt/target/linux/rockchip
-	cp -r target/target/rockchip/. Small_5
-	chmod 0775 Small_5/package/boot/arm-trusted-firmware-rockchip-vendor/*.sh
-elif [ $A = 3 ];then
-	rm -rf openwrt/package/boot/uboot-envtools openwrt/package/boot/uboot-fritz4040 openwrt/package/firmware/ipq-wifi openwrt/target/linux/ipq40xx
-	cp -r target/target/ipq40xx/. Small_5
-	chmod 0775 Small_5/target/linux/ipq40xx/base-files/etc/init.d/* Small_5/target/linux/ipq40xx/base-files/lib/upgrade/*
-fi
 
 cp -r Small_5/. openwrt
 rm -rf Openwrt_Custom Small_5 target README.md
