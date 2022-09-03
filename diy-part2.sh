@@ -15,7 +15,6 @@ sed -i 's/192.168.1.1/10.0.0.1/g' package/base-files/files/bin/config_generate
 
 VERSION="V3.3.3"
 
-cp -r Small_5/. openwrt
 
 cat > version.patch  <<EOF
 --- a/package/base-files/files/etc/banner
