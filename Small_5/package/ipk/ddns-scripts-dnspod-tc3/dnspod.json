@@ -1,9 +1,0 @@
-{
-	"name": "dnspod",
-	"ipv4": {
-		"url": "update_dnspod.sh"
-	},
-	"ipv6": {
-		"url": "update_dnspod.sh"
-	}
-}

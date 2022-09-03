@@ -1,8 +1,0 @@
-
-config base
-	option enabled '0'
-	option url 'https://dns.alidns.com/dns-query'
-	option dns '223.5.5.5,223.6.6.6'
-	option mode '1'
-	option ipv4 '0'
-
