@@ -13,9 +13,8 @@
 # Modify default IP
 sed -i 's/192.168.1.1/10.0.0.1/g' package/base-files/files/bin/config_generate
 
-VERSION="V3.3.0-12"
+VERSION="V3.3.3"
 
-cd openwrt
 
 cat > version.patch  <<EOF
 --- a/package/base-files/files/etc/banner
@@ -62,7 +61,7 @@ cat > version.patch  <<EOF
 +OPENWRT_RELEASE="%D $VERSION By Small_5 %C"
 EOF
 
-patch -p1 -E < default.patch && patch -p1 -E < feeds.patch && patch -p1 -E < version.patch && rm -f default.patch feeds.patch version.patch
+patch -p1 -E < ./Small_5/default.patch && patch -p1 -E < feeds.patch && patch -p1 -E < version.patch && rm -f default.patch feeds.patch version.patch
 for i in $(find -maxdepth 1 -name 'Patch-*.patch' | sed 's#.*/##');do
 	patch -p1 -E < $i
 done
