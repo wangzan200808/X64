@@ -10,7 +10,7 @@
 # Description: OpenWrt DIY script part 2 (After Update feeds)
 #
 
-VERSION="V3.3.3"
+VERSION="V3.4"
 
 
 cat > version.patch  <<EOF
@@ -29,12 +29,12 @@ cat > version.patch  <<EOF
 @@ -1,7 +1,7 @@
  DISTRIB_ID='%D'
 -DISTRIB_RELEASE='%V'
-+DISTRIB_RELEASE='$VERSION By Small_5'
++DISTRIB_RELEASE='$VERSION By Zan'
  DISTRIB_REVISION='%R'
  DISTRIB_TARGET='%S'
  DISTRIB_ARCH='%A'
 -DISTRIB_DESCRIPTION='%D %V %C'
-+DISTRIB_DESCRIPTION='%D $VERSION By Small_5 %C'
++DISTRIB_DESCRIPTION='%D $VERSION By Zan %C'
  DISTRIB_TAINTS='%t'
 
 --- a/package/base-files/files/usr/lib/os-release
@@ -42,11 +42,11 @@ cat > version.patch  <<EOF
 @@ -1,8 +1,8 @@
  NAME="%D"
 -VERSION="%V"
-+VERSION="$VERSION By Small_5"
++VERSION="$VERSION By Zan"
  ID="%d"
  ID_LIKE="lede openwrt"
 -PRETTY_NAME="%D %V"
-+PRETTY_NAME="%D $VERSION By Small_5"
++PRETTY_NAME="%D $VERSION By Zan"
  VERSION_ID="%v"
  HOME_URL="%u"
  BUG_URL="%b"
@@ -55,7 +55,7 @@ cat > version.patch  <<EOF
  OPENWRT_DEVICE_PRODUCT="%P"
  OPENWRT_DEVICE_REVISION="%h"
 -OPENWRT_RELEASE="%D %V %C"
-+OPENWRT_RELEASE="%D $VERSION By Small_5 %C"
++OPENWRT_RELEASE="%D $VERSION By Zan %C"
 EOF
 
 patch -p1 -E < default.patch && patch -p1 -E < feeds.patch && patch -p1 -E < version.patch && rm -f default.patch feeds.patch version.patch
