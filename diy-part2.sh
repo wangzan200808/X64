@@ -21,7 +21,7 @@ cat > version.patch  <<EOF
            |__| W I R E L E S S   F R E E D O M
   -----------------------------------------------------
 - %D %V, %C
-+ %D $VERSION By Small_5, %C
++ %D $VERSION By Zan, %C
   -----------------------------------------------------
 
 --- a/package/base-files/files/etc/openwrt_release
