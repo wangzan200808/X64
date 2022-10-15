@@ -45,7 +45,7 @@ on:
     - cron: 0 8 * * 6
 
 env:
-  REPO_URL: https://github.com/openwrt/openwrt
+  REPO_URL: https://github.com/wangzan200808/openwrt
   REPO_BRANCH: master
   DEVICE_NAME: amd64
   FEEDS_CONF: feeds.conf.default
@@ -112,7 +112,7 @@ jobs:
         make defconfig
         mkdir -p /tmp/upload/config
         ./scripts/diffconfig.sh > /tmp/upload/config/seed.config
-        echo "::set-output name=status::success"
+        echo "::stdout name=status::success"
         echo "FILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
     - name: 上传配置文件
@@ -132,7 +132,7 @@ jobs:
         find dl -size -1024c -exec rm -f {} \;
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
-        echo "::set-output name=status::success"
+        echo "::stdout name=status::success"
         echo "FILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
     - name: 组织固件文件
@@ -143,7 +143,7 @@ jobs:
         rm -rf packages
         mkdir -p /tmp/upload/firmware
         mv ./* /tmp/upload/firmware
-        echo "::set-output name=status::success"
+        echo "::stdout name=status::success"
 
     - name: 上传固件
       uses: actions/upload-artifact@main
@@ -159,6 +159,6 @@ jobs:
         skip-recent: 20
 
     - name: 删除旧的 workflow 运行记录
-      uses: GitRML/delete-workflow-runs@main
+      uses: wangzan200808/delete-workflow-runs@main
       with:
         retain_days: 90
