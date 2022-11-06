@@ -112,7 +112,7 @@ jobs:
         make defconfig
         mkdir -p /tmp/upload/config
         ./scripts/diffconfig.sh > /tmp/upload/config/seed.config
-        echo "::stdout name=status::success"
+        echo "status=success" >> $GITHUB_OUTPUT"
         echo "FILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
     - name: 上传配置文件
@@ -132,7 +132,7 @@ jobs:
         find dl -size -1024c -exec rm -f {} \;
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
-        echo "::stdout name=status::success"
+        echo "status=success" >> $GITHUB_OUTPUT
         echo "FILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
     - name: 组织固件文件
@@ -143,7 +143,7 @@ jobs:
         rm -rf packages
         mkdir -p /tmp/upload/firmware
         mv ./* /tmp/upload/firmware
-        echo "::stdout name=status::success"
+        echo "status=success" >> $GITHUB_OUTPUT
 
     - name: 上传固件
       uses: actions/upload-artifact@main
@@ -153,7 +153,7 @@ jobs:
         path: /tmp/upload/firmware
 
     - name: 移除旧的 Artifacts
-      uses: c-hive/gha-remove-artifacts@v1.2.0
+      uses: c-hive/gha-remove-artifacts@main
       with:
         age: '1 day'
         skip-recent: 20
