@@ -42,7 +42,7 @@ on:
         type: boolean
         default: true
 #  schedule:
-    - cron: 0 8 * * 6
+#    - cron: 0 8 * * 6
 
 env:
   REPO_URL: https://github.com/wangzan200808/openwrt
