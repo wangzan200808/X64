@@ -10,6 +10,8 @@
 # Description: OpenWrt DIY script part 2 (After Update feeds)
 #
 
+cp -r .feeds/overwall/patch/. openwrt
+
 VERSION="V3.4"
 
 
