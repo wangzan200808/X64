@@ -10,10 +10,8 @@
 # Description: OpenWrt DIY script part 2 (After Update feeds)
 #
 cp -r patch/. openwrt
-cd openwrt
 
 VERSION="V3.4"
-
 
 cat > version.patch  <<EOF
 --- a/package/base-files/files/etc/banner
