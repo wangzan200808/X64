@@ -439,7 +439,7 @@
  data_ciphers_fallback
  dev
  dev_node
-@@ -198,7 +199,6 @@
+@@ -197,7 +198,6 @@
  '
  
  OPENVPN_LIST='
@@ -450,7 +450,7 @@
 
 --- a/feeds/packages/net/openvpn/Makefile
 +++ b/feeds/packages/net/openvpn/Makefile
-@@ -91,20 +91,13 @@
+@@ -89,20 +89,13 @@
  	)
  endef
  
@@ -471,7 +471,7 @@
  		$(1)/usr/libexec \
  		$(1)/etc/hotplug.d/openvpn
  
-@@ -130,18 +123,11 @@
+@@ -128,18 +121,11 @@
  
  	$(INSTALL_DATA) \
  		files/etc/openvpn.user \
