@@ -12,8 +12,8 @@ on:
         default: 'false'
 
 env:
-  REPO_URL: https://github.com/pkgadd/openwrt
-  REPO_BRANCH: x86_64-v61-WIP-1
+  REPO_URL: https://github.com/coudu/openwrt
+  REPO_BRANCH: x86-6.1
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: .config
   DIY_P1_SH: diy-part1.sh
