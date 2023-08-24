@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/feeds/wz/xray-plugin/001-fixgo.patch
-@@ -0,0 +1,142 @@
+@@ -0,0 +1,143 @@
 +@@ -1,9 +1,8 @@
 + module github.com/teddysun/xray-plugin
 + 
