@@ -1,5 +1,18 @@
 --- a/feeds/packages/net/xray-core/Makefile
 +++ b/feeds/packages/net/xray-core/Makefile
+@@ -4,9 +4,9 @@
+ PKG_VERSION:=1.8.3
+ PKG_RELEASE:=1
+ 
+-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+-PKG_SOURCE_URL:=https://codeload.github.com/XTLS/Xray-core/tar.gz/v$(PKG_VERSION)?
+-PKG_HASH:=bdfa65c15cd25f931745d9c70c753503db5d119ff11960ca7b3a2e19c4b0a8d1
++PKG_SOURCE_PROTO:=git
++PKG_SOURCE_URL:=https://github.com/douglarek/Xray-core.git
++PKG_HASH:=skip
+ 
+ PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
+ PKG_LICENSE:=MPL-2.0
 @@ -17,8 +17,8 @@
  PKG_BUILD_PARALLEL:=1
  PKG_BUILD_FLAGS:=no-mips16
