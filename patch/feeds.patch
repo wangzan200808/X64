@@ -1,8 +1,8 @@
 --- /dev/null
 +++ b/feeds/wz/xray-plugin/patches/001-fixgo.patch
 @@ -0,0 +1,135 @@
-++--- a/go.mod
-+++++ b/go.mod
++--- a/go.mod
+++++ b/go.mod
 +@@ -3,7 +3,6 @@
 + go 1.19
 + 
@@ -41,8 +41,8 @@
 + 	golang.org/x/tools v0.10.0 // indirect
 + 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 + 	google.golang.org/grpc v1.56.0 // indirect
-++--- a/go.sum
-+++++ b/go.sum
++--- a/go.sum
+++++ b/go.sum
 +@@ -98,18 +98,16 @@
 + github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910/go.mod h1:MbSGuTsp3dbXC40dX6PRTWyKYBIrTGTE9sqQNg2J8bo=
 + github.com/prometheus/common v0.0.0-20180801064454-c7de2306084e/go.mod h1:daVV7qP5qjZbuso7PdcryaAu0sAZbrN9i7WWcTMWvro=
