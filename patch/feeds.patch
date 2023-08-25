@@ -1,6 +1,8 @@
 --- /dev/null
 +++ b/feeds/wz/xray-plugin/patches/001-fixgo.patch
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,135 @@
+++--- a/go.mod
++++++ b/go.mod
 +@@ -3,7 +3,6 @@
 + go 1.19
 + 
