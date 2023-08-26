@@ -1,10 +1,13 @@
 --- /dev/null
 +++ b/feeds/wz/xray-plugin/patches/001-fixgo.patch
-@@ -0,0 +1,146 @@
+@@ -0,0 +1,149 @@
 +--- a/go.mod
 ++++ b/go.mod
-+@@ -3,7 +3,6 @@
-+ go 1.19
++@@ -1,9 +1,8 @@
++ module github.com/teddysun/xray-plugin
++ 
++-go 1.19
+++go 1.21
 + 
 + require (
 +-	github.com/golang/protobuf v1.5.3
