@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/feeds/wz/xray-plugin/patches/001-fixgo.patch
-@@ -0,0 +1,135 @@
+@@ -0,0 +1,136 @@
 +--- a/go.mod
 ++++ b/go.mod
 +@@ -3,7 +3,6 @@
@@ -25,9 +25,9 @@
 + 	github.com/pires/go-proxyproto v0.7.0 // indirect
 +-	github.com/quic-go/qtls-go1-19 v0.3.2 // indirect
 +-	github.com/quic-go/qtls-go1-20 v0.2.2 // indirect
++-	github.com/quic-go/quic-go v0.35.1 // indirect
 ++	github.com/quic-go/qtls-go1-20 v0.3.2 // indirect	
-+- 	github.com/quic-go/quic-go v0.35.1 // indirect
-++ 	github.com/quic-go/quic-go v0.38.0 // indirect
+++	github.com/quic-go/quic-go v0.38.0 // indirect
 + 	github.com/refraction-networking/utls v1.3.2 // indirect
 + 	github.com/sagernet/sing v0.2.5 // indirect
 + 	github.com/xtls/reality v0.0.0-20230613075828-e07c3b04b983 // indirect
