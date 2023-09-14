@@ -450,7 +450,7 @@
 
 --- a/feeds/packages/net/openvpn/Makefile
 +++ b/feeds/packages/net/openvpn/Makefile
-@@ -89,20 +89,13 @@
+@@ -90,20 +90,13 @@
  	)
  endef
  
@@ -471,7 +471,7 @@
  		$(1)/usr/libexec \
  		$(1)/etc/hotplug.d/openvpn
  
-@@ -128,18 +121,11 @@
+@@ -129,18 +122,11 @@
  
  	$(INSTALL_DATA) \
  		files/etc/openvpn.user \
