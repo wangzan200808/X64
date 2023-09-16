@@ -1722,7 +1722,7 @@
 
 --- /dev/null
 +++ b/package/network/config/netifd/patches/001-fix.patch
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,158 @@
 +--- a/device.c
 ++++ b/device.c
 +@@ -61,8 +61,6 @@
