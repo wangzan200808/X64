@@ -1721,7 +1721,7 @@
  $(curdir)/b43-tools/compile := $(curdir)/bison/compile
 
 --- /dev/null
-+++ b/feeds/wz/r8168/patches/002-r8168/patches/002-r8168-fix6.1.patch
++++ b/feeds/wz/r8168/patches/002-r8168/patches/002-r8168-fix.patch
 @@ -0,0 +1,11 @@
 +--- a/src/r8168.h
 ++++ b/src/r8168.h
