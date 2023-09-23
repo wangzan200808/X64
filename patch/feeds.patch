@@ -206,7 +206,7 @@
  
  						// XXX: is this actually useful?
  						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
-@@ -961,6 +962,7 @@
+@@ -973,6 +974,7 @@
  				ifc.renderFormOptions(s);
  
  				// Common interface options
@@ -214,7 +214,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1057,6 +1059,7 @@
+@@ -1069,6 +1071,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
@@ -806,7 +806,7 @@
 
 --- a/feeds/luci/applications/luci-app-attendedsysupgrade/htdocs/luci-static/resources/view/attendedsysupgrade/overview.js
 +++ b/feeds/luci/applications/luci-app-attendedsysupgrade/htdocs/luci-static/resources/view/attendedsysupgrade/overview.js
-@@ -108,7 +108,7 @@
+@@ -111,7 +111,7 @@
  
  		if (image.name != undefined) {
  			this.data.sha256_unsigned = image.sha256_unsigned;
@@ -815,7 +815,7 @@
  
  			let keep = E('input', { type: 'checkbox' });
  			keep.checked = true;
-@@ -398,13 +398,11 @@
+@@ -401,13 +401,11 @@
  			});
  	},
  
@@ -831,7 +831,7 @@
  		}
  
  		ui.showModal(_('Searching...'), [
-@@ -435,46 +433,10 @@
+@@ -438,46 +436,10 @@
  				]);
  				return;
  			}
@@ -879,7 +879,7 @@
  			if (candidates.length) {
  				let s, o;
  
-@@ -482,7 +444,7 @@
+@@ -485,7 +447,7 @@
  					request: {
  						profile: this.firmware.profile,
  						version: candidates[0][0],
@@ -888,7 +888,7 @@
  					},
  				};
  
-@@ -531,6 +493,9 @@
+@@ -534,6 +496,9 @@
  						form_rendered,
  						E('div', { class: 'right' }, [
  							E('div', { class: 'btn', click: ui.hideModal }, _('Cancel')),
@@ -898,7 +898,7 @@
  							' ',
  							E(
  								'button',
-@@ -593,6 +558,12 @@
+@@ -596,6 +561,12 @@
  		this.data.revision = response[1].release.revision;
  
  		this.data.efi = response[2];
