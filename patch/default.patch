@@ -230,7 +230,7 @@
 
 --- a/package/network/services/dnsmasq/files/dnsmasq.init
 --- a/package/network/services/dnsmasq/files/dnsmasq.init
-@@ -416,6 +416,21 @@
+@@ -414,6 +414,21 @@
  	local mode="$3"
  	local routerstub routername ifdashname
  	local lanaddr lanaddr6 lanaddrs6 ulaprefix
@@ -252,7 +252,7 @@
  
  	if [ "$mode" -gt 0 ] ; then
  		ifdashname="${ifname//./-}"
-@@ -961,6 +976,7 @@
+@@ -967,6 +982,7 @@
  	append_bool "$cfg" noping "--no-ping"
  	append_bool "$cfg" rapidcommit "--dhcp-rapid-commit"
  	append_bool "$cfg" scriptarp "--script-arp"
@@ -260,7 +260,7 @@
  
 	append_bool "$cfg" filter_aaaa "--filter-AAAA"
 	append_bool "$cfg" filter_a "--filter-A"
-@@ -1214,6 +1230,14 @@
+@@ -1220,6 +1236,14 @@
  	[ -e "$hostsfile" ] && procd_add_jail_mount $hostsfile
  
  	procd_close_instance
@@ -275,7 +275,7 @@
  }
  
  dnsmasq_stop()
-@@ -1231,6 +1255,15 @@
+@@ -1237,6 +1261,15 @@
  	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
  }
  
@@ -291,7 +291,7 @@
  add_interface_trigger()
  {
  	local interface ignore
-@@ -1301,6 +1334,7 @@ start_service() {
+@@ -1307,6 +1340,7 @@ start_service() {
  }
  
  reload_service() {
@@ -299,7 +299,7 @@
  	rc_procd start_service "$@"
  	procd_send_signal dnsmasq "$@"
  }
-@@ -1327,4 +1361,5 @@ stop_service() {
+@@ -1333,4 +1367,5 @@ stop_service() {
  	else
  		config_foreach dnsmasq_stop dnsmasq
  	fi
