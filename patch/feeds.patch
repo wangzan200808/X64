@@ -206,7 +206,7 @@
  
  						// XXX: is this actually useful?
  						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
-@@ -973,6 +974,7 @@
+@@ -996,6 +997,7 @@
  				ifc.renderFormOptions(s);
  
  				// Common interface options
@@ -214,7 +214,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1069,6 +1071,7 @@
+@@ -1092,6 +1094,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
@@ -621,7 +621,7 @@
 
 --- a/feeds/packages/net/https-dns-proxy/Makefile
 +++ b/feeds/packages/net/https-dns-proxy/Makefile
-@@ -39,14 +39,8 @@
+@@ -39,13 +39,7 @@
  
  define Package/https-dns-proxy/install
  	$(INSTALL_DIR) $(1)/usr/sbin
@@ -631,8 +631,6 @@
 -	$(SED) "s|^\(readonly PKG_VERSION\).*|\1='$(PKG_VERSION)-$(PKG_RELEASE)'|" $(1)/etc/init.d/https-dns-proxy
 -	$(INSTALL_DIR) $(1)/etc/config
 -	$(INSTALL_CONF) ./files/etc/config/https-dns-proxy $(1)/etc/config/https-dns-proxy
--	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
-	$(INSTALL_DATA) ./files/etc/hotplug.d/iface/90-https-dns-proxy $(1)/etc/hotplug.d/iface/90-https-dns-proxy
 	$(INSTALL_DIR) $(1)/etc/uci-defaults/
  	$(INSTALL_BIN) ./files/etc/uci-defaults/50-https-dns-proxy-migrate-options.sh $(1)/etc/uci-defaults/50-https-dns-proxy-migrate-options.sh
  endef
