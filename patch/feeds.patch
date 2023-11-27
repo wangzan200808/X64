@@ -621,7 +621,7 @@
 
 --- a/feeds/packages/net/https-dns-proxy/Makefile
 +++ b/feeds/packages/net/https-dns-proxy/Makefile
-@@ -39,13 +39,7 @@
+@@ -42,12 +42,7 @@
  
  define Package/https-dns-proxy/install
  	$(INSTALL_DIR) $(1)/usr/sbin
