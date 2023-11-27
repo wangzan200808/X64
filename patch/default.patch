@@ -1,6 +1,6 @@
 --- a/config/Config-build.in
 +++ b/config/Config-build.in
-@@ -76,6 +76,7 @@
+@@ -84,6 +84,7 @@
  
  	config BUILD_PATENTED
  		bool "Compile with support for patented functionality"
@@ -252,7 +252,7 @@
  
  	if [ "$mode" -gt 0 ] ; then
  		ifdashname="${ifname//./-}"
-@@ -967,6 +982,7 @@
+@@ -972,6 +987,7 @@
  	append_bool "$cfg" noping "--no-ping"
  	append_bool "$cfg" rapidcommit "--dhcp-rapid-commit"
  	append_bool "$cfg" scriptarp "--script-arp"
@@ -260,7 +260,7 @@
  
 	append_bool "$cfg" filter_aaaa "--filter-AAAA"
 	append_bool "$cfg" filter_a "--filter-A"
-@@ -1220,6 +1236,14 @@
+@@ -1225,6 +1241,14 @@
  	[ -e "$hostsfile" ] && procd_add_jail_mount $hostsfile
  
  	procd_close_instance
@@ -275,7 +275,7 @@
  }
  
  dnsmasq_stop()
-@@ -1237,6 +1261,15 @@
+@@ -1242,6 +1266,15 @@
  	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
  }
  
@@ -291,7 +291,7 @@
  add_interface_trigger()
  {
  	local interface ignore
-@@ -1307,6 +1340,7 @@ start_service() {
+@@ -1312,6 +1345,7 @@ start_service() {
  }
  
  reload_service() {
@@ -299,7 +299,7 @@
  	rc_procd start_service "$@"
  	procd_send_signal dnsmasq "$@"
  }
-@@ -1333,4 +1367,5 @@ stop_service() {
+@@ -1338,4 +1372,5 @@ stop_service() {
  	else
  		config_foreach dnsmasq_stop dnsmasq
  	fi
@@ -1703,7 +1703,7 @@
 
 --- a/tools/Makefile
 +++ b/tools/Makefile
-@@ -68,6 +68,7 @@
+@@ -69,6 +69,7 @@
  tools-y += zip
  tools-y += zlib
  tools-y += zstd
@@ -1711,7 +1711,7 @@
  tools-$(if $(CONFIG_BUILD_ALL_HOST_TOOLS),y) += liblzo
  tools-$(if $(CONFIG_BUILD_ALL_HOST_TOOLS)$(BUILD_B43_TOOLS),y) += b43-tools
  tools-$(if $(CONFIG_BUILD_ALL_HOST_TOOLS)$(BUILD_BZIP2_TOOLS),y) += bzip2
-@@ -86,6 +87,7 @@
+@@ -87,6 +88,7 @@
  tools-$(if $(CONFIG_BUILD_ALL_HOST_TOOLS)$(CONFIG_USE_MOLD),y) += mold
  
  # builddir dependencies
