@@ -1722,7 +1722,7 @@
 
 --- /dev/null
 +++ b/package/network/config/netifd/patches/001-fix.patch
-@@ -0,0 +1,161 @@
+@@ -0,0 +1,245 @@
 +--- a/device.c
 ++++ b/device.c
 +@@ -64,8 +64,6 @@
@@ -1791,10 +1791,94 @@
 + 	bool rxpause;
 +--- a/system-linux.c
 ++++ b/system-linux.c
-+@@ -2014,84 +2014,6 @@
++@@ -1891,17 +1891,6 @@
++ }
++ #endif
++ 
++-static void ethtool_link_mode_clear_bit(__s8 nwords, int nr, __u32 *mask)
++-{
++-	if (nr < 0)
++-		return;
++-
++-	if (nr >= (nwords * 32))
++-		return;
++-
++-	mask[nr / 32] &= ~(1U << (nr % 32));
++-}
++-
++ static bool ethtool_link_mode_test_bit(__s8 nwords, int nr, const __u32 *mask)
++ {
++ 	if (nr < 0)
++@@ -1948,150 +1937,6 @@
 + }
 + 
 + static void
++-system_set_ethtool_pause(struct device *dev, struct device_settings *s)
++-{
++-	struct ethtool_pauseparam pp;
++-	struct ifreq ifr = {
++-		.ifr_data = (caddr_t)&pp,
++-	};
++-
++-	strncpy(ifr.ifr_name, dev->ifname, sizeof(ifr.ifr_name) - 1);
++-	memset(&pp, 0, sizeof(pp));
++-	pp.cmd = ETHTOOL_GPAUSEPARAM;
++-	if (ioctl(sock_ioctl, SIOCETHTOOL, &ifr))
++-		return;
++-
++-	if (s->flags & DEV_OPT_RXPAUSE || s->flags & DEV_OPT_TXPAUSE) {
++-		pp.autoneg = AUTONEG_DISABLE;
++-
++-		if (s->flags & DEV_OPT_PAUSE) {
++-			if (s->flags & DEV_OPT_RXPAUSE)
++-				pp.rx_pause = s->rxpause && s->pause;
++-			else
++-				pp.rx_pause = s->pause;
++-
++-			if (s->flags & DEV_OPT_TXPAUSE)
++-				pp.tx_pause = s->txpause && s->pause;
++-			else
++-				pp.tx_pause = s->pause;
++-		} else {
++-			if (s->flags & DEV_OPT_RXPAUSE)
++-				pp.rx_pause = s->rxpause;
++-
++-			if (s->flags & DEV_OPT_TXPAUSE)
++-				pp.tx_pause = s->txpause;
++-		}
++-
++-		if (s->flags & DEV_OPT_ASYM_PAUSE &&
++-		    !s->asym_pause && (pp.rx_pause != pp.tx_pause))
++-			pp.rx_pause = pp.tx_pause = false;
++-	} else {
++-		pp.autoneg = AUTONEG_ENABLE;
++-		/* Pause and Asym_Pause advertising bits will be set via
++-		 * ETHTOOL_SLINKSETTINGS in system_set_ethtool_settings()
++-		 */
++-	}
++-
++-	pp.cmd = ETHTOOL_SPAUSEPARAM;
++-	ioctl(sock_ioctl, SIOCETHTOOL, &ifr);
++-}
++-
++-static void
++-system_set_ethtool_eee_settings(struct device *dev, struct device_settings *s)
++-{
++-	struct ethtool_eee eeecmd;
++-	struct ifreq ifr = {
++-		.ifr_data = (caddr_t)&eeecmd,
++-	};
++-
++-	memset(&eeecmd, 0, sizeof(eeecmd));
++-	eeecmd.cmd = ETHTOOL_SEEE;
++-	eeecmd.eee_enabled = s->eee;
++-	strncpy(ifr.ifr_name, dev->ifname, sizeof(ifr.ifr_name) - 1);
++-
++-	if (ioctl(sock_ioctl, SIOCETHTOOL, &ifr) != 0)
++-		netifd_log_message(L_WARNING, "cannot set eee %d for device %s", s->eee, dev->ifname);
++-}
++-
++-static void
 +-system_set_ethtool_settings(struct device *dev, struct device_settings *s)
 +-{
 +-	struct {
@@ -1876,7 +1960,7 @@
 + system_set_ethtool_settings_after_up(struct device *dev, struct device_settings *s)
 + {
 + 	if (s->flags & DEV_OPT_GRO)
-+@@ -2344,7 +2266,6 @@
++@@ -2344,7 +2189,6 @@
 + 		netifd_log_message(L_WARNING, "%s Your kernel is older than linux 6.1.0, changing DSA port conduit is not supported!", dev->ifname);
 + #endif
 + 	}
