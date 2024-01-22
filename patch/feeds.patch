@@ -966,9 +966,9 @@
  			"ubus": {
 -				"luci": [ "getLEDs", "getTimezones", "getUSBDevices" ],
 +				"luci": [ "getLEDs", "getTimezones", "getUSBDevices", "getCPUInfo", "getETHInfo", "getTempInfo", "getCPUBench", "getCPUUsage", "getOnlineUsers" ],
+ 				"rc": [ "list" ],
  				"system": [ "info" ]
  			},
- 			"uci": [ "luci", "system" ]
 
 --- a/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
 +++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
