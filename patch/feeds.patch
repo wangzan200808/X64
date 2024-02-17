@@ -172,7 +172,7 @@
 
 --- a/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
 +++ b/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
-@@ -231,6 +231,12 @@
+@@ -239,6 +239,12 @@
  msgid "Value in KByte/s, informational only"
  msgstr "单位为 KByte/s，仅供参考"
  
@@ -198,7 +198,7 @@
 
 --- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
 +++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
-@@ -707,6 +707,7 @@
+@@ -728,6 +728,7 @@
  						so.default = so.enabled;
  
  						ss.taboption('advanced', form.Flag, 'force', _('Force'), _('Force DHCP on this network even if another server is detected.'));
@@ -206,7 +206,7 @@
  
  						// XXX: is this actually useful?
  						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
-@@ -1002,6 +1003,7 @@
+@@ -1023,6 +1024,7 @@
  				ifc.renderFormOptions(s);
  
  				// Common interface options
@@ -214,7 +214,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1098,6 +1100,7 @@
+@@ -1119,6 +1121,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
@@ -439,7 +439,7 @@
  data_ciphers_fallback
  dev
  dev_node
-@@ -197,7 +198,6 @@
+@@ -198,7 +199,6 @@
  '
  
  OPENVPN_LIST='
