@@ -276,8 +276,8 @@
  
  dnsmasq_stop()
 @@ -1242,6 +1266,15 @@
- 	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
- }
+	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
+}
  
 +iptables_clear()
 +{
@@ -288,10 +288,10 @@
 +	[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -D PREROUTING -m comment --comment "DNSMASQ" -p tcp --dport 53 -j REDIRECT --to-ports $dns_port 2>"/dev/null"
 +}
 +
- add_interface_trigger()
- {
- 	local interface ignore
-@@ -1312,6 +1345,7 @@ start_service() {
+add_interface_trigger()
+{
+	local interface ifname ignore
+@@ -1313,6 +1346,7 @@ start_service() {
  }
  
  reload_service() {
@@ -299,7 +299,7 @@
  	rc_procd start_service "$@"
  	procd_send_signal dnsmasq "$@"
  }
-@@ -1338,4 +1372,5 @@ stop_service() {
+@@ -1339,4 +1373,5 @@ stop_service() {
  	else
  		config_foreach dnsmasq_stop dnsmasq
  	fi
