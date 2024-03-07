@@ -10,7 +10,7 @@
 # Description: OpenWrt DIY script part 2 (After Update feeds)
 #
 
-VERSION="V4.0"
+VERSION="V5.0"
 
 cat > version.patch  <<EOF
 --- a/package/base-files/files/etc/banner
