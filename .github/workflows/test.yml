@@ -12,7 +12,7 @@ on:
         default: 'false'
 
 env:
-  REPO_URL: https://github.com/wangzan200808/openwrt
+  REPO_URL: https://github.com/openwrt/openwrt
   REPO_BRANCH: main
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: test.config
@@ -62,6 +62,11 @@ jobs:
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
+
+    -  name: remove smartdns&xray-core
+       run: |
+        rm -rf feeds/packages/net/xray-core
+        rm -rf feeds/packages/net/smartdns
 
     - name: Load custom configuration
       run: |
