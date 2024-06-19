@@ -1,6 +1,6 @@
 --- a/config/Config-build.in
 +++ b/config/Config-build.in
-@@ -84,6 +84,7 @@
+@@ -88,6 +88,7 @@
  
  	config BUILD_PATENTED
  		bool "Compile with support for patented functionality"
@@ -20,7 +20,7 @@
  		help
  		  Build an ext4 root filesystem.
  
-@@ -239,7 +239,7 @@
+@@ -240,7 +240,7 @@
  	config GRUB_TIMEOUT
  		string "Seconds to wait before booting the default entry"
  		depends on GRUB_IMAGES || GRUB_EFI_IMAGES
@@ -1722,7 +1722,7 @@
 
 --- a/include/target.mk
 +++ b/include/target.mk
-@@ -33,16 +33,6 @@
+@@ -58,16 +58,6 @@
  DEFAULT_PACKAGES+=busybox procd
  endif
  
