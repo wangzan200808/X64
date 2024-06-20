@@ -160,7 +160,7 @@
 --- a/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
 +++ b/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
 @@ -130,6 +130,9 @@
- 		s.taboption('general', form.Flag, 'igdv1', _('Enable IGDv1 mode'),
+ 		s.taboption('general', form.Flag, 'igdv1', _('Enable UPnP IGDv1 mode'),
  			_('Advertise as UPnP IGDv1 device (no IPv6) instead of IGDv2')).default = '0'
  
 +		s.taboption('general', form.Flag, 'force_forwarding', _('Force forwarding'),
@@ -172,18 +172,17 @@
 
 --- a/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
 +++ b/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
-@@ -231,6 +231,12 @@
+@@ -229,4 +229,10 @@
+ #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:137
+ #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:140
  msgid "Value in KByte/s, informational only"
  msgstr "单位为 KByte/s，仅供参考"
- 
++
 +msgid "Force forwarding"
 +msgstr "强制转发"
 +
 +msgid "Force forwarding for private/reserved IP address"
 +msgstr "为私有/保留IP地址开启强制转发"
-+
- #~ msgid "Collecting data..."
- #~ msgstr "正在收集数据…"
  
 
 --- a/feeds/luci/modules/luci-base/root/etc/config/luci
@@ -214,7 +213,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1146,6 +1147,7 @@
+@@ -1145,6 +1147,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
