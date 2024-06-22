@@ -70,11 +70,13 @@ jobs:
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
 
-    -  name: updategolang
+    -  name: updategolang&usmbedtle
        run: |
         cd openwrt
         rm -rf feeds/packages/lang/golang
+        rm -rf package/libs/mbedtls
         git clone https://github.com/sbwml/packages_lang_golang -b 22.x feeds/packages/lang/golang
+        git clone https://github.com/coolsnowwolf/lede/tree/master/package/libs/mbedtls package/libs/mbedtls
 
     - name: Load custom configuration
       run: |
