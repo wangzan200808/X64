@@ -29,19 +29,6 @@
  		help
  		  If you don't know, 5 seconds is a reasonable default.
  
-
---- a/include/version.mk
-+++ b/include/version.mk
-@@ -29,7 +29,7 @@
- VERSION_CODE:=$(if $(VERSION_CODE),$(VERSION_CODE),$(REVISION))
- 
- VERSION_REPO:=$(call qstrip,$(CONFIG_VERSION_REPO))
--VERSION_REPO:=$(if $(VERSION_REPO),$(VERSION_REPO),https://downloads.openwrt.org/snapshots)
-+VERSION_REPO:=$(if $(VERSION_REPO),$(VERSION_REPO),https://mirrors.tencent.com/openwrt/snapshots)
- 
- VERSION_DIST:=$(call qstrip,$(CONFIG_VERSION_DIST))
- VERSION_DIST:=$(if $(VERSION_DIST),$(VERSION_DIST),OpenWrt)
-
 --- a/package/base-files/files/bin/config_generate
 +++ b/package/base-files/files/bin/config_generate
 @@ -162,8 +162,8 @@
@@ -137,19 +124,6 @@
 +fi
  
  board_config_flush
- 
-
---- a/package/base-files/image-config.in
-+++ b/package/base-files/image-config.in
-@@ -190,7 +190,7 @@
- 	config VERSION_REPO
- 		string
- 		prompt "Release repository"
--		default "https://downloads.openwrt.org/snapshots"
-+		default "https://mirrors.tencent.com/openwrt/snapshots"
- 		help
- 			This is the repository address embedded in the image, it defaults
- 			to the trunk snapshot repo; the url may contain the following placeholders:
 
 --- a/package/network/services/dnsmasq/files/dhcp.conf
 +++ b/package/network/services/dnsmasq/files/dhcp.conf
