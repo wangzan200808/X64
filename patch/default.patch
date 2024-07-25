@@ -1696,7 +1696,7 @@
 
 --- a/include/target.mk
 +++ b/include/target.mk
-@@ -58,16 +58,6 @@
+@@ -108,17 +108,7 @@
  DEFAULT_PACKAGES+=busybox procd
  endif
  
@@ -1710,9 +1710,10 @@
 -DEFAULT_PACKAGES+=procd-seccomp
 -endif
 -
- # For the basic set
- DEFAULT_PACKAGES.basic:=
- # For nas targets
+# Add device specific packages (here below to allow device type set from subtarget)
+DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
+
+filter_packages = $(filter-out -% $(patsubst -%,%,$(filter -%,$(1))),$(1))
  
 --- /dev/null
 +++ b/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
