@@ -172,7 +172,7 @@
 
 --- a/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
 +++ b/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
-@@ -229,4 +229,10 @@
+@@ -230,4 +230,10 @@
  #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:137
  #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:140
  msgid "Value in KByte/s, informational only"
