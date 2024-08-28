@@ -234,7 +234,7 @@
  
 	append_bool "$cfg" filter_aaaa "--filter-AAAA"
 	append_bool "$cfg" filter_a "--filter-A"
-@@ -1225,6 +1241,14 @@
+@@ -1228,6 +1244,14 @@
  	[ -e "$hostsfile" ] && procd_add_jail_mount $hostsfile
  
  	procd_close_instance
@@ -249,7 +249,7 @@
  }
  
  dnsmasq_stop()
-@@ -1242,6 +1266,15 @@
+@@ -1245,6 +1269,15 @@
  	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
  }
  
@@ -265,7 +265,7 @@
  add_interface_trigger()
  {
  	local interface ifname ignore
-@@ -1313,6 +1346,7 @@ start_service() {
+@@ -1316,6 +1349,7 @@ start_service() {
  }
  
  reload_service() {
@@ -273,7 +273,7 @@
  	rc_procd start_service "$@"
  	procd_send_signal dnsmasq "$@"
  }
-@@ -1339,4 +1373,5 @@ stop_service() {
+@@ -1342,4 +1376,5 @@ stop_service() {
  	else
  		config_foreach dnsmasq_stop dnsmasq
  	fi
@@ -335,7 +335,7 @@
 @@ -1,151 +1,31 @@
 -# Server configuration
 -config uhttpd main
- 
+-
 -	# HTTP listen addresses, multiple allowed
 -	list listen_http	0.0.0.0:80
 -	list listen_http	[::]:80
@@ -458,8 +458,8 @@
 -# Defaults for automatic certificate and key generation
 -config cert defaults
 -
--	# Validity time
--	option days		730
+-	# Validity time, 397 days is maximum allowed by CA/Browser forum
+-	option days		397
 -
 -	# key type: rsa or ec
 -	option key_type		ec
