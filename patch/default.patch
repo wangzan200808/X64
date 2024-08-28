@@ -332,7 +332,7 @@
 
 --- a/package/network/services/uhttpd/files/uhttpd.config
 +++ b/package/network/services/uhttpd/files/uhttpd.config
-@@ -1,151 +1,31 @@
+@@ -1,151 +1,30 @@
 -# Server configuration
 -config uhttpd main
 -
