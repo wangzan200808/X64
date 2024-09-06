@@ -66,6 +66,7 @@ jobs:
         cd openwrt
         cp -r feeds/wz/xray-core/. feeds/packages/net/xray-core
         cp -r feeds/wz/smartdns/. feeds/packages/net/smartdns
+        cp -r feeds/overwall/luci-app-homeproxy/. feeds/luci/applications/luci-app-homeproxy
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
