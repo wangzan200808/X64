@@ -249,17 +249,14 @@
  }
  
  dnsmasq_stop()
-@@ -1245,6 +1269,15 @@
+@@ -1245,6 +1269,12 @@
  	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
  }
  
-+iptables_clear()
++nftables_clear()
 +{
-+	config_get dns_port "$cfg" port 53
-+	iptables -t nat -D PREROUTING -m comment --comment "DNSMASQ" -p udp --dport 53 -j REDIRECT --to-ports $dns_port 2>"/dev/null"
-+	iptables -t nat -D PREROUTING -m comment --comment "DNSMASQ" -p tcp --dport 53 -j REDIRECT --to-ports $dns_port 2>"/dev/null"
-+	[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -D PREROUTING -m comment --comment "DNSMASQ" -p udp --dport 53 -j REDIRECT --to-ports $dns_port 2>"/dev/null"
-+	[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -D PREROUTING -m comment --comment "DNSMASQ" -p tcp --dport 53 -j REDIRECT --to-ports $dns_port 2>"/dev/null"
++	! nft --check list table inet dnsmasq > "/dev/null" 2>&1 || \
++		nft delete table inet dnsmasq
 +}
 +
  add_interface_trigger()
@@ -269,7 +266,7 @@
  }
  
  reload_service() {
-+	iptables_clear
++	nftables_clear
  	rc_procd start_service "$@"
  	procd_send_signal dnsmasq "$@"
  }
@@ -277,7 +274,7 @@
  	else
  		config_foreach dnsmasq_stop dnsmasq
  	fi
-+	iptables_clear
++	nftables_clear
  }
 
 --- a/package/network/services/odhcpd/files/odhcpd.defaults
