@@ -186,7 +186,7 @@
 +	option interface 'lan'
 +	option start '10'
 +	option limit '150'
-+	option leasetime '2h'
++	option leasetime '24h'
 +	option force '1'
 
 --- a/package/network/services/dnsmasq/Makefile
