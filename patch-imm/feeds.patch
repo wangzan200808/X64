@@ -1,6 +1,6 @@
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
-@@ -158,8 +158,7 @@
+@@ -163,8 +163,7 @@
  		p[1].default = fwDefaults.getOutput();
  		p[2].default = fwDefaults.getForward();
  
@@ -54,7 +54,7 @@
  			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
  	},
  
-@@ -176,7 +185,7 @@
+@@ -178,7 +187,7 @@
  
  	handleRestartDDns: function(m, ev) {
  		return this.callInitAction('ddns', 'restart')
@@ -197,7 +197,7 @@
 
 --- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
 +++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
-@@ -729,6 +729,7 @@
+@@ -730,6 +730,7 @@
  						so.default = so.enabled;
  
  						ss.taboption('advanced', form.Flag, 'force', _('Force'), _('Force DHCP on this network even if another server is detected.'));
@@ -205,7 +205,7 @@
  
  						// XXX: is this actually useful?
  						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
-@@ -1049,6 +1050,7 @@
+@@ -1052,6 +1053,7 @@
  				ifc.renderFormOptions(s);
  
  				// Common interface options
@@ -213,7 +213,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1145,6 +1147,7 @@
+@@ -1148,6 +1150,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
@@ -633,91 +633,3 @@
  				"rc": [ "list" ],
  				"system": [ "info" ]
  			},
-
---- a/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
-+++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
-@@ -18,6 +18,26 @@
- 	method: 'info'
- });
- 
-+var callCPUBench = rpc.declare({
-+	object: 'luci',
-+	method: 'getCPUBench'
-+});
-+
-+var callCPUInfo = rpc.declare({
-+	object: 'luci',
-+	method: 'getCPUInfo'
-+});
-+
-+var callCPUUsage = rpc.declare({
-+	object: 'luci',
-+	method: 'getCPUUsage'
-+});
-+
-+var callTempInfo = rpc.declare({
-+	object: 'luci',
-+	method: 'getTempInfo'
-+});
-+
- return baseclass.extend({
- 	title: _('System'),
- 
-@@ -25,6 +45,10 @@
- 		return Promise.all([
- 			L.resolveDefault(callSystemBoard(), {}),
- 			L.resolveDefault(callSystemInfo(), {}),
-+			L.resolveDefault(callCPUBench(), {}),
-+			L.resolveDefault(callCPUInfo(), {}),
-+			L.resolveDefault(callCPUUsage(), {}),
-+			L.resolveDefault(callTempInfo(), {}),
- 			L.resolveDefault(callLuciVersion(), { revision: _('unknown version'), branch: 'LuCI' })
- 		]);
- 	},
-@@ -32,7 +56,11 @@
- 	render: function(data) {
- 		var boardinfo   = data[0],
- 		    systeminfo  = data[1],
--		    luciversion = data[2];
-+		    cpubench    = data[2],
-+		    cpuinfo     = data[3],
-+		    cpuusage    = data[4],
-+		    tempinfo    = data[5],
-+		    luciversion = data[6];
- 
- 		luciversion = luciversion.branch + ' ' + luciversion.revision;
- 
-@@ -53,8 +81,6 @@
- 
- 		var fields = [
- 			_('Hostname'),         boardinfo.hostname,
--			_('Model'),            boardinfo.model,
--			_('Architecture'),     boardinfo.system,
- 			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target : ''),
- 			_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),
- 			_('Kernel Version'),   boardinfo.kernel,
-@@ -67,6 +93,24 @@
- 			) : null
- 		];
- 
-+		if (tempinfo.tempinfo) {
-+			fields.splice(6, 0, _('Temperature'));
-+			fields.splice(7, 0, tempinfo.tempinfo);
-+		}
-+		if (boardinfo.model == "Default string Default string") {
-+			if (cpuinfo.cpuinfo) {
-+			fields.splice(2, 0, _('Architecture'));
-+			fields.splice(3, 0, cpuinfo.cpuinfo + cpubench.cpubench);
-+			}
-+		} else {
-+			fields.splice(2, 0, _('Model'));
-+			fields.splice(3, 0, boardinfo.model + cpubench.cpubench);
-+			if (cpuinfo.cpuinfo) {
-+			fields.splice(4, 0, _('Architecture'));
-+			fields.splice(5, 0, cpuinfo.cpuinfo);
-+			}
-+		}
-+
- 		var table = E('table', { 'class': 'table' });
- 
- 		for (var i = 0; i < fields.length; i += 2) {
