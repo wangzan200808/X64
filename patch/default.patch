@@ -184,7 +184,7 @@
 -	option ignore	1
 +config dhcp 'lan'
 +	option interface 'lan'
-+	option start '10'
++	option start '20'
 +	option limit '150'
 +	option leasetime '24h'
 +	option force '1'
