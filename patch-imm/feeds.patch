@@ -1,0 +1,723 @@
+--- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
++++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+@@ -158,8 +158,7 @@
+ 		p[1].default = fwDefaults.getOutput();
+ 		p[2].default = fwDefaults.getForward();
+ 
+-		o = s.taboption('general', form.Flag, 'masq', _('Masquerading'),
+-			_('Enable network address and port translation IPv4 (NAT4 or NAPT4) for outbound traffic on this zone. This is typically enabled on the <em>wan</em> zone.'));
++		o = s.taboption('general', form.Flag, 'masq', _('Masquerading'));
+ 		o.editable = true;
+ 		o.tooltip = function(section_id) {
+ 			var family = uci.get('firewall', section_id, 'family')
+
+--- a/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
++++ b/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
+@@ -56,6 +56,18 @@
+ 		expect: {  }
+ 	}),
+ 
++	callReloadDDnsRule: rpc.declare({
++		object: 'luci.ddns',
++		method: 'reload_ddns_rule',
++		params: [ 'id' ]
++	}),
++
++	callStopDDnsRule: rpc.declare({
++		object: 'luci.ddns',
++		method: 'stop_ddns_rule',
++		params: [ 'id' ]
++	}),
++
+ 	services: {},
+ 
+ 	/*
+@@ -152,17 +164,14 @@
+ 	},
+ 
+ 	handleReloadDDnsRule: function(m, section_id, ev) {
+-		return fs.exec('/usr/lib/ddns/dynamic_dns_lucihelper.sh',
+-							[ '-S', section_id, '--', 'start' ])
+-			.then(L.bind(m.load, m))
+-			.then(L.bind(m.render, m))
++		return this.callReloadDDnsRule(section_id)
++			.then(L.bind(this.render, this))
+ 			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
+ 	},
+ 
+ 	HandleStopDDnsRule: function(m, section_id, ev) {
+-		return fs.exec('/usr/lib/ddns/dynamic_dns_lucihelper.sh',
+-							[ '-S', section_id, '--', 'start' ])
+-			.then(L.bind(m.render, m))
++		return this.callStopDDnsRule(section_id)
++			.then(L.bind(this.render, this))
+ 			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
+ 	},
+ 
+@@ -176,7 +185,7 @@
+ 
+ 	handleRestartDDns: function(m, ev) {
+ 		return this.callInitAction('ddns', 'restart')
+-			.then(L.bind(m.render, m));
++			.then(L.bind(this.render, this));
+ 	},
+ 
+ 	poll_status: function(map, data) {
+
+--- a/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
++++ b/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
+@@ -70,7 +70,7 @@
+ 			local res = {}
+ 
+ 			uci:foreach("ddns", "service", function (s)
+-				local ip, last_update, next_update
++				local ip, last_update, next_update, converted_last_update, time_diff
+ 				local section	= s[".name"]
+ 				if fs.access("%s/%s.ip" % { rundir, section }) then
+ 					ip = fs.readfile("%s/%s.ip" % { rundir, section })
+@@ -96,7 +96,6 @@
+ 				end
+ 
+ 				local last_update = tonumber(fs.readfile("%s/%s.update" % { rundir, section } ) or 0)
+-				local next_update, converted_last_update
+ 				local pid  = tonumber(fs.readfile("%s/%s.pid" % { rundir, section } ) or 0)
+ 
+ 				if pid > 0 and not nixio.kill(pid, 0) then
+@@ -117,16 +116,24 @@
+ 					local epoch = os.time() - uptime + last_update
+ 					-- use linux date to convert epoch
+ 					converted_last_update = epoch2date(epoch,date_format)
+-					next_update = epoch2date(epoch + force_seconds + check_seconds)
++					if force_seconds <= check_seconds then
++						time_diff = check_seconds
++					else
++						time_diff = force_seconds - check_seconds
++						while time_diff > check_seconds do
++							time_diff = time_diff - check_seconds
++						end
++					end
++					next_update = epoch2date(epoch + force_seconds + check_seconds - time_diff)
+ 				end
+ 
+-				if pid > 0 and ( last_update + force_seconds + check_seconds - uptime ) <= 0 then
+-					next_update = "Verify"
+-
+ 				-- run once
+-				elseif force_seconds == 0 then
++				if force_seconds == 0 then
+ 					next_update = "Run once"
+ 
++				elseif pid > 0 and ( last_update + force_seconds + check_seconds - time_diff - uptime ) <= 0 then
++					next_update = "Verify"
++
+ 				-- no process running and NOT enabled
+ 				elseif pid == 0 and s['enabled'] == '0' then
+ 					next_update  = "Disabled"
+@@ -281,6 +288,18 @@
+ 
+ 			return res
+ 		end
++	},
++	reload_ddns_rule = {
++		args = { id = "" },
++		call = function(args)
++			return (sys.call( [[/usr/lib/ddns/dynamic_dns_lucihelper.sh -S ]]..args.id..[[ -- start &]] ) == 0)
++		end
++	},
++	stop_ddns_rule = {
++		args = { id = "" },
++		call = function(args)
++			return (sys.call( [[kill $(cat /tmp/run/ddns/]]..args.id..[[.pid) 2>/dev/null]] ) == 0)
++		end
+ 	}
+ }
+ 
+
+--- a/feeds/luci/applications/luci-app-ddns/root/usr/share/rpcd/acl.d/luci-app-ddns.json
++++ b/feeds/luci/applications/luci-app-ddns/root/usr/share/rpcd/acl.d/luci-app-ddns.json
+@@ -3,7 +3,7 @@
+ 		"description": "Grant access to ddns procedures",
+ 		"read": {
+ 			"ubus": {
+-				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log" ],
++				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log", "reload_ddns_rule", "stop_ddns_rule" ],
+ 				"luci": [ "setInitAction" ]
+ 			},
+ 			"file": {
+
+--- a/feeds/luci/applications/luci-app-ksmbd/root/usr/share/luci/menu.d/luci-app-ksmbd.json
++++ b/feeds/luci/applications/luci-app-ksmbd/root/usr/share/luci/menu.d/luci-app-ksmbd.json
+@@ -1,6 +1,7 @@
+ {
+-	"admin/services/ksmbd": {
++	"admin/nas/ksmbd": {
+ 		"title": "Network Shares",
++		"order": 2,
+ 		"action": {
+ 			"type": "view",
+ 			"path": "ksmbd"
+
+--- a/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
++++ b/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
+@@ -130,6 +130,9 @@
+ 		s.taboption('general', form.Flag, 'igdv1', _('Enable UPnP IGDv1 mode'),
+ 			_('Advertise as UPnP IGDv1 device (no IPv6) instead of IGDv2')).default = '0'
+ 
++		s.taboption('general', form.Flag, 'force_forwarding', _('Force forwarding'),
++			_('Force forwarding for private/reserved IP address'))
++
+ 		s.taboption('general', form.Flag, 'log_output', _('Enable additional logging'),
+ 			_('Puts extra debugging information into the system log'))
+ 
+
+--- a/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
++++ b/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
+@@ -230,4 +230,10 @@
+ #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:137
+ #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:140
+ msgid "Value in KByte/s, informational only"
+ msgstr "单位为 KByte/s，仅供参考"
++
++msgid "Force forwarding"
++msgstr "强制转发"
++
++msgid "Force forwarding for private/reserved IP address"
++msgstr "为私有/保留IP地址开启强制转发"
+ 
+
+--- a/feeds/luci/modules/luci-base/root/etc/config/luci
++++ b/feeds/luci/modules/luci-base/root/etc/config/luci
+@@ -1,5 +1,5 @@
+ config core main
+-	option lang auto
++	option lang zh_cn
+ 	option mediaurlbase /luci-static/bootstrap
+ 	option resourcebase /luci-static/resources
+ 	option ubuspath /ubus/
+
+--- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
++++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
+@@ -729,6 +729,7 @@
+ 						so.default = so.enabled;
+ 
+ 						ss.taboption('advanced', form.Flag, 'force', _('Force'), _('Force DHCP on this network even if another server is detected.'));
++						ss.default = ss.enabled;
+ 
+ 						// XXX: is this actually useful?
+ 						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
+@@ -1049,6 +1050,7 @@
+ 				ifc.renderFormOptions(s);
+ 
+ 				// Common interface options
++				if (protoval != 'n2n') {
+ 				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
+ 				o.default = o.enabled;
+ 
+@@ -1145,6 +1147,7 @@
+ 				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
+ 				o.datatype = 'uinteger';
+ 				o.placeholder = '0';
++				}
+ 
+ 				for (var i = 0; i < s.children.length; i++) {
+ 					o = s.children[i];
+
+--- a/feeds/packages/net/miniupnpd/files/miniupnpd.init
++++ b/feeds/packages/net/miniupnpd/files/miniupnpd.init
+@@ -63,6 +63,7 @@
+ 	local use_stun stun_host stun_port uuid notify_interval presentation_url
+ 	local upnp_lease_file clean_ruleset_threshold clean_ruleset_interval
+ 	local ipv6_disable
++	local force_forwarding
+ 
+ 	local enabled
+ 	config_get_bool enabled config enabled 1
+@@ -90,6 +91,7 @@
+ 	config_get clean_ruleset_threshold config clean_ruleset_threshold
+ 	config_get clean_ruleset_interval config clean_ruleset_interval
+ 	config_get ipv6_disable config ipv6_disable 0
++	config_get force_forwarding config force_forwarding 0
+ 
+ 	local conf ifname ifname6
+ 
+@@ -142,6 +144,7 @@
+ 		upnpd_write_bool igdv1 0 force_igd_desc_v1
+ 		upnpd_write_bool use_stun 0 ext_perform_stun
+ 		upnpd_write_bool ipv6_disable $ipv6_disable
++		upnpd_write_bool force_forwarding $force_forwarding
+ 
+ 		[ "$use_stun" -eq 0 ] || {
+ 			[ -n "$stun_host" ] && echo "ext_stun_host=$stun_host"
+
+
+--- a/feeds/packages/net/smartdns/Makefile
++++ b/feeds/packages/net/smartdns/Makefile
+@@ -29,7 +29,7 @@
+   SECTION:=net
+   CATEGORY:=Network
+   TITLE:=smartdns server
+-  DEPENDS:=+libpthread +libopenssl
++  DEPENDS:=+libc +libpthread +libopenssl
+   URL:=https://www.github.com/pymumu/smartdns/
+ endef
+
+--- a/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
++++ b/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
+@@ -13,10 +13,11 @@
+ 	[widgets.GroupSelect, 'group', _('Run daemon as group')],
+ 	[form.Flag, 'respawn', _('Respawn when crashed')],
+ 	[form.DynamicList, 'env', _('Environment variable'), _('OS environments pass to frp for config file template, see <a href="https://github.com/fatedier/frp#configuration-file-template">frp README</a>'), {placeholder: 'ENV_NAME=value'}],
+-	[form.DynamicList, 'conf_inc', _('Additional configs'), _('Config files include in temporary config file'), {placeholder: '/etc/frp/frpc.d/frpc_full.ini'}]
++	[form.DynamicList, 'conf_inc', _('Additional configs'), _('Config files include in temporary config file')]
+ ];
+ 
+ var commonConf = [
++	[form.Flag, 'enabled', _('Enable'), {datatype: 'bool'}],
+ 	[form.Value, 'server_addr', _('Server address'), _('ServerAddr specifies the address of the server to connect to.<br />By default, this value is "127.0.0.1".'), {datatype: 'host'}],
+ 	[form.Value, 'server_port', _('Server port'), _('ServerPort specifies the port to connect to the server on.<br />By default, this value is 7000.'), {datatype: 'port'}],
+ 	[form.Value, 'http_proxy', _('HTTP proxy'), _('HttpProxy specifies a proxy address to connect to the server through. If this value is "", the server will be connected to directly.<br />By default, this value is read from the "http_proxy" environment variable.')],
+@@ -32,7 +33,7 @@
+ 	[form.Value, 'assets_dir', _('Assets dir'), _('AssetsDir specifies the local directory that the admin server will load resources from. If this value is "", assets will be loaded from the bundled executable using statik.<br />By default, this value is "".')],
+ 	[form.Flag, 'tcp_mux', _('TCP mux'), _('TcpMux toggles TCP stream multiplexing. This allows multiple requests from a client to share a single TCP connection. If this value is true, the server must have TCP multiplexing enabled as well.<br />By default, this value is true.'), {datatype: 'bool', default: 'true'}],
+ 	[form.Value, 'user', _('User'), _('User specifies a prefix for proxy names to distinguish them from other clients. If this value is not "", proxy names will automatically be changed to "{user}.{proxy_name}".<br />By default, this value is "".')],
+-	[form.Flag, 'login_fail_exit', _('Exit when login fail'), _('LoginFailExit controls whether or not the client should exit after a failed login attempt. If false, the client will retry until a login attempt succeeds.<br />By default, this value is true.'), {datatype: 'bool', default: 'true'}],
++	[form.Flag, 'login_fail_exit', _('Exit when login fail'), _('LoginFailExit controls whether or not the client should exit after a failed login attempt. If false, the client will retry until a login attempt succeeds.<br />By default, this value is true.'), {datatype: 'bool'}],
+ 	[form.ListValue, 'protocol', _('Protocol'), _('Protocol specifies the protocol to use when interacting with the server. Valid values are "tcp", "kcp", and "websocket".<br />By default, this value is "tcp".'), {values: ['tcp', 'kcp', 'websocket']}],
+ 	[form.Flag, 'tls_enable', _('TLS'), _('TLSEnable specifies whether or not TLS should be used when communicating with the server.'), {datatype: 'bool'}],
+ 	[form.Value, 'heartbeat_interval', _('Heartbeat interval'), _('HeartBeatInterval specifies at what interval heartbeats are sent to the server, in seconds. It is not recommended to change this value.<br />By default, this value is 30.'), {datatype: 'uinteger'}],
+
+--- a/feeds/packages/net/frp/files/frpc.config
++++ b/feeds/packages/net/frp/files/frpc.config
+@@ -1,23 +1,13 @@
+-config init
+-	option stdout 1
+-	option stderr 1
+-	option user frpc
+-	option group frpc
+-	option respawn 1
+-#	OS environments pass to frp for config file template, see
+-#	https://github.com/fatedier/frp#configuration-file-template
+-#	list env 'ENV_NAME=value'
+-#	Config files include in temporary config file.
+-#	list conf_inc '/etc/frp/frpc.d/frpc_full.ini'
+-
+-config conf 'common'
+-	option server_addr 127.0.0.1
+-	option server_port 7000
+-#	List options with name="_" will be directly appended to config file
+-#	list _ '# Key-A=Value-A'
+-
+-config conf 'ssh'
+-	option type tcp
+-	option local_ip 127.0.0.1
+-	option local_port 22
+-	option remote_port 6000
++
++ config init
++	option stdout '1'
++	option stderr '1'
++	option respawn '1'
++	option user 'root'
++	option group 'root'
++ 
++ config conf 'common'
++	option server_addr '127.0.0.1'
++	option server_port '7000'
++	option tls_enable 'false'
++ 
+
+--- a/feeds/packages/net/frp/files/frpc.init
++++ b/feeds/packages/net/frp/files/frpc.init
+@@ -13,7 +13,6 @@
+ 
+ config_cb() {
+ 	[ $# -eq 0 ] && return
+-
+ 	local type="$1"
+ 	local name="$2"
+ 	if [ "$type" = "conf" ]; then
+@@ -21,6 +20,7 @@
+ 		option_cb() {
+ 			local option="$1"
+ 			local value="$2"
++			[ "$1" = enabled ] && return 0
+ 			[ "$option" = "name" ] && \
+ 			sed -i "s/$CONFIG_SECTION/$value/g" "$conf_file" || \
+ 			echo "$option = $value" >> "$conf_file";
+@@ -43,6 +43,7 @@
+ }
+ 
+ start_service() {
++	[ "$(uci -q get frpc.common.enabled)" = 1 ] || return 0
+ 	local init_cfg=" "
+ 	local conf_file="/var/etc/$NAME.ini"
+ 
+@@ -77,4 +78,11 @@
+ 	[ $respawn -eq 1 ] && procd_set_param respawn
+ 	[ -n "$env" ] && config_list_foreach "$init_cfg" env "procd_append_param env"
+ 	procd_close_instance
++}
++stop_service(){
++	rm -f /var/etc/$NAME.ini
++}
++
++reload_service(){
++	restart
+ }
+
+--- a/feeds/packages/net/frp/Makefile
++++ b/feeds/packages/net/frp/Makefile
+@@ -25,8 +25,6 @@
+ define Package/frp/install
+ 	$(INSTALL_DIR) $(1)/usr/bin/
+ 	$(INSTALL_BIN) $(GO_PKG_BUILD_BIN_DIR)/$(2) $(1)/usr/bin/
+-	$(INSTALL_DIR) $(1)/etc/frp/$(2).d/
+-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/conf/$(2)_full.ini $(1)/etc/frp/$(2).d/
+ 	$(INSTALL_DIR) $(1)/etc/config/
+ 	$(INSTALL_CONF) ./files/$(2).config $(1)/etc/config/$(2)
+ 	$(INSTALL_DIR) $(1)/etc/init.d/
+
+--- a/feeds/packages/net/https-dns-proxy/Makefile
++++ b/feeds/packages/net/https-dns-proxy/Makefile
+@@ -50,11 +50,6 @@
+ define Package/https-dns-proxy/install
+ 	$(INSTALL_DIR) $(1)/usr/sbin
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/https_dns_proxy $(1)/usr/sbin/https-dns-proxy
+-	$(INSTALL_DIR) $(1)/etc/init.d
+-	$(INSTALL_BIN) ./files/etc/init.d/https-dns-proxy $(1)/etc/init.d/https-dns-proxy
+-	$(SED) "s|^\(readonly PKG_VERSION\).*|\1='$(PKG_VERSION)-$(PKG_RELEASE)'|" $(1)/etc/init.d/https-dns-proxy
+-	$(INSTALL_DIR) $(1)/etc/config
+-	$(INSTALL_CONF) ./files/etc/config/https-dns-proxy $(1)/etc/config/https-dns-proxy
+ 	$(INSTALL_DIR) $(1)/etc/uci-defaults/
+ 	$(INSTALL_BIN) ./files/etc/uci-defaults/50-https-dns-proxy-migrate-options.sh $(1)/etc/uci-defaults/50-https-dns-proxy-migrate-options.sh
+ endef
+
+--- a/feeds/packages/net/kcptun/Makefile
++++ b/feeds/packages/net/kcptun/Makefile
+@@ -50,7 +33,6 @@
+     SUBMENU:=Web Servers/Proxies
+     TITLE:=KCP-based Secure Tunnel $(1)
+     URL:=https://github.com/xtaci/kcptun
+-    DEPENDS:=+kcptun-config
+   endef
+ 
+   define Package/kcptun-$(1)/description
+@@ -66,7 +48,6 @@
+   endef
+ endef
+ 
+-$(eval $(call BuildPackage,kcptun-config))
+ KCPTUN_COMPONENTS:=server client
+ $(foreach component,$(KCPTUN_COMPONENTS), \
+   $(eval $(call Package/kcptun/Default,$(component))) \
+
+--- a/feeds/packages/net/ksmbd-tools/files/ksmbd.init
++++ b/feeds/packages/net/ksmbd-tools/files/ksmbd.init
+@@ -39,7 +39,7 @@
+ 	    -e "s#|DESCRIPTION|#$description#g" \
+ 	    -e "s#|INTERFACES|#$interfaces#g" \
+ 	    /etc/ksmbd/ksmbd.conf.template > /var/etc/ksmbd/ksmbd.conf
+-		
++
+ 	{
+ 		printf "\n######### Dynamic written config options #########\n"
+ 
+@@ -173,19 +173,20 @@
+ {
+ 	logger -p daemon.notice -t 'ksmbd' "Stopping Ksmbd userspace service."
+ 	killall ksmbd.mountd > /dev/null 2>&1
+-	
++
+ 	[ -e /sys/module/ksmbd ] && rmmod ksmbd > /dev/null 2>&1
+ 	# kill server if we cant rmmod
+ 	[ -e /sys/module/ksmbd ] && kill_server
+ 	# next try
+ 	[ -e /sys/module/ksmbd ] && rmmod ksmbd > /dev/null 2>&1
+-	
++
+ 	if [ -e /sys/module/ksmbd ]; then
+ 		logger -p daemon.error -t 'ksmbd' "module still loaded after kill_server?"
+ 	fi
+ 	[ -f /tmp/ksmbd.lock ] && rm /tmp/ksmbd.lock
+ }
+ 
+-# reload_service() {
+-	# restart "$@"
+-# }
++boot(){
++	sleep 5
++	start
++}
+
+--- /dev/null
++++ b/feeds/packages/net/sqm-scripts/patches/001-zh-cn.patch
+@@ -0,0 +1,42 @@
++--- a/src/layer_cake.qos.help
+++++ b/src/layer_cake.qos.help
++@@ -1,4 +1,4 @@
++-This uses the cake qdisc as a replacement for both htb as shaper and fq_codel as leaf qdisc.
++-This exercises cake's diffserv profile(s) as different "layers" of priority.
++-This script requires that cake is selected as qdisc, and forces its usage.
++-See: http://www.bufferbloat.net/projects/codel/wiki/Cake for more information
+++这个cake列队规则使用HTB作为过滤器，使用fq_codel作为叶列队规则。
+++这个cake规则将不同的文件分为不同的“层次”优先级。
+++该脚本需要将该cake选为列队规则。
+++请参阅：http://www.bufferbloat.net/projects/codel/wiki/Cake获取更多信息
++
++--- a/src/piece_of_cake.qos.help
+++++ b/src/piece_of_cake.qos.help
++@@ -1,4 +1,4 @@
++-This just uses the cake qdisc as a replacement for both htb as shaper and fq_codel as leaf qdisc.
++-It just does not come any simpler than this, in other words it truely is a "piece of cake".
++-This script requires that cake is selected as qdisc, and forces its usage.
++-See: http://www.bufferbloat.net/projects/codel/wiki/Cake for more information
+++这个cake列队规则使用HTB作为过滤器，使用fq_codel作为叶列队规则。
+++它不会比这更简单，换句话说，它真的是“小菜一碟”。
+++该脚本需要将cake选为列队规则。
+++请参阅：http://www.bufferbloat.net/projects/codel/wiki/Cake获取更多信息
++
++--- a/src/simple.qos.help
+++++ b/src/simple.qos.help
++@@ -1 +1 @@
++-BW-limited three-tier prioritisation scheme with your qdisc on each queue. (default)
+++使用fq_codel列队规则在每个列队上进行三层优先级的带宽控制。（默认）
++
++--- a/src/simplest.qos.help
+++++ b/src/simplest.qos.help
++@@ -1 +1 @@
++-Simplest possible configuration: HTB rate limiter with your qdisc attached.
+++最简单的配置：使用带有HTB过滤器的列队规则来进行速率限制。
++
++--- a/src/simplest_tbf.qos.help
+++++ b/src/simplest_tbf.qos.help
++@@ -1,2 +1 @@
++-Simplest possible configuration (TBF): TBF rate limiter with your qdisc attached.
++-TBF may give better performance than HTB on some architectures.
+++最简单的配置（TBF）：使用带有TBF过滤器的列队规则来进行速率限制。在某些架构上，TBF可能会比HTB提供更好的性能。
+
+--- a/feeds/wz/luci-app-vlmcsd/root/etc/config/vlmcsd
++++ b/feeds/wz/luci-app-vlmcsd/root/etc/config/vlmcsd
+@@ -1,5 +1,5 @@
+ 
+ config vlmcsd 'config'
+-	option autoactivate '1'
+-	option enabled '1'
++	option autoactivate '0'
++	option enabled '0'
+
+--- a/feeds/luci/applications/luci-app-attendedsysupgrade/htdocs/luci-static/resources/view/attendedsysupgrade/overview.js
++++ b/feeds/luci/applications/luci-app-attendedsysupgrade/htdocs/luci-static/resources/view/attendedsysupgrade/overview.js
+@@ -95,7 +95,7 @@
+ 
+ 		if (image.name != undefined) {
+ 			this.sha256_unsigned = image.sha256_unsigned;
+-			let sysupgrade_url = `${data.url}/store/${response.bin_dir}/${image.name}`;
++			let sysupgrade_url = `${data.url}/store/${response.request_hash}/${image.name}`;
+ 
+ 			let keep = E('input', { type: 'checkbox' });
+ 			keep.checked = true;
+@@ -431,42 +431,9 @@
+ 				]);
+ 				return;
+ 			}
+-			if (version.endsWith('SNAPSHOT')) {
+-				const remote_revision = response.json().revision;
+-				if (
+-					get_revision_count(revision) < get_revision_count(remote_revision)
+-				) {
+-					candidates.push([version, remote_revision]);
+-				}
+-			} else {
+-				const latest = response.json().latest;
+-
+-				for (let remote_version of latest) {
+-					let remote_branch = get_branch(remote_version);
+-
+-					// already latest version installed
+-					if (version == remote_version) {
+-						break;
+-					}
+-
+-					// skip branch upgrades outside the advanced mode
+-					if (branch != remote_branch && advanced_mode == 0) {
+-						continue;
+-					}
+-
+-					candidates.unshift([remote_version, null]);
+-
+-					// don't offer branches older than the current
+-					if (branch == remote_branch) {
+-						break;
+-					}
+-				}
+-			}
+-
+-			// allow to re-install running firmware in advanced mode
+-			if (advanced_mode == 1) {
+-				candidates.unshift([version, revision]);
+-			}
++			if (revision < remote_revision || force == 1) {
++ 					candidates.push([version, remote_revision]);
++ 				}
+ 
+ 			if (candidates.length) {
+ 				let s, o;
+@@ -524,6 +491,9 @@
+ 						form_rendered,
+ 						E('div', { class: 'right' }, [
+ 							E('div', { class: 'btn', click: ui.hideModal }, _('Cancel')),
++							E('div', { class: 'btn cbi-button cbi-button-positive', click: ui.createHandlerFn(this, function () {
++								this.handleCheck(1)
++								}) }, _('Force Sysupgrade')),
+ 							' ',
+ 							E(
+ 								'button',
+ 
+--- /dev/null
++++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/19_cpu.js 
+@@ -0,0 +1,45 @@
++'use strict';
++'require rpc';
++
++var callCPUFreeInfo = rpc.declare({
++	object: 'luci',
++	method: 'getCPUUsage'
++});
++
++function progressbar(value, max) {
++	var vn = parseInt(value) || 0,
++	    mn = parseInt(max) || 100,
++	    pc = Math.floor((100 / mn) * vn);
++
++	return E('div', {
++		'class': 'cbi-progressbar',
++		'title': '%s%% / %s%%'.format(vn, mn, pc)
++	}, E('div', { 'style': 'width:%.2f%%'.format(pc) }));
++}
++
++return L.Class.extend({
++	title: _('CPU'),
++
++	load: function() {
++		return L.resolveDefault(callCPUFreeInfo(), {});
++	},
++
++	render: function(info) {
++		var fields = [
++			_('Used'), (info.cpuusage) ? info.cpuusage : 0, 100
++		];
++
++		var table = E('div', { 'class': 'table cpu' });
++
++		for (var i = 0; i < fields.length; i += 3) {
++			table.appendChild(E('div', { 'class': 'tr' }, [
++				E('div', { 'class': 'td left', 'width': '33%' }, [ fields[i] ]),
++				E('div', { 'class': 'td left' }, [
++					(fields[i + 1] != null) ? progressbar(fields[i + 1], fields[i + 2], true) : '?'
++				])
++			]));
++		}
++
++		return table;
++	}
++});
+
+--- a/feeds/luci/modules/luci-mod-system/root/usr/share/rpcd/acl.d/luci-mod-system.json
++++ b/feeds/luci/modules/luci-mod-system/root/usr/share/rpcd/acl.d/luci-mod-system.json
+@@ -3,7 +3,7 @@
+ 		"description": "Grant access to system configuration",
+ 		"read": {
+ 			"ubus": {
+-				"luci": [ "getLEDs", "getTimezones", "getUSBDevices" ],
++				"luci": [ "getLEDs", "getTimezones", "getUSBDevices", "getCPUInfo", "getETHInfo", "getTempInfo", "getCPUBench", "getCPUUsage", "getOnlineUsers" ],
+ 				"rc": [ "list" ],
+ 				"system": [ "info" ]
+ 			},
+
+--- a/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
++++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
+@@ -18,6 +18,26 @@
+ 	method: 'info'
+ });
+ 
++var callCPUBench = rpc.declare({
++	object: 'luci',
++	method: 'getCPUBench'
++});
++
++var callCPUInfo = rpc.declare({
++	object: 'luci',
++	method: 'getCPUInfo'
++});
++
++var callCPUUsage = rpc.declare({
++	object: 'luci',
++	method: 'getCPUUsage'
++});
++
++var callTempInfo = rpc.declare({
++	object: 'luci',
++	method: 'getTempInfo'
++});
++
+ return baseclass.extend({
+ 	title: _('System'),
+ 
+@@ -25,6 +45,10 @@
+ 		return Promise.all([
+ 			L.resolveDefault(callSystemBoard(), {}),
+ 			L.resolveDefault(callSystemInfo(), {}),
++			L.resolveDefault(callCPUBench(), {}),
++			L.resolveDefault(callCPUInfo(), {}),
++			L.resolveDefault(callCPUUsage(), {}),
++			L.resolveDefault(callTempInfo(), {}),
+ 			L.resolveDefault(callLuciVersion(), { revision: _('unknown version'), branch: 'LuCI' })
+ 		]);
+ 	},
+@@ -32,7 +56,11 @@
+ 	render: function(data) {
+ 		var boardinfo   = data[0],
+ 		    systeminfo  = data[1],
+-		    luciversion = data[2];
++		    cpubench    = data[2],
++		    cpuinfo     = data[3],
++		    cpuusage    = data[4],
++		    tempinfo    = data[5],
++		    luciversion = data[6];
+ 
+ 		luciversion = luciversion.branch + ' ' + luciversion.revision;
+ 
+@@ -53,8 +81,6 @@
+ 
+ 		var fields = [
+ 			_('Hostname'),         boardinfo.hostname,
+-			_('Model'),            boardinfo.model,
+-			_('Architecture'),     boardinfo.system,
+ 			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target : ''),
+ 			_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),
+ 			_('Kernel Version'),   boardinfo.kernel,
+@@ -67,6 +93,24 @@
+ 			) : null
+ 		];
+ 
++		if (tempinfo.tempinfo) {
++			fields.splice(6, 0, _('Temperature'));
++			fields.splice(7, 0, tempinfo.tempinfo);
++		}
++		if (boardinfo.model == "Default string Default string") {
++			if (cpuinfo.cpuinfo) {
++			fields.splice(2, 0, _('Architecture'));
++			fields.splice(3, 0, cpuinfo.cpuinfo + cpubench.cpubench);
++			}
++		} else {
++			fields.splice(2, 0, _('Model'));
++			fields.splice(3, 0, boardinfo.model + cpubench.cpubench);
++			if (cpuinfo.cpuinfo) {
++			fields.splice(4, 0, _('Architecture'));
++			fields.splice(5, 0, cpuinfo.cpuinfo);
++			}
++		}
++
+ 		var table = E('table', { 'class': 'table' });
+ 
+ 		for (var i = 0; i < fields.length; i += 2) {
