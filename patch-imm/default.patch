@@ -214,7 +214,7 @@
 
 --- a/package/network/services/odhcpd/files/odhcpd.defaults
 +++ b/package/network/services/odhcpd/files/odhcpd.defaults
-@@ -11,41 +11,20 @@
+@@ -11,41 +11,21 @@
  json_select ..
  json_select ..
  
