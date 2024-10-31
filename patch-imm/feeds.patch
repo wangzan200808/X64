@@ -1,6 +1,6 @@
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
-@@ -163,8 +163,7 @@
+@@ -169,8 +169,7 @@
  		p[1].default = fwDefaults.getOutput();
  		p[2].default = fwDefaults.getForward();
  
@@ -197,7 +197,7 @@
 
 --- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
 +++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
-@@ -730,6 +730,7 @@
+@@ -698,6 +698,7 @@
  						so.default = so.enabled;
  
  						ss.taboption('advanced', form.Flag, 'force', _('Force'), _('Force DHCP on this network even if another server is detected.'));
@@ -205,7 +205,7 @@
  
  						// XXX: is this actually useful?
  						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
-@@ -1052,6 +1053,7 @@
+@@ -1025,6 +1026,7 @@
  				ifc.renderFormOptions(s);
  
  				// Common interface options
@@ -213,7 +213,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1148,6 +1150,7 @@
+@@ -1122,6 +1124,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
@@ -507,7 +507,7 @@
 
 --- a/feeds/luci/applications/luci-app-attendedsysupgrade/htdocs/luci-static/resources/view/attendedsysupgrade/overview.js
 +++ b/feeds/luci/applications/luci-app-attendedsysupgrade/htdocs/luci-static/resources/view/attendedsysupgrade/overview.js
-@@ -95,7 +95,7 @@
+@@ -103,7 +103,7 @@
  
  		if (image.name != undefined) {
  			this.sha256_unsigned = image.sha256_unsigned;
@@ -516,7 +516,7 @@
  
  			let keep = E('input', { type: 'checkbox' });
  			keep.checked = true;
-@@ -431,42 +431,9 @@
+@@ -439,42 +439,9 @@
  				]);
  				return;
  			}
@@ -562,7 +562,7 @@
  
  			if (candidates.length) {
  				let s, o;
-@@ -524,6 +491,9 @@
+@@ -532,6 +499,9 @@
  						form_rendered,
  						E('div', { class: 'right' }, [
  							E('div', { class: 'btn', click: ui.hideModal }, _('Cancel')),
