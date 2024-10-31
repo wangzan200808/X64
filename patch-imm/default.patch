@@ -87,7 +87,7 @@
 +		set system.@system[-1].zonename='Asia/Hong Kong'
 +		set system.@system[-1].timezone='HKT-8'
  		set system.@system[-1].ttylogin='0'
- 		set system.@system[-1].log_size='64'
+ 		set system.@system[-1].log_size='128'
  		set system.@system[-1].urandom_seed='0'
 
 --- a/package/base-files/files/etc/board.d/99-default_network
@@ -181,7 +181,7 @@
 
 --- a/package/network/services/dnsmasq/files/dnsmasq.init
 --- a/package/network/services/dnsmasq/files/dnsmasq.init
-@@ -414,6 +414,21 @@
+@@ -415,6 +415,21 @@
  	local mode="$3"
  	local routerstub routername ifdashname
  	local lanaddr lanaddr6 lanaddrs6 ulaprefix
@@ -203,16 +203,14 @@
  
  	if [ "$mode" -gt 0 ] ; then
  		ifdashname="${ifname//./-}"
-@@ -972,6 +987,7 @@
+@@ -996,6 +1011,7 @@
  	append_bool "$cfg" noping "--no-ping"
  	append_bool "$cfg" rapidcommit "--dhcp-rapid-commit"
  	append_bool "$cfg" scriptarp "--script-arp"
 +	append_parm "$cfg" mini_ttl "--min-ttl"
  
-	append_bool "$cfg" filter_a "--filter-A"
+	# deprecate or remove filter-X in favor of filter-rr?
 	append_bool "$cfg" filter_aaaa "--filter-AAAA"
- 
- dnsmasq_stop()
 
 --- a/package/network/services/odhcpd/files/odhcpd.defaults
 +++ b/package/network/services/odhcpd/files/odhcpd.defaults
@@ -230,7 +228,6 @@
  # only enable server mode on statically addressed lan ports
 -"static")
 -	V4MODE=server
--	[ -e /proc/sys/net/ipv6 ] && V6MODE=server
 -	;;
 +"static") [ -e /proc/sys/net/ipv6 ] && MODE=server || MODE=disabled ;;
 +*) MODE=disabled ;;
@@ -260,8 +257,9 @@
 -set dhcp.lan.ra_slaac=1
 +set dhcp.lan.ra=$MODE
 +set dhcp.lan.dhcpv6=$MODE
- add_list dhcp.lan.ra_flags=managed-config
  add_list dhcp.lan.ra_flags=other-config
+ set dhcp.lan.max_preferred_lifetime=2700
+ set dhcp.lan.max_valid_lifetime=5400
  commit dhcp
 
 --- a/package/network/services/uhttpd/files/uhttpd.config
@@ -1474,7 +1472,7 @@
 
 --- a/package/utils/busybox/Makefile
 +++ b/package/utils/busybox/Makefile
-@@ -97,7 +97,7 @@
+@@ -101,7 +101,7 @@
  LDLIBS += $(call BUSYBOX_IF_ENABLED,PAM,pam pam_misc pthread)
  
  ifeq ($(CONFIG_USE_GLIBC),y)
@@ -1630,7 +1628,7 @@
 
 --- a/include/target.mk
 +++ b/include/target.mk
-@@ -120,16 +120,6 @@
+@@ -121,16 +121,6 @@
  DEFAULT_PACKAGES+=busybox procd
  endif
  
