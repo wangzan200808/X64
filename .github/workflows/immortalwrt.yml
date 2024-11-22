@@ -64,7 +64,6 @@ jobs:
     -  name: remove smartdns&xray-core
        run: |
         cd openwrt
-        cp -r feeds/wz/smartdns/. feeds/packages/net/smartdns
         cp -r feeds/overwall/luci-app-homeproxy/. feeds/luci/applications/luci-app-homeproxy
 
     - name: Install feeds
