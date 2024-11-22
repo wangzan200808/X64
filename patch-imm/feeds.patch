@@ -252,7 +252,7 @@
 
 --- a/feeds/packages/net/smartdns/Makefile
 +++ b/feeds/packages/net/smartdns/Makefile
-@@ -29,7 +29,7 @@
+@@ -28,7 +28,7 @@
    SECTION:=net
    CATEGORY:=Network
    TITLE:=smartdns server
