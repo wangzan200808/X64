@@ -11,128 +11,6 @@
  		o.tooltip = function(section_id) {
  			var family = uci.get('firewall', section_id, 'family')
 
---- a/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
-+++ b/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
-@@ -56,6 +56,18 @@
- 		expect: {  }
- 	}),
- 
-+	callReloadDDnsRule: rpc.declare({
-+		object: 'luci.ddns',
-+		method: 'reload_ddns_rule',
-+		params: [ 'id' ]
-+	}),
-+
-+	callStopDDnsRule: rpc.declare({
-+		object: 'luci.ddns',
-+		method: 'stop_ddns_rule',
-+		params: [ 'id' ]
-+	}),
-+
- 	services: {},
- 
- 	/*
-@@ -152,17 +164,14 @@
- 	},
- 
- 	handleReloadDDnsRule: function(m, section_id, ev) {
--		return fs.exec('/usr/lib/ddns/dynamic_dns_lucihelper.sh',
--							[ '-S', section_id, '--', 'start' ])
--			.then(L.bind(m.load, m))
--			.then(L.bind(m.render, m))
-+		return this.callReloadDDnsRule(section_id)
-+			.then(L.bind(this.render, this))
- 			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
- 	},
- 
- 	HandleStopDDnsRule: function(m, section_id, ev) {
--		return fs.exec('/usr/lib/ddns/dynamic_dns_lucihelper.sh',
--							[ '-S', section_id, '--', 'start' ])
--			.then(L.bind(m.render, m))
-+		return this.callStopDDnsRule(section_id)
-+			.then(L.bind(this.render, this))
- 			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
- 	},
- 
-@@ -178,7 +187,7 @@
- 
- 	handleRestartDDns: function(m, ev) {
- 		return this.callInitAction('ddns', 'restart')
--			.then(L.bind(m.render, m));
-+			.then(L.bind(this.render, this));
- 	},
- 
- 	poll_status: function(map, data) {
-
---- a/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
-+++ b/feeds/luci/applications/luci-app-ddns/root/usr/libexec/rpcd/luci.ddns
-@@ -70,7 +70,7 @@
- 			local res = {}
- 
- 			uci:foreach("ddns", "service", function (s)
--				local ip, last_update, next_update
-+				local ip, last_update, next_update, converted_last_update, time_diff
- 				local section	= s[".name"]
- 				if fs.access("%s/%s.ip" % { rundir, section }) then
- 					ip = fs.readfile("%s/%s.ip" % { rundir, section })
-@@ -96,7 +96,6 @@
- 				end
- 
- 				local last_update = tonumber(fs.readfile("%s/%s.update" % { rundir, section } ) or 0)
--				local next_update, converted_last_update
- 				local pid  = tonumber(fs.readfile("%s/%s.pid" % { rundir, section } ) or 0)
- 
- 				if pid > 0 and not nixio.kill(pid, 0) then
-@@ -117,16 +116,24 @@
- 					local epoch = os.time() - uptime + last_update
- 					-- use linux date to convert epoch
- 					converted_last_update = epoch2date(epoch,date_format)
--					next_update = epoch2date(epoch + force_seconds + check_seconds)
-+					if force_seconds <= check_seconds then
-+						time_diff = check_seconds
-+					else
-+						time_diff = force_seconds - check_seconds
-+						while time_diff > check_seconds do
-+							time_diff = time_diff - check_seconds
-+						end
-+					end
-+					next_update = epoch2date(epoch + force_seconds + check_seconds - time_diff)
- 				end
- 
--				if pid > 0 and ( last_update + force_seconds + check_seconds - uptime ) <= 0 then
--					next_update = "Verify"
--
- 				-- run once
--				elseif force_seconds == 0 then
-+				if force_seconds == 0 then
- 					next_update = "Run once"
- 
-+				elseif pid > 0 and ( last_update + force_seconds + check_seconds - time_diff - uptime ) <= 0 then
-+					next_update = "Verify"
-+
- 				-- no process running and NOT enabled
- 				elseif pid == 0 and s['enabled'] == '0' then
- 					next_update  = "Disabled"
-@@ -281,6 +288,18 @@
- 
- 			return res
- 		end
-+	},
-+	reload_ddns_rule = {
-+		args = { id = "" },
-+		call = function(args)
-+			return (sys.call( [[/usr/lib/ddns/dynamic_dns_lucihelper.sh -S ]]..args.id..[[ -- start &]] ) == 0)
-+		end
-+	},
-+	stop_ddns_rule = {
-+		args = { id = "" },
-+		call = function(args)
-+			return (sys.call( [[kill $(cat /tmp/run/ddns/]]..args.id..[[.pid) 2>/dev/null]] ) == 0)
-+		end
- 	}
- }
- 
-
 --- a/feeds/luci/applications/luci-app-ddns/root/usr/share/rpcd/acl.d/luci-app-ddns.json
 +++ b/feeds/luci/applications/luci-app-ddns/root/usr/share/rpcd/acl.d/luci-app-ddns.json
 @@ -3,7 +3,7 @@
@@ -156,34 +34,6 @@
  		"action": {
  			"type": "view",
  			"path": "ksmbd"
-
---- a/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
-+++ b/feeds/luci/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
-@@ -130,6 +130,9 @@
- 		s.taboption('general', form.Flag, 'igdv1', _('Enable UPnP IGDv1 mode'),
- 			_('Advertise as UPnP IGDv1 device (no IPv6) instead of IGDv2')).default = '0'
- 
-+		s.taboption('general', form.Flag, 'force_forwarding', _('Force forwarding'),
-+			_('Force forwarding for private/reserved IP address'))
-+
- 		s.taboption('general', form.Flag, 'log_output', _('Enable additional logging'),
- 			_('Puts extra debugging information into the system log'))
- 
-
---- a/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
-+++ b/feeds/luci/applications/luci-app-upnp/po/zh_Hans/upnp.po
-@@ -230,4 +230,10 @@
- #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:137
- #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:140
- msgid "Value in KByte/s, informational only"
- msgstr "单位为 KByte/s，仅供参考"
-+
-+msgid "Force forwarding"
-+msgstr "强制转发"
-+
-+msgid "Force forwarding for private/reserved IP address"
-+msgstr "为私有/保留IP地址开启强制转发"
- 
 
 --- a/feeds/luci/modules/luci-base/root/etc/config/luci
 +++ b/feeds/luci/modules/luci-base/root/etc/config/luci
@@ -256,10 +106,10 @@
    SECTION:=net
    CATEGORY:=Network
    TITLE:=smartdns server
+   SUBMENU:=IP Addresses and Names
 -  DEPENDS:=+libpthread +libopenssl
 +  DEPENDS:=+libc +libpthread +libopenssl
    URL:=https://www.github.com/pymumu/smartdns/
- endef
 
 --- a/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
 +++ b/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
@@ -379,7 +229,7 @@
 
 --- a/feeds/packages/net/https-dns-proxy/Makefile
 +++ b/feeds/packages/net/https-dns-proxy/Makefile
-@@ -50,11 +50,6 @@
+@@ -51,11 +51,6 @@
  define Package/https-dns-proxy/install
  	$(INSTALL_DIR) $(1)/usr/sbin
  	$(INSTALL_BIN) $(PKG_BUILD_DIR)/https_dns_proxy $(1)/usr/sbin/https-dns-proxy
