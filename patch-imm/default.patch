@@ -467,7 +467,7 @@
 +         Support long options for the nslookup applet.
 +
  config BUSYBOX_CONFIG_NTPD
- 	bool "ntpd (22 kb)"
+ 	bool "ntpd (23 kb)"
  	default BUSYBOX_DEFAULT_NTPD
 
 --- /dev/null
