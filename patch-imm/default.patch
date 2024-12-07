@@ -449,7 +449,7 @@
 
 --- a/package/utils/busybox/config/networking/Config.in
 +++ b/package/utils/busybox/config/networking/Config.in
-@@ -807,5 +807,19 @@
+@@ -813,5 +813,19 @@
  	default BUSYBOX_DEFAULT_FEATURE_NSLOOKUP_LONG_OPTIONS
  	depends on BUSYBOX_CONFIG_FEATURE_NSLOOKUP_BIG && BUSYBOX_CONFIG_LONG_OPTS
 +config BUSYBOX_CONFIG_NSLOOKUP_OPENWRT
@@ -1447,7 +1447,7 @@
 
 --- a/package/utils/busybox/Config-defaults.in
 +++ b/package/utils/busybox/Config-defaults.in
-@@ -2525,13 +2525,19 @@
+@@ -2537,13 +2537,19 @@
  	default y
  config BUSYBOX_DEFAULT_NSLOOKUP
  	bool
