@@ -110,6 +110,7 @@
 -  DEPENDS:=+libpthread +libopenssl
 +  DEPENDS:=+libc +libpthread +libopenssl
    URL:=https://www.github.com/pymumu/smartdns/
+ endef
 
 --- a/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
 +++ b/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
