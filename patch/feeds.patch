@@ -153,17 +153,6 @@
  			[ -n "$stun_host" ] && echo "ext_stun_host=$stun_host"
 
 
---- a/feeds/packages/net/smartdns/Makefile
-+++ b/feeds/packages/net/smartdns/Makefile
-@@ -29,7 +29,7 @@
-   SECTION:=net
-   CATEGORY:=Network
-   TITLE:=smartdns server
--  DEPENDS:=+libpthread +libopenssl
-+  DEPENDS:=+libc +libpthread +libopenssl
-   URL:=https://www.github.com/pymumu/smartdns/
- endef
-
 --- a/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
 +++ b/feeds/luci/applications/luci-app-frpc/htdocs/luci-static/resources/view/frpc.js
 @@ -13,10 +13,11 @@
