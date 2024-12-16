@@ -90,7 +90,7 @@
  		set system.@system[-1].ttylogin='0'
  		set system.@system[-1].log_size='128'
  		set system.@system[-1].urandom_seed='0'
-@@ -320,11 +301,9 @@
+@@ -320,11 +302,9 @@
  		delete system.ntp
  		set system.ntp='timeserver'
  		set system.ntp.enabled='1'
@@ -220,8 +220,8 @@
  	append_bool "$cfg" scriptarp "--script-arp"
 +	append_parm "$cfg" mini_ttl "--min-ttl"
  
+	# deprecate or remove filter-X in favor of filter-rr?
 	append_bool "$cfg" filter_aaaa "--filter-AAAA"
-	append_bool "$cfg" filter_a "--filter-A"
 @@ -1264,6 +1280,14 @@
  	[ -e "$hostsfile" ] && procd_add_jail_mount $hostsfile
  
@@ -1682,12 +1682,12 @@
 --- a/include/target.mk
 +++ b/include/target.mk
 @@ -90,7 +90,3 @@
-  endif
+   endif
  endif
- 
+
 -# include ujail on systems with enough storage
--ifeq ($(CONFIG_SMALL_FLASH),)
--DEFAULT_PACKAGES+=procd-ujail
+-ifeq ($(filter small_flash,$(FEATURES)),)
+-  DEFAULT_PACKAGES+=procd-ujail
 -endif
 
 --- /dev/null
