@@ -90,7 +90,7 @@
  		set system.@system[-1].ttylogin='0'
  		set system.@system[-1].log_size='128'
  		set system.@system[-1].urandom_seed='0'
-@@ -320,11 +302,9 @@
+@@ -321,11 +302,9 @@
  		delete system.ntp
  		set system.ntp='timeserver'
  		set system.ntp.enabled='1'
@@ -1681,7 +1681,8 @@
 
 --- a/include/target.mk
 +++ b/include/target.mk
-@@ -90,7 +90,3 @@
+@@ -89,10 +89,6 @@
+     -include ./$(SUBTARGET)/target.mk
    endif
  endif
 
@@ -1689,6 +1690,8 @@
 -ifeq ($(filter small_flash,$(FEATURES)),)
 -  DEFAULT_PACKAGES+=procd-ujail
 -endif
+
+ # Add device specific packages (here below to allow device type set from subtarget)
 
 --- /dev/null
 +++ b/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
