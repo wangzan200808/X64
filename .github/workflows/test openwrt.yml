@@ -61,13 +61,13 @@ jobs:
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
-    -  name: remove smartdns&xray-core
-       run: |
-        cd openwrt
-        rm -rf feeds/packages/net/xray-core
-        rm -rf feeds/packages/net/smartdns
-        cp -r feeds/wz/xray-core/. feeds/packages/net/xray-core
-        cp -r feeds/wz/smartdns/. feeds/packages/net/smartdns
+ #   -  name: remove smartdns&xray-core
+ #      run: |
+ #       cd openwrt
+ #       rm -rf feeds/packages/net/xray-core
+ #       rm -rf feeds/packages/net/smartdns
+ #       cp -r feeds/wz/xray-core/. feeds/packages/net/xray-core
+ #       cp -r feeds/wz/smartdns/. feeds/packages/net/smartdns
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
