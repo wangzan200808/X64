@@ -604,3 +604,15 @@
  		var table = E('table', { 'class': 'table' });
  
  		for (var i = 0; i < fields.length; i += 2) {
+
+--- a/feeds/wz/naiveproxy/Makefile
++++ b/feeds/wz/naiveproxy/Makefile
+@@ -2,7 +2,7 @@
+ 
+ PKG_NAME:=naiveproxy
+ PKG_VERSION:=131.0.6778.86
+-PKG_RELEASE:=10
++PKG_RELEASE:=1
+ 
+ ARCH_PREBUILT:=$(ARCH_PACKAGES)
+ 
