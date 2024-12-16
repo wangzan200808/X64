@@ -2144,7 +2144,7 @@
 
 --- /dev/null
 +++ b/package/network/utils/nftables/patches/999-01-nftables-add-fullcone-expression-support.patch
-@@ -0,0 +1,209 @@
+@@ -0,0 +1,227 @@
 +From 58c89e8768711a959fdc6e953df3ea2254ff93c1 Mon Sep 17 00:00:00 2001
 +From: Syrone Wong <wong.syrone@gmail.com>
 +Date: Sat, 9 Apr 2022 00:38:51 +0800
@@ -2354,6 +2354,24 @@
 + 		[NFT_NAT_REDIR]	= "redirect",
 + 	};
 + 
++--- a/tests/shell/run-tests.sh.rej
+++++ /dev/null
++@@ -1,15 +0,0 @@
++---- run-tests.sh
++-+++ run-tests.sh
++-@@ -565,11 +565,8 @@ feature_probe()
++- 	fi
++- 
++- 	if [ -x "$with_path.sh" ] ; then
++--		echo $with_path
++- 		NFT="$NFT_REAL" $NFT_TEST_UNSHARE_CMD "$with_path.sh" &>/dev/null
++--		RET=$?
++--		echo $?
++--		return $RET
++-+		return $?
++- 	fi
++- 
++- 	return 1
 
 --- a/package/libs/libnftnl/Makefile
 +++ b/package/libs/libnftnl/Makefile
