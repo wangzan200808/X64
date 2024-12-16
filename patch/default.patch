@@ -1696,7 +1696,7 @@
 
 --- /dev/null
 +++ b/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
-@@ -0,0 +1,459 @@
+@@ -0,0 +1,444 @@
 +From aa3b56e289fba7425e649a608c333622ffd9c367 Mon Sep 17 00:00:00 2001
 +From: Syrone Wong <wong.syrone@gmail.com>
 +Date: Sat, 9 Apr 2022 13:24:19 +0800
@@ -1707,14 +1707,16 @@
 +add runtime fullcone rule check, disable it globally if fullcone expr is
 +invalid
 +
-+defaults.fullcone is the global switch, while zone.fullcone4 and
-+zone.fullcone6 are switches for IPv4 and IPv6 respectively, most
-+IPv6 traffic do NOT need this FullCone NAT functionality.
++defaults.fullcone and defaults.fullcone6 are switches for IPv4 and IPv6
++respectively, most IPv6 traffic do NOT need this FullCone NAT functionality.
++
++Renew: ZiMing Mo <msylgj@immortalwrt.org>
 +---
-+ root/usr/share/firewall4/templates/ruleset.uc | 11 ++++-
-+ .../firewall4/templates/zone-fullcone.uc      |  4 ++
-+ root/usr/share/ucode/fw4.uc                   | 44 ++++++++++++++++++-
-+ 4 files changed, 58 insertions(+), 3 deletions(-)
++ root/etc/config/firewall                      |  2 ++
++ root/usr/share/firewall4/templates/ruleset.uc | 16 ++++++++++++++--
++ .../firewall4/templates/zone-fullcone.uc      |  4 ++++
++ root/usr/share/ucode/fw4.uc                   | 69 ++++++++++++++++++-
++ 4 files changed, 89 insertions(+), 4 deletions(-)
 + create mode 100644 root/usr/share/firewall4/templates/zone-fullcone.uc
 +
 +--- a/root/etc/config/firewall
@@ -1958,6 +1960,50 @@
 ++ 
 ++	option path '/etc/firewall.user'
 +
++--- a/root/usr/share/firewall4/templates/ruleset.uc
+++++ b/root/usr/share/firewall4/templates/ruleset.uc
++@@ -327,6 +327,12 @@ table inet fw4 {
++ {%   for (let redirect in fw4.redirects(`dstnat_${zone.name}`)): %}
++ 		{%+ include("redirect.uc", { fw4, zone, redirect }) %}
++ {%   endfor %}
+++{%   if (zone.masq && fw4.default_option("fullcone")): %}
+++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 4, direction: "dstnat" }) %}
+++{%   endif %}
+++{%   if (zone.masq6 && fw4.default_option("fullcone6")): %}
+++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 6, direction: "dstnat" }) %}
+++{%   endif %}
++ {%   fw4.includes('chain-append', `dstnat_${zone.name}`) %}
++ 	}
++ 
++@@ -337,20 +343,26 @@ table inet fw4 {
++ {%   for (let redirect in fw4.redirects(`srcnat_${zone.name}`)): %}
++ 		{%+ include("redirect.uc", { fw4, zone, redirect }) %}
++ {%   endfor %}
++-{%   if (zone.masq): %}
+++{%   if (zone.masq && !fw4.default_option("fullcone")): %}
++ {%    for (let saddrs in zone.masq4_src_subnets): %}
++ {%     for (let daddrs in zone.masq4_dest_subnets): %}
++ 		{%+ include("zone-masq.uc", { fw4, zone, family: 4, saddrs, daddrs }) %}
++ {%     endfor %}
++ {%    endfor %}
++ {%   endif %}
++-{%   if (zone.masq6): %}
+++{%   if (zone.masq6 && !fw4.default_option("fullcone6")): %}
++ {%    for (let saddrs in zone.masq6_src_subnets): %}
++ {%     for (let daddrs in zone.masq6_dest_subnets): %}
++ 		{%+ include("zone-masq.uc", { fw4, zone, family: 6, saddrs, daddrs }) %}
++ {%     endfor %}
++ {%    endfor %}
++ {%   endif %}
+++{%   if (zone.masq && fw4.default_option("fullcone")): %}
+++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 4, direction: "srcnat" }) %}
+++{%   endif %}
+++{%   if (zone.masq6 && fw4.default_option("fullcone6")): %}
+++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 6, direction: "srcnat" }) %}
+++{%   endif %}
++ {%   fw4.includes('chain-append', `srcnat_${zone.name}`) %}
++ 	}
++ 
 +--- /dev/null
 ++++ b/root/usr/share/firewall4/templates/zone-fullcone.uc
 +@@ -0,0 +1,4 @@
@@ -1973,7 +2019,7 @@
 + const fs = require("fs");
 + const uci = require("uci");
 + const ubus = require("ubus");
-+@@ -428,6 +430,25 @@ function nft_try_hw_offload(devices) {
++@@ -489,6 +491,25 @@ function nft_try_hw_offload(devices) {
 + 	return (rc == 0);
 + }
 + 
@@ -1999,7 +2045,7 @@
 + 
 + return {
 + 	read_kernel_version: function() {
-+@@ -778,6 +799,18 @@ return {
++@@ -855,6 +876,18 @@ return {
 + 			warn(`[!] ${msg}\n`);
 + 	},
 + 
@@ -2018,7 +2064,7 @@
 + 	get: function(sid, opt) {
 + 		return this.cursor.get("firewall", sid, opt);
 + 	},
-+@@ -959,6 +992,21 @@ return {
++@@ -1036,6 +1069,21 @@ return {
 + 		}
 + 	},
 + 
@@ -2040,7 +2086,7 @@
 + 	parse_policy: function(val) {
 + 		return this.parse_enum(val, [
 + 			"accept",
-+@@ -1398,6 +1446,7 @@ return {
++@@ -1475,6 +1523,7 @@ return {
 + 			"dnat",
 + 			"snat",
 + 			"masquerade",
@@ -2048,15 +2094,16 @@
 + 			"accept",
 + 			"reject",
 + 			"drop"
-+@@ -1865,6 +1914,7 @@ return {
++@@ -1946,6 +1995,8 @@ return {
 + 		}
 + 
 + 		let defs = this.parse_options(data, {
 ++			fullcone: [ "bool", "0" ],
+++			fullcone6: [ "bool", "0" ],
 + 			input: [ "policy", "drop" ],
 + 			output: [ "policy", "drop" ],
 + 			forward: [ "policy", "drop" ],
-+@@ -1899,6 +1949,11 @@ return {
++@@ -1980,6 +2031,11 @@ return {
 + 
 + 		delete defs.syn_flood;
 + 
@@ -2068,99 +2115,37 @@
 + 		this.state.defaults = defs;
 + 	},
 + 
-+@@ -1923,6 +1978,8 @@ return {
-+ 			masq_dest: [ "network", null, PARSE_LIST ],
-+ 
-+ 			masq6: [ "bool" ],
-++			fullcone4: [ "bool", "0" ],
-++			fullcone6: [ "bool", "0" ],
-+ 
-+ 			extra: [ "string", null, UNSUPPORTED ],
-+ 			extra_src: [ "string", null, UNSUPPORTED ],
-+@@ -1955,6 +2012,18 @@ return {
-+ 			}
-+ 		}
-+ 
-++		if (this.state.defaults && !this.state.defaults.fullcone) {
-++			this.warn_section(data, "fullcone in defaults not enabled, ignore zone fullcone settings");
-++			zone.fullcone4 = false;
-++			zone.fullcone6 = false;
-++		}
-++		if (zone.fullcone4) {
-++			this.myinfo_section(data, "IPv4 fullcone enabled for zone '" + zone.name + "'");
-++		}
-++		if (zone.fullcone6) {
-++			this.myinfo_section(data, "IPv6 fullcone enabled for zone '" + zone.name + "'");
-++		}
-++
-+ 		if (zone.mtu_fix && this.kernel < 0x040a0000) {
-+ 			this.warn_section(data, "option 'mtu_fix' requires kernel 4.10 or later");
-+ 			return;
-+@@ -2124,10 +2193,15 @@ return {
++@@ -2205,10 +2261,23 @@ return {
 + 		zone.related_subnets = related_subnets;
 + 		zone.related_physdevs = related_physdevs;
 + 
-++		if (zone.fullcone4 || zone.fullcone6) {
-++			zone.dflags.snat = true;
-++			zone.dflags.dnat = true;
++-		if (zone.masq || zone.masq6)
+++		if (zone.masq) {
++ 			zone.dflags.snat = true;
+++			if (this.state.defaults.fullcone) {
+++				zone.dflags.dnat = true;
+++				this.myinfo_section(data, "IPv4 fullcone enabled for zone '" + zone.name + "'");
+++			}
 ++		}
 ++
-+ 		if (zone.masq || zone.masq6)
-+ 			zone.dflags.snat = true;
+++		if (zone.masq6) {
+++			zone.dflags.snat = true;
+++			if (this.state.defaults.fullcone6) {
+++				zone.dflags.dnat = true;
+++				this.myinfo_section(data, "IPv6 fullcone enabled for zone '" + zone.name + "'");
+++			}
+++		}
 + 
 +-		if ((zone.auto_helper && !(zone.masq || zone.masq6)) || length(zone.helper)) {
-++		if ((zone.auto_helper && !(zone.masq || zone.masq6 || zone.fullcone4 || zone.fullcone6)) || length(zone.helper)) {
+++		if ((zone.auto_helper && !(zone.masq || zone.masq6 || this.state.defaults.fullcone || this.state.defaults.fullcone6)) || length(zone.helper)) {
 + 			zone.dflags.helper = true;
 + 
 + 			for (let helper in (length(zone.helper) ? zone.helper : this.state.helpers)) {
-+--- a/root/usr/share/firewall4/templates/ruleset.uc
-++++ b/root/usr/share/firewall4/templates/ruleset.uc
-+@@ -316,6 +316,12 @@ table inet fw4 {
-+ {%   for (let redirect in fw4.redirects(`dstnat_${zone.name}`)): %}
-+ 		{%+ include("redirect.uc", { fw4, redirect }) %}
-+ {%   endfor %}
-++{%   if (zone.fullcone4): %}
-++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 4, direction: "dstnat" }) %}
-++{%   endif %}
-++{%   if (zone.fullcone6): %}
-++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 6, direction: "dstnat" }) %}
-++{%   endif %}
-+ {%   fw4.includes('chain-append', `dstnat_${zone.name}`) %}
-+ 	}
-+ 
-+@@ -326,20 +332,26 @@ table inet fw4 {
-+ {%   for (let redirect in fw4.redirects(`srcnat_${zone.name}`)): %}
-+ 		{%+ include("redirect.uc", { fw4, redirect }) %}
-+ {%   endfor %}
-+-{%   if (zone.masq): %}
-++{%   if (zone.masq && !zone.fullcone4): %}
-+ {%    for (let saddrs in zone.masq4_src_subnets): %}
-+ {%     for (let daddrs in zone.masq4_dest_subnets): %}
-+ 		{%+ include("zone-masq.uc", { fw4, zone, family: 4, saddrs, daddrs }) %}
-+ {%     endfor %}
-+ {%    endfor %}
-+ {%   endif %}
-+-{%   if (zone.masq6): %}
-++{%   if (zone.masq6 && !zone.fullcone6): %}
-+ {%    for (let saddrs in zone.masq6_src_subnets): %}
-+ {%     for (let daddrs in zone.masq6_dest_subnets): %}
-+ 		{%+ include("zone-masq.uc", { fw4, zone, family: 6, saddrs, daddrs }) %}
-+ {%     endfor %}
-+ {%    endfor %}
-+ {%   endif %}
-++{%   if (zone.fullcone4): %}
-++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 4, direction: "srcnat" }) %}
-++{%   endif %}
-++{%   if (zone.fullcone6): %}
-++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 6, direction: "srcnat" }) %}
-++{%   endif %}
-+ {%   fw4.includes('chain-append', `srcnat_${zone.name}`) %}
-+ 	}
 
 --- /dev/null
 +++ b/package/network/utils/nftables/patches/999-01-nftables-add-fullcone-expression-support.patch
 @@ -0,0 +1,209 @@
-+From b6e3ad4c0bb845a05d73ef1be46ffb73517d1565 Mon Sep 17 00:00:00 2001
++From 58c89e8768711a959fdc6e953df3ea2254ff93c1 Mon Sep 17 00:00:00 2001
 +From: Syrone Wong <wong.syrone@gmail.com>
 +Date: Sat, 9 Apr 2022 00:38:51 +0800
 +Subject: [PATCH] nftables: add fullcone expression support
@@ -2178,7 +2163,7 @@
 +
 +--- a/include/linux/netfilter/nf_tables.h
 ++++ b/include/linux/netfilter/nf_tables.h
-+@@ -1410,6 +1410,22 @@ enum nft_masq_attributes {
++@@ -1485,6 +1485,22 @@ enum nft_masq_attributes {
 + #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
 + 
 + /**
@@ -2203,7 +2188,7 @@
 +  * @NFTA_REDIR_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
 +--- a/include/statement.h
 ++++ b/include/statement.h
-+@@ -122,6 +122,7 @@ enum nft_nat_etypes {
++@@ -129,6 +129,7 @@ enum nft_nat_etypes {
 + 	__NFT_NAT_SNAT = NFT_NAT_SNAT,
 + 	__NFT_NAT_DNAT = NFT_NAT_DNAT,
 + 	NFT_NAT_MASQ,
@@ -2213,7 +2198,7 @@
 + 
 +--- a/src/netlink_delinearize.c
 ++++ b/src/netlink_delinearize.c
-+@@ -1370,6 +1370,53 @@ out_err:
++@@ -1467,6 +1467,53 @@ out_err:
 + 	stmt_free(stmt);
 + }
 + 
@@ -2267,7 +2252,7 @@
 + static void netlink_parse_redir(struct netlink_parse_ctx *ctx,
 + 				const struct location *loc,
 + 				const struct nftnl_expr *nle)
-+@@ -1788,6 +1835,7 @@ static const struct expr_handler netlink
++@@ -1897,6 +1944,7 @@ static const struct expr_handler netlink
 + 	{ .name = "tproxy",	.parse = netlink_parse_tproxy },
 + 	{ .name = "notrack",	.parse = netlink_parse_notrack },
 + 	{ .name = "masq",	.parse = netlink_parse_masq },
@@ -2277,7 +2262,7 @@
 + 	{ .name = "queue",	.parse = netlink_parse_queue },
 +--- a/src/netlink_linearize.c
 ++++ b/src/netlink_linearize.c
-+@@ -1140,6 +1140,13 @@ static void netlink_gen_nat_stmt(struct
++@@ -1226,6 +1226,13 @@ static void netlink_gen_nat_stmt(struct
 + 		nftnl_reg_pmin = NFTNL_EXPR_MASQ_REG_PROTO_MIN;
 + 		nftnl_reg_pmax = NFTNL_EXPR_MASQ_REG_PROTO_MAX;
 + 		break;
@@ -2293,7 +2278,7 @@
 + 
 +--- a/src/parser_bison.y
 ++++ b/src/parser_bison.y
-+@@ -571,6 +571,7 @@ int nft_lex(void *, void *, void *);
++@@ -643,6 +643,7 @@ int nft_lex(void *, void *, void *);
 + %token SNAT			"snat"
 + %token DNAT			"dnat"
 + %token MASQUERADE		"masquerade"
@@ -2301,7 +2286,7 @@
 + %token REDIRECT			"redirect"
 + %token RANDOM			"random"
 + %token FULLY_RANDOM		"fully-random"
-+@@ -703,8 +704,8 @@ int nft_lex(void *, void *, void *);
++@@ -784,8 +785,8 @@ int nft_lex(void *, void *, void *);
 + %type <val>			limit_burst_pkts limit_burst_bytes limit_mode limit_bytes time_unit quota_mode
 + %type <stmt>			reject_stmt reject_stmt_alloc
 + %destructor { stmt_free($$); }	reject_stmt reject_stmt_alloc
@@ -2312,7 +2297,7 @@
 + %type <val>			nf_nat_flags nf_nat_flag offset_opt
 + %type <stmt>			tproxy_stmt
 + %destructor { stmt_free($$); }	tproxy_stmt
-+@@ -2852,6 +2853,7 @@ stmt			:	verdict_stmt
++@@ -3216,6 +3217,7 @@ stmt			:	verdict_stmt
 + 			|	queue_stmt
 + 			|	ct_stmt
 + 			|	masq_stmt	close_scope_nat
@@ -2320,7 +2305,7 @@
 + 			|	redir_stmt	close_scope_nat
 + 			|	dup_stmt	close_scope_dup
 + 			|	fwd_stmt	close_scope_fwd
-+@@ -3741,6 +3743,28 @@ masq_stmt_args		:	TO 	COLON	stmt_expr
++@@ -3999,6 +4001,28 @@ masq_stmt_args		:	TO 	COLON	stmt_expr
 + 			{
 + 				$<stmt>0->nat.proto = $3;
 + 			}
@@ -2351,9 +2336,9 @@
 + 				$<stmt>0->nat.proto = $3;
 +--- a/src/scanner.l
 ++++ b/src/scanner.l
-+@@ -447,6 +447,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr
-+ "snat"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return SNAT; }
-+ "dnat"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return DNAT; }
++@@ -462,6 +462,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr
++ "snat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return SNAT; }
++ "dnat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return DNAT; }
 + "masquerade"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return MASQUERADE; }
 ++"fullcone"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return FULLCONE; }
 + "redirect"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return REDIRECT; }
@@ -2361,14 +2346,14 @@
 + <SCANSTATE_STMT_NAT>{
 +--- a/src/statement.c
 ++++ b/src/statement.c
-+@@ -650,6 +650,7 @@ const char *nat_etype2str(enum nft_nat_e
++@@ -674,6 +674,7 @@ const char *nat_etype2str(enum nft_nat_e
 + 		[NFT_NAT_SNAT]	= "snat",
 + 		[NFT_NAT_DNAT]	= "dnat",
 + 		[NFT_NAT_MASQ]	= "masquerade",
 ++		[NFT_NAT_FULLCONE] = "fullcone",
 + 		[NFT_NAT_REDIR]	= "redirect",
 + 	};
-+
++ 
 
 --- a/package/libs/libnftnl/Makefile
 +++ b/package/libs/libnftnl/Makefile
