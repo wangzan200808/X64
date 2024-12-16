@@ -1,6 +1,6 @@
 --- a/config/Config-build.in
 +++ b/config/Config-build.in
-@@ -88,6 +88,7 @@
+@@ -89,6 +89,7 @@
  
  	config BUILD_PATENTED
  		bool "Compile with support for patented functionality"
@@ -79,17 +79,18 @@
  		;;
  
  		ncm|\
-@@ -312,7 +293,8 @@
+@@ -312,8 +293,8 @@
  		delete system.@system[0]
  		add system system
  		set system.@system[-1].hostname='OpenWrt'
--		set system.@system[-1].timezone='UTC'
+-		set system.@system[-1].timezone='GMT0'
+-		set system.@system[-1].zonename='UTC'
 +		set system.@system[-1].zonename='Asia/Hong Kong'
 +		set system.@system[-1].timezone='HKT-8'
  		set system.@system[-1].ttylogin='0'
- 		set system.@system[-1].log_size='64'
+ 		set system.@system[-1].log_size='128'
  		set system.@system[-1].urandom_seed='0'
-@@ -320,11 +302,9 @@
+@@ -320,11 +301,9 @@
  		delete system.ntp
  		set system.ntp='timeserver'
  		set system.ntp.enabled='1'
@@ -191,7 +192,7 @@
 
 --- a/package/network/services/dnsmasq/files/dnsmasq.init
 --- a/package/network/services/dnsmasq/files/dnsmasq.init
-@@ -414,6 +414,21 @@
+@@ -415,6 +415,21 @@
  	local mode="$3"
  	local routerstub routername ifdashname
  	local lanaddr lanaddr6 lanaddrs6 ulaprefix
@@ -213,7 +214,7 @@
  
  	if [ "$mode" -gt 0 ] ; then
  		ifdashname="${ifname//./-}"
-@@ -972,6 +987,7 @@
+@@ -996,6 +1011,7 @@
  	append_bool "$cfg" noping "--no-ping"
  	append_bool "$cfg" rapidcommit "--dhcp-rapid-commit"
  	append_bool "$cfg" scriptarp "--script-arp"
@@ -221,7 +222,7 @@
  
 	append_bool "$cfg" filter_aaaa "--filter-AAAA"
 	append_bool "$cfg" filter_a "--filter-A"
-@@ -1228,6 +1244,14 @@
+@@ -1264,6 +1280,14 @@
  	[ -e "$hostsfile" ] && procd_add_jail_mount $hostsfile
  
  	procd_close_instance
@@ -236,7 +237,7 @@
  }
  
  dnsmasq_stop()
-@@ -1245,6 +1269,12 @@
+@@ -1281,6 +1305,12 @@
  	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
  }
  
@@ -249,7 +250,7 @@
  add_interface_trigger()
  {
  	local interface ifname ignore
-@@ -1316,6 +1349,7 @@ start_service() {
+@@ -1352,6 +1380,7 @@ start_service() {
  }
  
  reload_service() {
@@ -257,7 +258,7 @@
  	rc_procd start_service "$@"
  	procd_send_signal dnsmasq "$@"
  }
-@@ -1342,4 +1376,5 @@ stop_service() {
+@@ -1378,4 +1409,5 @@ stop_service() {
  	else
  		config_foreach dnsmasq_stop dnsmasq
  	fi
@@ -501,7 +502,7 @@
 
 --- a/package/utils/busybox/config/networking/Config.in
 +++ b/package/utils/busybox/config/networking/Config.in
-@@ -807,5 +807,19 @@
+@@ -813,5 +813,19 @@
  	default BUSYBOX_DEFAULT_FEATURE_NSLOOKUP_LONG_OPTIONS
  	depends on BUSYBOX_CONFIG_FEATURE_NSLOOKUP_BIG && BUSYBOX_CONFIG_LONG_OPTS
 +config BUSYBOX_CONFIG_NSLOOKUP_OPENWRT
@@ -519,7 +520,7 @@
 +         Support long options for the nslookup applet.
 +
  config BUSYBOX_CONFIG_NTPD
- 	bool "ntpd (22 kb)"
+ 	bool "ntpd (23 kb)"
  	default BUSYBOX_DEFAULT_NTPD
 
 --- /dev/null
@@ -1499,7 +1500,7 @@
 
 --- a/package/utils/busybox/Config-defaults.in
 +++ b/package/utils/busybox/Config-defaults.in
-@@ -2525,13 +2525,19 @@
+@@ -2537,13 +2537,19 @@
  	default y
  config BUSYBOX_DEFAULT_NSLOOKUP
  	bool
@@ -1524,7 +1525,7 @@
 
 --- a/package/utils/busybox/Makefile
 +++ b/package/utils/busybox/Makefile
-@@ -97,7 +97,7 @@
+@@ -101,7 +101,7 @@
  LDLIBS += $(call BUSYBOX_IF_ENABLED,PAM,pam pam_misc pthread)
  
  ifeq ($(CONFIG_USE_GLIBC),y)
@@ -1680,22 +1681,14 @@
 
 --- a/include/target.mk
 +++ b/include/target.mk
-@@ -108,16 +108,6 @@
- DEFAULT_PACKAGES+=busybox procd
+@@ -90,7 +90,3 @@
+  endif
  endif
  
 -# include ujail on systems with enough storage
 -ifeq ($(CONFIG_SMALL_FLASH),)
 -DEFAULT_PACKAGES+=procd-ujail
 -endif
--
--# include seccomp ld-preload hooks if kernel supports it
--ifneq ($(CONFIG_SECCOMP),)
--DEFAULT_PACKAGES+=procd-seccomp
--endif
--
- # Add device specific packages (here below to allow device type set from subtarget)
- DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
 
 --- /dev/null
 +++ b/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
