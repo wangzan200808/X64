@@ -1,5 +1,5 @@
---- a/dell
-+++ b/target/linux/generic/hack-6.6
+--- a/dev/null
++++ b/target/linux/generic/hack-6.6/952-add-net-conntrack-events-support-multiple-registrant.patch
 @@ -0,0 +1,379 @@
 +From 42824d4b753f84ccf885eca602c5037338b546c8 Mon Sep 17 00:00:00 2001
 +From: Zhi Chen <zhichen@codeaurora.org>
