@@ -61,11 +61,11 @@ jobs:
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
-    -  name: update sing-box
-       run: |
-        cd openwrt
-        rm -rf feeds/packages/net/sing-box
-        cp -r feeds/wz/sing-box/. feeds/packages/net/sing-box
+#    -  name: update sing-box
+#       run: |
+#        cd openwrt
+#        rm -rf feeds/packages/net/sing-box
+#        cp -r feeds/wz/sing-box/. feeds/packages/net/sing-box
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
