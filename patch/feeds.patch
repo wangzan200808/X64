@@ -13,7 +13,7 @@
 
 --- a/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
 +++ b/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
-@@ -56,6 +56,18 @@
+@@ -57,6 +57,18 @@
  		expect: {  }
  	}),
  
@@ -32,7 +32,7 @@
  	services: {},
  
  	/*
-@@ -152,17 +164,14 @@
+@@ -163,17 +175,14 @@
  	},
  
  	handleReloadDDnsRule: function(m, section_id, ev) {
@@ -54,7 +54,7 @@
  			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
  	},
  
-@@ -176,7 +185,7 @@
+@@ -187,7 +196,7 @@
  
  	handleRestartDDns: function(m, ev) {
  		return this.callInitAction('ddns', 'restart')
@@ -100,7 +100,7 @@
 
 --- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
 +++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
-@@ -690,6 +690,7 @@
+@@ -687,6 +687,7 @@
  						so.default = so.enabled;
  
  						ss.taboption('advanced', form.Flag, 'force', _('Force'), _('Force DHCP on this network even if another server is detected.'));
@@ -108,7 +108,7 @@
  
  						// XXX: is this actually useful?
  						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
-@@ -1015,6 +1016,7 @@
+@@ -1012,6 +1013,7 @@
  				ifc.renderFormOptions(s);
  
  				// Common interface options
@@ -116,7 +116,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1112,6 +1114,7 @@
+@@ -1109,6 +1111,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
@@ -277,7 +277,7 @@
  	$(INSTALL_BIN) $(PKG_BUILD_DIR)/https_dns_proxy $(1)/usr/sbin/https-dns-proxy
 -	$(INSTALL_DIR) $(1)/etc/init.d
 -	$(INSTALL_BIN) ./files/etc/init.d/https-dns-proxy $(1)/etc/init.d/https-dns-proxy
--	$(SED) "s|^\(readonly PKG_VERSION\).*|\1='$(PKG_VERSION)-$(PKG_RELEASE)'|" $(1)/etc/init.d/https-dns-proxy
+-	$(SED) "s|^\(readonly PKG_VERSION\).*|\1='$(PKG_VERSION)-r$(PKG_RELEASE)'|" $(1)/etc/init.d/https-dns-proxy
 -	$(INSTALL_DIR) $(1)/etc/config
 -	$(INSTALL_CONF) ./files/etc/config/https-dns-proxy $(1)/etc/config/https-dns-proxy
  	$(INSTALL_DIR) $(1)/etc/uci-defaults/
@@ -378,19 +378,9 @@
 +-TBF may give better performance than HTB on some architectures.
 ++最简单的配置（TBF）：使用带有TBF过滤器的列队规则来进行速率限制。在某些架构上，TBF可能会比HTB提供更好的性能。
 
---- a/feeds/wz/luci-app-vlmcsd/root/etc/config/vlmcsd
-+++ b/feeds/wz/luci-app-vlmcsd/root/etc/config/vlmcsd
-@@ -1,5 +1,5 @@
- 
- config vlmcsd 'config'
--	option autoactivate '1'
--	option enabled '1'
-+	option autoactivate '0'
-+	option enabled '0'
-
 --- a/feeds/luci/applications/luci-app-attendedsysupgrade/htdocs/luci-static/resources/view/attendedsysupgrade/overview.js
 +++ b/feeds/luci/applications/luci-app-attendedsysupgrade/htdocs/luci-static/resources/view/attendedsysupgrade/overview.js
-@@ -104,7 +104,7 @@
+@@ -144,7 +144,7 @@
  
  		if (image.name != undefined) {
  			this.sha256_unsigned = image.sha256_unsigned;
@@ -399,12 +389,12 @@
  
  			let keep = E('input', { type: 'checkbox' });
  			keep.checked = true;
-@@ -440,42 +440,9 @@
- 				]);
- 				return;
- 			}
+@@ -480,42 +480,9 @@
+				]);
+				return;
+			}
 -			if (version.endsWith('SNAPSHOT')) {
--				const remote_revision = response.json().revision;
+-			const remote_revision = response.json().revision;
 -				if (
 -					get_revision_count(revision) < get_revision_count(remote_revision)
 -				) {
@@ -413,17 +403,15 @@
 -			} else {
 -				const latest = response.json().latest;
 -
+-				// ensure order: newest to oldest release
+-				latest.sort().reverse();
+-
 -				for (let remote_version of latest) {
 -					let remote_branch = get_branch(remote_version);
 -
 -					// already latest version installed
 -					if (version == remote_version) {
 -						break;
--					}
--
--					// skip branch upgrades outside the advanced mode
--					if (branch != remote_branch && advanced_mode == 0) {
--						continue;
 -					}
 -
 -					candidates.unshift([remote_version, null]);
@@ -445,7 +433,7 @@
  
  			if (candidates.length) {
  				let s, o;
-@@ -533,6 +500,9 @@
+@@ -571,6 +533,9 @@
  						form_rendered,
  						E('div', { class: 'right' }, [
  							E('div', { class: 'btn', click: ui.hideModal }, _('Cancel')),
@@ -604,18 +592,6 @@
  		var table = E('table', { 'class': 'table' });
  
  		for (var i = 0; i < fields.length; i += 2) {
-
---- a/feeds/wz/naiveproxy/Makefile
-+++ b/feeds/wz/naiveproxy/Makefile
-@@ -2,7 +2,7 @@
- 
- PKG_NAME:=naiveproxy
- PKG_VERSION:=131.0.6778.86
--PKG_RELEASE:=10
-+PKG_RELEASE:=1
- 
- ARCH_PREBUILT:=$(ARCH_PACKAGES)
- 
 
 --- a/dev/null
 +++ b/target/linux/generic/hack-6.6/952-add-net-conntrack-events-support-multiple-registrant.patch
