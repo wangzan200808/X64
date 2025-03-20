@@ -389,7 +389,7 @@
  
  			let keep = E('input', { type: 'checkbox' });
  			keep.checked = true;
-@@ -480,42 +480,8 @@
+@@ -480,39 +480,8 @@
 				]);
 				return;
 			}
@@ -442,7 +442,7 @@
  							' ',
  							E(
  								'button',
- 
+
 --- /dev/null
 +++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/19_cpu.js 
 @@ -0,0 +1,45 @@
