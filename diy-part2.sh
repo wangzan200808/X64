@@ -49,7 +49,7 @@ cat > version.patch  <<EOF
  VERSION_ID="%v"
  HOME_URL="%u"
  BUG_URL="%b"
-@@ -15,5 +15,5 @@
+@@ -16,5 +16,5 @@
  OPENWRT_DEVICE_MANUFACTURER_URL="%m"
  OPENWRT_DEVICE_PRODUCT="%P"
  OPENWRT_DEVICE_REVISION="%h"
