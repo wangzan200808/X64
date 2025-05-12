@@ -1533,7 +1533,7 @@
 +  LDLIBS += $(call BUSYBOX_IF_ENABLED,NSLOOKUP_OPENWRT,resolv)
  endif
  
- ifeq ($(BUILD_VARIANT),selinux)
+ ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_FEATURE_MOUNT_NFS)$(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_FEATURE_INETD_RPC),)
 
 --- /dev/null
 +++ b/tools/ucl/Makefile
