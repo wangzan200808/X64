@@ -2369,7 +2369,7 @@
 ++		[NFT_NAT_FULLCONE] = "fullcone",
 + 		[NFT_NAT_REDIR]	= "redirect",
 + 	};
-
++
 
 --- a/package/libs/libnftnl/Makefile
 +++ b/package/libs/libnftnl/Makefile
