@@ -2370,6 +2370,7 @@
 + 		[NFT_NAT_REDIR]	= "redirect",
 + 	};
 
+
 --- a/package/libs/libnftnl/Makefile
 +++ b/package/libs/libnftnl/Makefile
 @@ -19,7 +19,7 @@
