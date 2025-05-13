@@ -1696,7 +1696,7 @@
 
 --- /dev/null
 +++ b/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
-@@ -0,0 +1,460 @@
+@@ -0,0 +1,461 @@
 +From aa3b56e289fba7425e649a608c333622ffd9c367 Mon Sep 17 00:00:00 2001
 +From: Syrone Wong <wong.syrone@gmail.com>
 +Date: Sat, 9 Apr 2022 13:24:19 +0800
