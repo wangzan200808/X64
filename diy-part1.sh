@@ -18,7 +18,7 @@
 #echo 'src-git passwall https://github.com/xiaorouji/openwrt-passwall' >>feeds.conf.default
 #overwall测试版
 sed -i '$a src-git overwall https://github.com/wangzan200808/overwall' feeds.conf.default
-sed -i '$a src-git wz https://github.com/kenzok8/small-package' feeds.conf.default
+sed -i '$a src-git wz https://github.com/kiddin9/kwrt-packages' feeds.conf.default
 #正常编译bypass
 #sed -i '$a src-git wz https://github.com/wangzan200808/bypackage' feeds.conf.default
 #sed -i '$a src-git small https://github.com/kenzok8/small' feeds.conf.default
