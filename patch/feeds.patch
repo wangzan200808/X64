@@ -887,14 +887,14 @@
 + 
 + static struct pernet_operations ctnetlink_net_ops = {
 
---- a/package/feeds/wz/naiveproxy/Makefile
-+++ b/package/feeds/wz/naiveproxy/Makefile
+--- a/feeds/wz/naiveproxy/Makefile
++++ b//feeds/wz/naiveproxy/Makefile
 @@ -5,7 +5,7 @@
  include $(TOPDIR)/rules.mk
  
  PKG_NAME:=naiveproxy
 -PKG_VERSION:=136.0.7103.44-2
-+PKG_VERSION:=136
++PKG_VERSION:=136.0.7103
  PKG_RELEASE:=1
  
  # intel 80386 & riscv64 & cortex-a76
