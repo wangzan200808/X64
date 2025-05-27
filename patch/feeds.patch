@@ -887,7 +887,7 @@
 + 
 + static struct pernet_operations ctnetlink_net_ops = {
 
---- a/dev
+--- a/dev/null
 +++ b/feeds/wz/fullconenat-nft/patches/010-fix-build-with-kernel-6.12.patch
 @@ -0,0 +0,14
 +--- a/src/nft_ext_fullcone.c
