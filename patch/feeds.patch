@@ -887,8 +887,8 @@
 + 
 + static struct pernet_operations ctnetlink_net_ops = {
 
---- a/feeds/wz/naiveproxy/Makefile
-+++ b/feeds/wz/naiveproxy/Makefile
+--- a/package/feeds/wz/naiveproxy/Makefile
++++ b/package/feeds/wz/naiveproxy/Makefile
 @@ -5,7 +5,7 @@
  include $(TOPDIR)/rules.mk
  
