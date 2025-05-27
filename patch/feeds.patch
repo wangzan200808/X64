@@ -894,7 +894,7 @@
  
  PKG_NAME:=naiveproxy
 -PKG_VERSION:=136.0.7103.44-2
-+PKG_VERSION:=136.0.7103
++PKG_VERSION:=25.5.27
  PKG_RELEASE:=1
  
  # intel 80386 & riscv64 & cortex-a76
