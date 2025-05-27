@@ -889,7 +889,7 @@
 
 --- a/dev/null
 +++ b/feeds/wz/fullconenat-nft/patches/010-fix-build-with-kernel-6.12.patch
-@@ -0,0 +0,14
+@@ -0,0 +0,14 @@
 +--- a/src/nft_ext_fullcone.c
 ++++ b/src/nft_ext_fullcone.c
 +@@ -121,7 +121,11 @@ static int exp_event_cb(unsigned int eve
