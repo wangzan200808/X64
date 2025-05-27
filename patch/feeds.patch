@@ -887,28 +887,20 @@
 + 
 + static struct pernet_operations ctnetlink_net_ops = {
 
---- a/feeds/wz/naiveproxy/Makefile
-+++ b/feeds/wz/naiveproxy/Makefile
-@@ -5,7 +5,8 @@
- include $(TOPDIR)/rules.mk
- 
- PKG_NAME:=naiveproxy
--PKG_VERSION:=136.0.7103.44-2
-+PKG_DATE:=136.0.7103.44-2
-+PKG_VERSION:=25.5.27
- PKG_RELEASE:=1
- 
- # intel 80386 & riscv64 & cortex-a76
-@@ -65,9 +66,9 @@
-   PKG_HASH:=dummy
- endif
- 
--PKG_SOURCE:=naiveproxy-v$(PKG_VERSION)-openwrt-$(ARCH_PACKAGES).tar.xz
--PKG_SOURCE_URL:=https://github.com/klzgrad/naiveproxy/releases/download/v$(PKG_VERSION)/
--PKG_BUILD_DIR:=$(BUILD_DIR)/naiveproxy-v$(PKG_VERSION)-openwrt-$(ARCH_PACKAGES)
-+PKG_SOURCE:=naiveproxy-v$(PKG_DATE)-openwrt-$(ARCH_PACKAGES).tar.xz
-+PKG_SOURCE_URL:=https://github.com/klzgrad/naiveproxy/releases/download/v$(PKG_DATE)/
-+PKG_BUILD_DIR:=$(BUILD_DIR)/naiveproxy-v$(PKG_DATE)-openwrt-$(ARCH_PACKAGES)
- 
- PKG_LICENSE:=BSD 3-Clause
- PKG_LICENSE_FILES:=LICENSE
+--- a/dev
++++ b/feeds/wz/fullconenat-nft/patches/010-fix-build-with-kernel-6.12.patch
+@@ -0,0 +0,14
++--- a/src/nft_ext_fullcone.c
+++++ b/src/nft_ext_fullcone.c
++@@ -121,7 +121,11 @@ static int exp_event_cb(unsigned int eve
++ }
++ #endif
++ 
+++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
+++static int nft_fullcone_validate(const struct nft_ctx *ctx, const struct nft_expr *expr)
+++#else
++ static int nft_fullcone_validate(const struct nft_ctx *ctx, const struct nft_expr *expr, const struct nft_data **data)
+++#endif
++ {
++ 	int err;
++ 
