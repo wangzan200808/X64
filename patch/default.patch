@@ -33,7 +33,7 @@
 +++ b/package/base-files/files/bin/config_generate
 @@ -162,8 +162,8 @@
 		static)
-			local ipad
+			local ipad netm prefix
 			case "$1" in
 -				lan) ipad=${ipaddr:-"192.168.1.1"} ;;
 -				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
@@ -42,7 +42,7 @@
 			esac
 
 			netm=${netmask:-"255.255.255.0"}
-@@ -177,18 +177,7 @@
+@@ -178,18 +178,7 @@
  		;;
  
  		dhcp)
@@ -61,7 +61,7 @@
  		;;
  
  		pppoe)
-@@ -196,16 +185,8 @@
+@@ -197,16 +186,8 @@
  				set network.$1.proto='pppoe'
  				set network.$1.username='username'
  				set network.$1.password='password'
@@ -79,7 +79,7 @@
  		;;
  
  		ncm|\
-@@ -312,8 +293,8 @@
+@@ -313,8 +294,8 @@
  		delete system.@system[0]
  		add system system
  		set system.@system[-1].hostname='OpenWrt'
@@ -90,7 +90,7 @@
  		set system.@system[-1].ttylogin='0'
  		set system.@system[-1].log_size='128'
  		set system.@system[-1].urandom_seed='0'
-@@ -321,11 +302,9 @@
+@@ -322,11 +303,9 @@
  		delete system.ntp
  		set system.ntp='timeserver'
  		set system.ntp.enabled='1'
@@ -214,7 +214,7 @@
  
  	if [ "$mode" -gt 0 ] ; then
  		ifdashname="${ifname//./-}"
-@@ -1004,6 +1019,7 @@
+@@ -1014,6 +1029,7 @@
  	append_bool "$cfg" noping "--no-ping"
  	append_bool "$cfg" rapidcommit "--dhcp-rapid-commit"
  	append_bool "$cfg" scriptarp "--script-arp"
@@ -222,7 +222,7 @@
  
 	# deprecate or remove filter-X in favor of filter-rr?
 	append_bool "$cfg" filter_aaaa "--filter-AAAA"
-@@ -1272,6 +1288,14 @@
+@@ -1282,6 +1298,14 @@
  	[ -e "$hostsfile" ] && procd_add_jail_mount $hostsfile
  
  	procd_close_instance
@@ -237,7 +237,7 @@
  }
  
  dnsmasq_stop()
-@@ -1289,6 +1313,12 @@
+@@ -1299,6 +1323,12 @@
  	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
  }
  
@@ -250,7 +250,7 @@
  add_interface_trigger()
  {
  	local interface ifname ignore
-@@ -1360,6 +1390,7 @@ start_service() {
+@@ -1370,6 +1400,7 @@ start_service() {
  }
  
  reload_service() {
@@ -258,7 +258,7 @@
  	rc_procd start_service "$@"
  	procd_send_signal dnsmasq "$@"
  }
-@@ -1386,4 +1417,5 @@ stop_service() {
+@@ -1396,4 +1427,5 @@ stop_service() {
  	else
  		config_foreach dnsmasq_stop dnsmasq
  	fi
