@@ -4,7 +4,7 @@
  		p[1].default = fwDefaults.getOutput();
  		p[2].default = fwDefaults.getForward();
  
--		o = s.taboption('general', form.Flag, 'masq', _('IPv4 Masquerading'),
+-		o = s.taboption('general', form.Flag, 'masq', _('Masquerading'),
 -			_('Enable network address and port translation IPv4 (NAT4 or NAPT4) for outbound traffic on this zone. This is typically enabled on the <em>wan</em> zone.'));
 +		o = s.taboption('general', form.Flag, 'masq', _('IPv4 Masquerading'));
  		o.editable = true;
@@ -13,7 +13,7 @@
 
 --- a/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
 +++ b/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
-@@ -57,6 +57,18 @@
+@@ -56,6 +56,18 @@
  		expect: {  }
  	}),
  
@@ -32,7 +32,7 @@
  	services: {},
  
  	/*
-@@ -163,17 +175,14 @@
+@@ -152,17 +164,14 @@
  	},
  
  	handleReloadDDnsRule: function(m, section_id, ev) {
@@ -54,7 +54,7 @@
  			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
  	},
  
-@@ -187,7 +196,7 @@
+@@ -176,7 +185,7 @@
  
  	handleRestartDDns: function(m, ev) {
  		return this.callInitAction('ddns', 'restart')
@@ -100,7 +100,7 @@
 
 --- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
 +++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
-@@ -688,6 +688,7 @@
+@@ -690,6 +690,7 @@
  						so.default = so.enabled;
  
  						ss.taboption('advanced', form.Flag, 'force', _('Force'), _('Force DHCP on this network even if another server is detected.'));
@@ -108,7 +108,7 @@
  
  						// XXX: is this actually useful?
  						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
-@@ -1013,6 +1014,7 @@
+@@ -1015,6 +1016,7 @@
  				ifc.renderFormOptions(s);
  
  				// Common interface options
@@ -116,7 +116,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
  				o.default = o.enabled;
  
-@@ -1110,6 +1112,7 @@
+@@ -1112,6 +1114,7 @@
  				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
  				o.datatype = 'uinteger';
  				o.placeholder = '0';
@@ -305,7 +305,7 @@
 
 --- a/feeds/packages/net/ksmbd-tools/files/ksmbd.init
 +++ b/feeds/packages/net/ksmbd-tools/files/ksmbd.init
-@@ -197,19 +197,20 @@
+@@ -173,19 +173,20 @@
  {
  	logger -p daemon.notice -t 'ksmbd' "Stopping Ksmbd userspace service."
  	killall ksmbd.mountd > /dev/null 2>&1
