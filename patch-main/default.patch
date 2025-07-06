@@ -79,7 +79,7 @@
  		;;
  
  		ncm|\
-@@ -312,7 +294,7 @@
+@@ -312,7 +294,8 @@
  		delete system.@system[0]
  		add system system
  		set system.@system[-1].hostname='OpenWrt'
