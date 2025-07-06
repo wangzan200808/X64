@@ -1661,7 +1661,7 @@
 
 --- a/tools/Makefile
 +++ b/tools/Makefile
-@@ -71,6 +71,7 @@
+@@ -70,6 +70,7 @@
  tools-y += xz
  tools-y += zip
  tools-y += zlib
@@ -1669,7 +1669,7 @@
  tools-$(if $(CONFIG_BUILD_ALL_HOST_TOOLS),y) += liblzo
  tools-$(if $(CONFIG_BUILD_ALL_HOST_TOOLS)$(BUILD_B43_TOOLS),y) += b43-tools
  tools-$(if $(CONFIG_BUILD_ALL_HOST_TOOLS)$(BUILD_BZIP2_TOOLS),y) += bzip2
-@@ -89,6 +90,7 @@
+@@ -88,6 +89,7 @@
  tools-$(if $(CONFIG_BUILD_ALL_HOST_TOOLS)$(CONFIG_USE_MOLD),y) += mold
  
  # builddir dependencies
