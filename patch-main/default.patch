@@ -1741,7 +1741,7 @@
 +-	list   network		'wan6'
 +-	option input		REJECT
 +-	option output		ACCEPT
-+-	option forward		DROP
++-	option forward		REJECT
 +-	option masq		1
 +-	option mtu_fix		1
 +-
