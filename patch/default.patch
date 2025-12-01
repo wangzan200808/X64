@@ -122,8 +122,8 @@
 -		add_list system.ntp.server='2.openwrt.pool.ntp.org'
 -		add_list system.ntp.server='3.openwrt.pool.ntp.org'
 +		set system.ntp.enable_server='1'
-+		add_list system.ntp.server='ntp.aliyun.com'
-+		add_list system.ntp.server='time2.cloud.tencent.com'
++		add_list system.ntp.server='time.apple.com'
++		add_list system.ntp.server='time.cloudflare.com'
  	EOF
  
  	if json_is_a system object; then
