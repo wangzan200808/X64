@@ -11,59 +11,6 @@
  		o.tooltip = function(section_id) {
  			var family = uci.get('firewall', section_id, 'family')
 
---- a/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
-+++ b/feeds/luci/applications/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js
-@@ -57,6 +57,18 @@
- 		expect: {  }
- 	}),
- 
-+	callReloadDDnsRule: rpc.declare({
-+		object: 'luci.ddns',
-+		method: 'reload_ddns_rule',
-+		params: [ 'id' ]
-+	}),
-+
-+	callStopDDnsRule: rpc.declare({
-+		object: 'luci.ddns',
-+		method: 'stop_ddns_rule',
-+		params: [ 'id' ]
-+	}),
-+
- 	services: {},
- 
- 	/*
-@@ -163,17 +175,14 @@
- 	},
- 
- 	handleReloadDDnsRule: function(m, section_id, ev) {
--		return fs.exec('/usr/lib/ddns/dynamic_dns_lucihelper.sh',
--							[ '-S', section_id, '--', 'start' ])
--			.then(L.bind(m.load, m))
--			.then(L.bind(m.render, m))
-+		return this.callReloadDDnsRule(section_id)
-+			.then(L.bind(this.render, this))
- 			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
- 	},
- 
- 	HandleStopDDnsRule: function(m, section_id, ev) {
--		return fs.exec('/usr/lib/ddns/dynamic_dns_lucihelper.sh',
--							[ '-S', section_id, '--', 'start' ])
--			.then(L.bind(m.render, m))
-+		return this.callStopDDnsRule(section_id)
-+			.then(L.bind(this.render, this))
- 			.catch(function(e) { ui.addNotification(null, E('p', e.message)) });
- 	},
- 
-@@ -187,7 +196,7 @@
- 
- 	handleRestartDDns: function(m, ev) {
- 		return this.callInitAction('ddns', 'restart')
--			.then(L.bind(m.render, m));
-+			.then(L.bind(this.render, this));
- 	},
- 
- 	poll_status: function(map, data) {
-
 --- a/feeds/luci/applications/luci-app-ddns/root/usr/share/rpcd/acl.d/luci-app-ddns.json
 +++ b/feeds/luci/applications/luci-app-ddns/root/usr/share/rpcd/acl.d/luci-app-ddns.json
 @@ -3,7 +3,7 @@
@@ -98,33 +45,6 @@
  	option resourcebase /luci-static/resources
  	option ubuspath /ubus/
 
---- a/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
-+++ b/feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/interfaces.js
-@@ -688,6 +688,7 @@
- 						so.default = so.enabled;
- 
- 						ss.taboption('advanced', form.Flag, 'force', _('Force'), _('Force DHCP on this network even if another server is detected.'));
-+						ss.default = ss.enabled;
- 
- 						// XXX: is this actually useful?
- 						//ss.taboption('advanced', form.Value, 'name', _('Name'), _('Define a name for this network.'));
-@@ -1052,6 +1053,7 @@
- 				ifc.renderFormOptions(s);
- 
- 				// Common interface options
-+				if (protoval != 'n2n') {
- 				o = nettools.replaceOption(s, 'advanced', form.Flag, 'defaultroute', _('Use default gateway'), _('If unchecked, no default route is configured'));
- 				o.default = o.enabled;
- 
-@@ -1149,6 +1151,7 @@
- 				o = nettools.replaceOption(s, 'advanced', form.Value, 'ip6weight', _('IPv6 preference'), _('When delegating prefixes to multiple downstreams, interfaces with a higher preference value are considered first when allocating subnets.'));
- 				o.datatype = 'uinteger';
- 				o.placeholder = '0';
-+				}
- 
- 				for (var i = 0; i < s.children.length; i++) {
- 					o = s.children[i];
-
 --- a/feeds/packages/net/miniupnpd/files/miniupnpd.init
 +++ b/feeds/packages/net/miniupnpd/files/miniupnpd.init
 @@ -63,6 +63,7 @@
@@ -151,21 +71,6 @@
  
  		[ "$use_stun" -eq 0 ] || {
  			[ -n "$stun_host" ] && echo "ext_stun_host=$stun_host"
-
---- a/feeds/packages/net/https-dns-proxy/Makefile
-+++ b/feeds/packages/net/https-dns-proxy/Makefile
-@@ -49,11 +49,6 @@
- define Package/https-dns-proxy/install
- 	$(INSTALL_DIR) $(1)/usr/sbin
- 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/https_dns_proxy $(1)/usr/sbin/https-dns-proxy
--	$(INSTALL_DIR) $(1)/etc/init.d
--	$(INSTALL_BIN) ./files/etc/init.d/https-dns-proxy $(1)/etc/init.d/https-dns-proxy
--	$(SED) "s|^\(readonly PKG_VERSION\).*|\1='$(PKG_VERSION)-r$(PKG_RELEASE)'|" $(1)/etc/init.d/https-dns-proxy
--	$(INSTALL_DIR) $(1)/etc/config
--	$(INSTALL_CONF) ./files/etc/config/https-dns-proxy $(1)/etc/config/https-dns-proxy
- 	$(INSTALL_DIR) $(1)/etc/uci-defaults/
- 	$(INSTALL_BIN) ./files/etc/uci-defaults/50-https-dns-proxy-migrate-options.sh $(1)/etc/uci-defaults/50-https-dns-proxy-migrate-options.sh
- endef
 
 --- a/feeds/packages/net/kcptun/Makefile
 +++ b/feeds/packages/net/kcptun/Makefile
@@ -309,106 +214,6 @@
 +		return table;
 +	}
 +});
-
---- a/feeds/luci/modules/luci-mod-system/root/usr/share/rpcd/acl.d/luci-mod-system.json
-+++ b/feeds/luci/modules/luci-mod-system/root/usr/share/rpcd/acl.d/luci-mod-system.json
-@@ -3,7 +3,7 @@
- 		"description": "Grant access to system configuration",
- 		"read": {
- 			"ubus": {
--				"luci": [ "getLEDs", "getTimezones", "getUSBDevices" ],
-+				"luci": [ "getLEDs", "getTimezones", "getUSBDevices", "getCPUInfo", "getETHInfo", "getTempInfo", "getCPUBench", "getCPUUsage", "getOnlineUsers" ],
- 				"rc": [ "list" ],
- 				"system": [ "info" ]
- 			},
-
---- a/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
-+++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
-@@ -18,6 +18,26 @@
- 	method: 'info'
- });
- 
-+var callCPUBench = rpc.declare({
-+	object: 'luci',
-+	method: 'getCPUBench'
-+});
-+
-+var callCPUInfo = rpc.declare({
-+	object: 'luci',
-+	method: 'getCPUInfo'
-+});
-+
-+var callCPUUsage = rpc.declare({
-+	object: 'luci',
-+	method: 'getCPUUsage'
-+});
-+
-+var callTempInfo = rpc.declare({
-+	object: 'luci',
-+	method: 'getTempInfo'
-+});
-+
- return baseclass.extend({
- 	title: _('System'),
- 
-@@ -25,6 +45,10 @@
- 		return Promise.all([
- 			L.resolveDefault(callSystemBoard(), {}),
- 			L.resolveDefault(callSystemInfo(), {}),
-+			L.resolveDefault(callCPUBench(), {}),
-+			L.resolveDefault(callCPUInfo(), {}),
-+			L.resolveDefault(callCPUUsage(), {}),
-+			L.resolveDefault(callTempInfo(), {}),
- 			L.resolveDefault(callLuciVersion(), { revision: _('unknown version'), branch: 'LuCI' })
- 		]);
- 	},
-@@ -32,7 +56,11 @@
- 	render: function(data) {
- 		var boardinfo   = data[0],
- 		    systeminfo  = data[1],
--		    luciversion = data[2];
-+		    cpubench    = data[2],
-+		    cpuinfo     = data[3],
-+		    cpuusage    = data[4],
-+		    tempinfo    = data[5],
-+		    luciversion = data[6];
- 
- 		luciversion = luciversion.branch + ' ' + luciversion.revision;
- 
-@@ -53,8 +81,6 @@
- 
- 		var fields = [
- 			_('Hostname'),         boardinfo.hostname,
--			_('Model'),            boardinfo.model,
--			_('Architecture'),     boardinfo.system,
- 			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target : ''),
- 			_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),
- 			_('Kernel Version'),   boardinfo.kernel,
-@@ -67,6 +93,24 @@
- 			) : null
- 		];
- 
-+		if (tempinfo.tempinfo) {
-+			fields.splice(6, 0, _('Temperature'));
-+			fields.splice(7, 0, tempinfo.tempinfo);
-+		}
-+		if (boardinfo.model == "Default string Default string") {
-+			if (cpuinfo.cpuinfo) {
-+			fields.splice(2, 0, _('Architecture'));
-+			fields.splice(3, 0, cpuinfo.cpuinfo + cpubench.cpubench);
-+			}
-+		} else {
-+			fields.splice(2, 0, _('Model'));
-+			fields.splice(3, 0, boardinfo.model + cpubench.cpubench);
-+			if (cpuinfo.cpuinfo) {
-+			fields.splice(4, 0, _('Architecture'));
-+			fields.splice(5, 0, cpuinfo.cpuinfo);
-+			}
-+		}
-+
- 		var table = E('table', { 'class': 'table' });
- 
- 		for (var i = 0; i < fields.length; i += 2) {
 
 --- /dev/null
 +++ b/target/linux/generic/hack-6.12/952-add-net-conntrack-events-support-multiple-registrant.patch
