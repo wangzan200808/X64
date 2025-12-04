@@ -167,55 +167,6 @@
 ++最简单的配置（TBF）：使用带有TBF过滤器的列队规则来进行速率限制。在某些架构上，TBF可能会比HTB提供更好的性能。
 
 --- /dev/null
-+++ b/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/19_cpu.js 
-@@ -0,0 +1,45 @@
-+'use strict';
-+'require rpc';
-+
-+var callCPUFreeInfo = rpc.declare({
-+	object: 'luci',
-+	method: 'getCPUUsage'
-+});
-+
-+function progressbar(value, max) {
-+	var vn = parseInt(value) || 0,
-+	    mn = parseInt(max) || 100,
-+	    pc = Math.floor((100 / mn) * vn);
-+
-+	return E('div', {
-+		'class': 'cbi-progressbar',
-+		'title': '%s%% / %s%%'.format(vn, mn, pc)
-+	}, E('div', { 'style': 'width:%.2f%%'.format(pc) }));
-+}
-+
-+return L.Class.extend({
-+	title: _('CPU'),
-+
-+	load: function() {
-+		return L.resolveDefault(callCPUFreeInfo(), {});
-+	},
-+
-+	render: function(info) {
-+		var fields = [
-+			_('Used'), (info.cpuusage) ? info.cpuusage : 0, 100
-+		];
-+
-+		var table = E('div', { 'class': 'table cpu' });
-+
-+		for (var i = 0; i < fields.length; i += 3) {
-+			table.appendChild(E('div', { 'class': 'tr' }, [
-+				E('div', { 'class': 'td left', 'width': '33%' }, [ fields[i] ]),
-+				E('div', { 'class': 'td left' }, [
-+					(fields[i + 1] != null) ? progressbar(fields[i + 1], fields[i + 2], true) : '?'
-+				])
-+			]));
-+		}
-+
-+		return table;
-+	}
-+});
-
---- /dev/null
 +++ b/target/linux/generic/hack-6.12/952-add-net-conntrack-events-support-multiple-registrant.patch
 @@ -0,0 +1,356 @@
 +--- a/include/net/netfilter/nf_conntrack_ecache.h
