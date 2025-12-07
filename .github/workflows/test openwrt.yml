@@ -61,11 +61,13 @@ jobs:
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
-#    -  name: update sing-box
-#       run: |
-#        cd openwrt
-#        rm -rf feeds/packages/net/sing-box
-#        cp -r feeds/wz/sing-box/. feeds/packages/net/sing-box
+    -  name: update smartdns
+       run: |
+        cd openwrt
+        rm -rf feeds/packages/net/smartdns
+        rm -rf feeds/luci/applications/luci-app-smartdns
+        cp -r feeds/wz/smartdns/. feeds/packages/net/sing-box
+        cp -r feeds/wz/luci-app-smartdns/. feeds/luci/applications/luci-app-smartdns
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
