@@ -45,33 +45,6 @@
  	option resourcebase /luci-static/resources
  	option ubuspath /ubus/
 
---- a/feeds/packages/net/miniupnpd/files/miniupnpd.init
-+++ b/feeds/packages/net/miniupnpd/files/miniupnpd.init
-@@ -63,6 +63,7 @@
- 	local use_stun stun_host stun_port uuid notify_interval presentation_url
- 	local upnp_lease_file clean_ruleset_threshold clean_ruleset_interval
- 	local ipv6_disable
-+	local force_forwarding
- 
- 	local enabled
- 	config_get_bool enabled config enabled 1
-@@ -90,6 +91,7 @@
- 	config_get clean_ruleset_threshold config clean_ruleset_threshold
- 	config_get clean_ruleset_interval config clean_ruleset_interval
- 	config_get ipv6_disable config ipv6_disable 0
-+	config_get force_forwarding config force_forwarding 0
- 
- 	local conf ifname ifname6
- 
-@@ -142,6 +144,7 @@
- 		upnpd_write_bool igdv1 0 force_igd_desc_v1
- 		upnpd_write_bool use_stun 0 ext_perform_stun
- 		upnpd_write_bool ipv6_disable $ipv6_disable
-+		upnpd_write_bool force_forwarding $force_forwarding
- 
- 		[ "$use_stun" -eq 0 ] || {
- 			[ -n "$stun_host" ] && echo "ext_stun_host=$stun_host"
-
 --- a/feeds/packages/net/kcptun/Makefile
 +++ b/feeds/packages/net/kcptun/Makefile
 @@ -50,7 +33,6 @@
@@ -93,7 +66,7 @@
 
 --- a/feeds/packages/net/ksmbd-tools/files/ksmbd.init
 +++ b/feeds/packages/net/ksmbd-tools/files/ksmbd.init
-@@ -197,19 +197,20 @@
+@@ -202,19 +202,20 @@
  {
  	logger -p daemon.notice -t 'ksmbd' "Stopping Ksmbd userspace service."
  	killall ksmbd.mountd > /dev/null 2>&1
