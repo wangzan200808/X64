@@ -64,8 +64,6 @@ jobs:
     - name: updatesmartdns
       run: |
          cd openwrt
-         rm -rf feeds/packages/utils/jq
-         rm -rf feeds/packages/net/v2ray-geodata
          rm -rf feeds/packages/net/smartdns
          rm -rf feeds/luci/applications/luci-app-smartdns
          cp -r feeds/wz/smartdns/. feeds/packages/net/smartdns
