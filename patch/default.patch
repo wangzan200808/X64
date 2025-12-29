@@ -1,13 +1,14 @@
---- a/feeds/pcaksges/lang/rust/Makefile
-+++ b/feeds/pcaksges/lang/rust/Makefile
-@@ -76,6 +76,6 @@
-	--enable-cargo-native-static \
-	--bootstrap-cache-path=$(DL_DIR)/rustc \
+--- a/feeds/packages/lang/rust/Makefile
++++ b/feeds/packages/lang/rust/Makefile
+@@ -75,7 +75,7 @@
+ 	--release-channel=stable \
+ 	--enable-cargo-native-static \
+ 	--bootstrap-cache-path=$(DL_DIR)/rustc \
 -	--set=llvm.download-ci-llvm=true \
 +	--set=llvm.download-ci-llvm=if-unchanged \
-	$(TARGET_CONFIGURE_ARGS)
-
-define Host/Uninstall
+ 	$(TARGET_CONFIGURE_ARGS)
+ 
+ define Host/Uninstall
 
 --- a/include/download.mk
 +++ b/include/download.mk
