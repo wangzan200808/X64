@@ -44,9 +44,9 @@ jobs:
           ^G\+\+$
           Clang
           LLVM
-          Node        # 增加这一行，排除 Node
-          nvm         # 如果使用了 nvm 也要排除
-          npm         # 排除 npm
+          Node
+          nvm
+          npm
         docker_include: ".+"
         docker_prune: "True"
         docker_clean: "True"
