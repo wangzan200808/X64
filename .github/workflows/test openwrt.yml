@@ -50,6 +50,9 @@ jobs:
           Go
           Rust
           Cargo
+          Yarn
+          Webpack
+          TypeScript
         docker_include: ".+"
         docker_prune: "True"
         docker_clean: "True"
