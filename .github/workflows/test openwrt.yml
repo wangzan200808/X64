@@ -59,8 +59,7 @@ jobs:
         homebrew_clean: "True"
         npm_prune: "False"
         npm_clean: "False"
-        npm_include: "False"
-        go_prune: "False"
+        npm_enable: "False"
         os_swap: "True"
 
     - name: Freeing up disk space
