@@ -1,3 +1,15 @@
+--- a/feeds/wz/luci-app-mosdns/Makefile
++++ b/feeds/wz/luci-app-mosdns/Makefile
+@@ -6,7 +6,7 @@
+ 
+ LUCI_TITLE:=LuCI Support for mosdns
+ LUCI_PKGARCH:=all
+-LUCI_DEPENDS:=+mosdns +jsonfilter +curl +v2ray-geoip +v2ray-geosite +v2dat
++LUCI_DEPENDS:=+mosdns +jsonfilter +curl +v2dat
+ 
+ PKG_MAINTAINER:=sbwml <admin@cooluc.com>
+ 
+
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 @@ -164,8 +164,7 @@
