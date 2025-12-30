@@ -89,13 +89,13 @@ jobs:
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
-    - name: updatesmartdns
-      run: |
-         cd openwrt
-         rm -rf feeds/packages/net/smartdns
-         rm -rf feeds/luci/applications/luci-app-smartdns
-         cp -r feeds/wz/smartdns/. feeds/packages/net/smartdns
-         cp -r feeds/wz/luci-app-smartdns/. feeds/luci/applications/luci-app-smartdns
+#    - name: updatesmartdns
+#      run: |
+#         cd openwrt
+#         rm -rf feeds/packages/net/smartdns
+#         rm -rf feeds/luci/applications/luci-app-smartdns
+#         cp -r feeds/wz/smartdns/. feeds/packages/net/smartdns
+#         cp -r feeds/wz/luci-app-smartdns/. feeds/luci/applications/luci-app-smartdns
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
