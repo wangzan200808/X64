@@ -1,3 +1,14 @@
+--- a/feeds/wz/luci-app-mosdns/root/usr/share/mosdns/mosdns.sh
++++ b/feeds/wz/luci-app-mosdns/root/usr/share/mosdns/mosdns.sh
+@@ -134,6 +134,7 @@
+         exit 1
+     fi
+     rm -rf "$TMPDIR"/*.sha256sum
++    mkdir -p /usr/share/v2ray
+     \cp -a "$TMPDIR"/* /usr/share/v2ray
+     rm -rf "$TMPDIR"
+ )
+
 --- a/feeds/wz/luci-app-mosdns/Makefile
 +++ b/feeds/wz/luci-app-mosdns/Makefile
 @@ -6,7 +6,7 @@
