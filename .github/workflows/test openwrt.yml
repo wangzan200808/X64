@@ -73,11 +73,11 @@ jobs:
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
-    - name: Merge Upstream PR #21288
-      run: |
-        cd openwrt
-        # 使用 curl 下载补丁并用 git am 应用
-        curl -sL https://github.com/openwrt/openwrt/pull/21288.patch | patch -p1
+#    - name: Merge Upstream PR #21288
+#      run: |
+#        cd openwrt
+#        # 使用 curl 下载补丁并用 git am 应用
+#        curl -sL https://github.com/openwrt/openwrt/pull/21288.patch | patch -p1
 
     - name: Load custom feeds
       run: |
