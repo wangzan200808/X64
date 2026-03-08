@@ -1,18 +1,6 @@
---- a/feeds/packages/lang/rust/Makefile
-+++ b/feeds/packages/lang/rust/Makefile
-@@ -75,7 +75,7 @@
- 	--release-channel=stable \
- 	--enable-cargo-native-static \
- 	--bootstrap-cache-path=$(DL_DIR)/rustc \
--	--set=llvm.download-ci-llvm=true \
-+	--set=llvm.download-ci-llvm=false \
- 	$(TARGET_CONFIGURE_ARGS)
- 
- define Host/Uninstall
-
 --- a/include/download.mk
 +++ b/include/download.mk
-@@ -154,17 +154,7 @@
+@@ -152,17 +152,7 @@
  # $(2): "PKG_" if <name> as in Download/<name> is "default", otherwise "Download/<name>:"
  # $(3): shell command sequence to do the download
  define wrap_mirror
@@ -34,7 +22,7 @@
 
 --- a/config/Config-build.in
 +++ b/config/Config-build.in
-@@ -89,6 +89,7 @@
+@@ -99,6 +99,7 @@
  
  	config BUILD_PATENTED
  		bool "Compile with support for patented functionality"
@@ -1434,7 +1422,7 @@
 
 --- a/package/utils/busybox/Makefile
 +++ b/package/utils/busybox/Makefile
-@@ -101,7 +101,7 @@
+@@ -102,7 +102,7 @@
  LDLIBS += $(call BUSYBOX_IF_ENABLED,PAM,pam pam_misc pthread)
  
  ifeq ($(CONFIG_USE_GLIBC),y)
