@@ -1,6 +1,6 @@
 --- a/include/download.mk
 +++ b/include/download.mk
-@@ -152,17 +152,7 @@
+@@ -174,17 +174,7 @@
  # $(2): "PKG_" if <name> as in Download/<name> is "default", otherwise "Download/<name>:"
  # $(3): shell command sequence to do the download
  define wrap_mirror
@@ -22,7 +22,7 @@
 
 --- a/config/Config-build.in
 +++ b/config/Config-build.in
-@@ -99,6 +99,7 @@
+@@ -105,6 +105,7 @@
  
  	config BUILD_PATENTED
  		bool "Compile with support for patented functionality"
@@ -53,7 +53,7 @@
  
 --- a/package/base-files/files/bin/config_generate
 +++ b/package/base-files/files/bin/config_generate
-@@ -163,8 +163,8 @@
+@@ -168,8 +168,8 @@
 		static)
 			local ipad netm prefix
 			case "$1" in
@@ -64,7 +64,7 @@
 			esac
 
 			netm=${netmask:-"255.255.255.0"}
-@@ -179,18 +179,7 @@
+@@ -184,18 +184,7 @@
  		;;
  
  		dhcp)
@@ -83,7 +83,7 @@
  		;;
  
  		pppoe)
-@@ -198,16 +187,8 @@
+@@ -203,16 +192,8 @@
  				set network.$1.proto='pppoe'
  				set network.$1.username='username'
  				set network.$1.password='password'
@@ -101,7 +101,7 @@
  		;;
  
  		ncm|\
-@@ -314,8 +295,8 @@
+@@ -319,8 +300,8 @@
  		delete system.@system[0]
  		add system system
  		set system.@system[-1].hostname='OpenWrt'
@@ -112,7 +112,7 @@
  		set system.@system[-1].ttylogin='0'
  		set system.@system[-1].log_size='128'
  		set system.@system[-1].urandom_seed='0'
-@@ -323,11 +304,9 @@
+@@ -328,11 +309,9 @@
  		delete system.ntp
  		set system.ntp='timeserver'
  		set system.ntp.enabled='1'
@@ -150,7 +150,7 @@
 
 --- a/package/network/services/dnsmasq/files/dhcp.conf
 +++ b/package/network/services/dnsmasq/files/dhcp.conf
-@@ -1,37 +1,25 @@
+@@ -1,40 +1,26 @@
  config dnsmasq
 -	option domainneeded	1
 -	option boguspriv	1
@@ -201,6 +201,9 @@
 -	option start 	100
 -	option limit	150
 -	option leasetime	12h
+-	option ra	server
+-	option dhcpv4	server
+-	option dhcpv6	server
 -
 -config dhcp wan
 -	option interface	wan
@@ -210,6 +213,7 @@
 +	option start '20'
 +	option limit '150'
 +	option leasetime '24h'
++	option dhcpv4	server
 +	option force '1'
 
 --- a/package/network/services/uhttpd/files/uhttpd.config
@@ -422,7 +426,7 @@
 
 --- a/package/utils/busybox/Config-defaults.in
 +++ b/package/utils/busybox/Config-defaults.in
-@@ -2537,13 +2537,19 @@
+@@ -2558,13 +2558,19 @@
  	default y
  config BUSYBOX_DEFAULT_NSLOOKUP
  	bool
@@ -542,8 +546,8 @@
 -  DEFAULT_PACKAGES+=procd-ujail
 -endif
 -
- # Add device specific packages (here below to allow device type set from subtarget)
- DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
+ # legacy-sdcard upgrades need partx after writing the full image
+ ifneq ($(filter legacy-sdcard,$(FEATURES)),)
  
 
 --- /dev/null
