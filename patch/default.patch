@@ -1241,7 +1241,7 @@
 
 --- /dev/null
 +++ b/package/libs/libnftnl/patches/999-01-libnftnl-add-fullcone-expression-support.patch
-@@ -0,0 +1,261 @@
+@@ -0,0 +1,264 @@
 +From 6c39f04febd7cfdbd474233379416babcd0fc341 Mon Sep 17 00:00:00 2001
 +From: Syrone Wong <wong.syrone@gmail.com>
 +Date: Fri, 8 Apr 2022 23:52:11 +0800
@@ -1310,7 +1310,7 @@
 + 		      expr/socket.c	\
 +--- /dev/null
 ++++ b/src/expr/fullcone.c
-+@@ -0,0 +1,174 @@
++@@ -0,0 +1,177 @@
 ++/*
 ++ * (C) 2022-2025 wongsyrone
 ++ *
