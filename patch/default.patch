@@ -1345,6 +1345,8 @@
 ++{
 ++	struct nftnl_expr_fullcone *fullcone = nftnl_expr_data(e);
 ++
+++  (void)byteorder;
+++
 ++	switch (type) {
 ++	case NFTNL_EXPR_FULLCONE_FLAGS:
 ++		memcpy(&fullcone->flags, data, data_len);
