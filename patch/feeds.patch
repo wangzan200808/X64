@@ -1,8 +1,8 @@
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 @@ -164,8 +164,7 @@
- 		p[1].default = fwDefaults.getOutput();
  		p[2].default = fwDefaults.getForward();
+		 p[2].rmempty = false;
  
 -		o = s.taboption('general', form.Flag, 'masq', _('IPv4 Masquerading'),
 -			_('Enable network address and port translation IPv4 (NAT4 or NAPT4) for outbound traffic on this zone. This is typically enabled on the <em>wan</em> zone.'));
@@ -19,9 +19,9 @@
  			"ubus": {
 -				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log" ],
 +				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log", "reload_ddns_rule", "stop_ddns_rule" ],
- 				"luci": [ "setInitAction" ]
  			},
  			"file": {
+        "/usr/share/ddns/default": [ "list" ],
 
 --- a/feeds/luci/applications/luci-app-ksmbd/root/usr/share/luci/menu.d/luci-app-ksmbd.json
 +++ b/feeds/luci/applications/luci-app-ksmbd/root/usr/share/luci/menu.d/luci-app-ksmbd.json
@@ -34,35 +34,6 @@
  		"action": {
  			"type": "view",
  			"path": "ksmbd"
-
---- a/feeds/luci/modules/luci-base/root/etc/config/luci
-+++ b/feeds/luci/modules/luci-base/root/etc/config/luci
-@@ -1,5 +1,5 @@
- config core main
--	option lang auto
-+	option lang zh_cn
- 	option mediaurlbase /luci-static/bootstrap
- 	option resourcebase /luci-static/resources
- 	option ubuspath /ubus/
-
---- a/feeds/packages/net/kcptun/Makefile
-+++ b/feeds/packages/net/kcptun/Makefile
-@@ -50,7 +33,6 @@
-     SUBMENU:=Web Servers/Proxies
-     TITLE:=KCP-based Secure Tunnel $(1)
-     URL:=https://github.com/xtaci/kcptun
--    DEPENDS:=+kcptun-config
-   endef
- 
-   define Package/kcptun-$(1)/description
-@@ -66,7 +48,6 @@
-   endef
- endef
- 
--$(eval $(call BuildPackage,kcptun-config))
- KCPTUN_COMPONENTS:=server client
- $(foreach component,$(KCPTUN_COMPONENTS), \
-   $(eval $(call Package/kcptun/Default,$(component))) \
 
 --- a/feeds/packages/net/ksmbd-tools/files/ksmbd.init
 +++ b/feeds/packages/net/ksmbd-tools/files/ksmbd.init
@@ -95,7 +66,29 @@
 
 --- /dev/null
 +++ b/target/linux/generic/hack-6.12/952-add-net-conntrack-events-support-multiple-registrant.patch
-@@ -0,0 +1,356 @@
+@@ -0,0 +1,380 @@
++From 42824d4b753f84ccf885eca602c5037338b546c8 Mon Sep 17 00:00:00 2001
++From: Zhi Chen <zhichen@codeaurora.org>
++Date: Tue, 13 Jan 2015 14:28:18 -0800
++Subject: [PATCH 3/3] net: conntrack events, support multiple registrant
++
++Merging this patch from kernel 3.4:
++This was supported by old (.28) kernel versions but removed
++because of it's overhead.
++But we need this feature for NA connection manager. Both ipv4
++and ipv6 modules needs to register themselves to ct events.
++
++Change-Id: Iebfb254590fb594f5baf232f849d1b7ae45ef757
++Signed-off-by: Zhi Chen <zhichen@codeaurora.org>
++---
++ include/net/netfilter/nf_conntrack_ecache.h |  15 ++-
++ include/net/netns/conntrack.h               |   3 +
++ net/netfilter/Kconfig                       |   8 ++
++ net/netfilter/nf_conntrack_core.c           |   4 +
++ net/netfilter/nf_conntrack_ecache.c         | 103 +++++++++++++++++++-
++ net/netfilter/nf_conntrack_netlink.c        |  17 ++++
++ 6 files changed, 146 insertions(+), 4 deletions(-)
++
 +--- a/include/net/netfilter/nf_conntrack_ecache.h
 ++++ b/include/net/netfilter/nf_conntrack_ecache.h
 +@@ -65,9 +65,14 @@ struct nf_ct_event_notifier {
@@ -413,14 +406,16 @@
 + static int
 + ctnetlink_expect_event(unsigned int events, const struct nf_exp_event *item)
 + {
-+@@ -3143,6 +3151,7 @@ errout:
++@@ -3124,8 +3132,9 @@ errout:
++ 	nfnetlink_set_err(net, 0, 0, -ENOBUFS);
 + 	return 0;
 + }
 + #endif
 ++#endif
-+ static int ctnetlink_exp_done(struct netlink_callback *cb)
++ 
++ static unsigned long ctnetlink_exp_id(const struct nf_conntrack_expect *exp)
 + {
-+ 	if (cb->args[1])
++ 	unsigned long id = (unsigned long)exp;
 +@@ -3750,11 +3759,17 @@ static int ctnetlink_stat_exp_cpu(struct
 + }
 + 
