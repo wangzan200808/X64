@@ -13,7 +13,7 @@
 -				echo "Hash mismatch for file $(FILE): expected $(MIRROR_HASH), got $$$$file_hash"; \
 -				false; \
 -			}; \
--		)),
+-		)),\
 -	$(3)) \
 +$(if $(if $(MIRROR),$(filter-out x,$(MIRROR_HASH))),$(SCRIPT_DIR)/download.pl "$(DL_DIR)" "$(FILE)" "$(MIRROR_HASH)" "" || ( $(3) ),$(3)) \
  $(if $(filter check,$(1)), \
@@ -198,7 +198,7 @@
  
 -config dhcp lan
 -	option interface	lan
--	option start 	100
+-	option start	100
 -	option limit	150
 -	option leasetime	12h
 -	option ra	server
@@ -537,7 +537,7 @@
 
 --- a/include/target.mk
 +++ b/include/target.mk
-@@ -90,11 +90,6 @@
+@@ -90,10 +90,5 @@
    endif
  endif
  
@@ -548,7 +548,6 @@
 -
  # legacy-sdcard upgrades need partx after writing the full image
  ifneq ($(filter legacy-sdcard,$(FEATURES)),)
- 
 
 --- /dev/null
 +++ b/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
