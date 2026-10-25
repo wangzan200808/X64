@@ -1,6 +1,6 @@
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
-@@ -164,8 +164,7 @@
+@@ -166,8 +166,7 @@
  		p[2].default = fwDefaults.getForward();
 		 p[2].rmempty = false;
  
@@ -17,11 +17,11 @@
  		"description": "Grant access to ddns procedures",
  		"read": {
  			"ubus": {
--				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log" ],
-+				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log", "reload_ddns_rule", "stop_ddns_rule" ],
+-				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log" ]
++				"luci.ddns": [ "get_services_status", "get_ddns_state", "get_env", "get_services_log" , "reload_ddns_rule", "stop_ddns_rule" ]
  			},
  			"file": {
-        "/usr/share/ddns/default": [ "list" ],
+ 				"/usr/share/ddns/default": [ "list" ],
 
 --- a/feeds/luci/applications/luci-app-ksmbd/root/usr/share/luci/menu.d/luci-app-ksmbd.json
 +++ b/feeds/luci/applications/luci-app-ksmbd/root/usr/share/luci/menu.d/luci-app-ksmbd.json
