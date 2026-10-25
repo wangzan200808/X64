@@ -89,10 +89,10 @@ jobs:
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
-#    - name: Force official sing-box
-#      run: |
-#        cd openwrt
-#        ./scripts/feeds install -p packages -f sing-box
+    - name: Force official sing-box
+      run: |
+        cd openwrt
+        ./scripts/feeds install -p wz -f sing-box
 
 #    - name: updatesmartdns
 #      run: |
