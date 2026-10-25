@@ -855,7 +855,7 @@
 + 
 + return {
 + 	read_kernel_version: function() {
-+@@ -855,6 +876,18 @@ return {
++@@ -832,6 +853,18 @@ return {
 + 			warn(`[!] ${msg}\n`);
 + 	},
 + 
@@ -874,7 +874,7 @@
 + 	get: function(sid, opt) {
 + 		return this.cursor.get("firewall", sid, opt);
 + 	},
-+@@ -1036,6 +1069,21 @@ return {
++@@ -1013,6 +1046,21 @@ return {
 + 		}
 + 	},
 + 
@@ -896,7 +896,7 @@
 + 	parse_policy: function(val) {
 + 		return this.parse_enum(val, [
 + 			"accept",
-+@@ -1475,6 +1523,7 @@ return {
++@@ -1452,6 +1500,7 @@ return {
 + 			"dnat",
 + 			"snat",
 + 			"masquerade",
@@ -904,7 +904,7 @@
 + 			"accept",
 + 			"reject",
 + 			"drop"
-+@@ -1946,6 +1998,7 @@ return {
++@@ -1919,6 +1968,7 @@ return {
 + 		}
 + 
 + 		let defs = this.parse_options(data, {
@@ -912,7 +912,7 @@
 + 			input: [ "policy", "drop" ],
 + 			output: [ "policy", "drop" ],
 + 			forward: [ "policy", "drop" ],
-+@@ -1980,6 +2030,11 @@ return {
++@@ -1953,6 +2003,11 @@ return {
 + 
 + 		delete defs.syn_flood;
 + 
@@ -924,7 +924,7 @@
 + 		this.state.defaults = defs;
 + 	},
 + 
-+@@ -2004,6 +2059,8 @@ return {
++@@ -1977,6 +2032,8 @@ return {
 + 			masq_dest: [ "network", null, PARSE_LIST ],
 + 
 + 			masq6: [ "bool" ],
@@ -933,7 +933,7 @@
 + 
 + 			extra: [ "string", null, UNSUPPORTED ],
 + 			extra_src: [ "string", null, UNSUPPORTED ],
-+@@ -2036,6 +2093,18 @@ return {
++@@ -2009,6 +2066,18 @@ return {
 + 			}
 + 		}
 + 
@@ -952,7 +952,7 @@
 + 		if (zone.mtu_fix && this.kernel < 0x040a0000) {
 + 			this.warn_section(data, "option 'mtu_fix' requires kernel 4.10 or later");
 + 			return;
-+@@ -2205,10 +2274,15 @@ return {
++@@ -2178,10 +2247,15 @@ return {
 + 		zone.related_subnets = related_subnets;
 + 		zone.related_physdevs = related_physdevs;
 + 
@@ -971,9 +971,9 @@
 + 			for (let helper in (length(zone.helper) ? zone.helper : this.state.helpers)) {
 +--- a/root/usr/share/firewall4/templates/ruleset.uc
 ++++ b/root/usr/share/firewall4/templates/ruleset.uc
-+@@ -327,6 +327,12 @@ table inet fw4 {
++@@ -320,6 +320,12 @@ table inet fw4 {
 + {%   for (let redirect in fw4.redirects(`dstnat_${zone.name}`)): %}
-+ 		{%+ include("redirect.uc", { fw4, zone, redirect }) %}
++ 		{%+ include("redirect.uc", { fw4, redirect }) %}
 + {%   endfor %}
 ++{%   if (zone.fullcone4): %}
 ++		{%+ include("zone-fullcone.uc", { fw4, zone, family: 4, direction: "dstnat" }) %}
@@ -984,9 +984,9 @@
 + {%   fw4.includes('chain-append', `dstnat_${zone.name}`) %}
 + 	}
 + 
-+@@ -337,20 +343,26 @@
++@@ -330,20 +336,26 @@
 + {%   for (let redirect in fw4.redirects(`srcnat_${zone.name}`)): %}
-+ 		{%+ include("redirect.uc", { fw4, zone, redirect }) %}
++ 		{%+ include("redirect.uc", { fw4, redirect }) %}
 + {%   endfor %}
 +-{%   if (zone.masq): %}
 ++{%   if (zone.masq && !zone.fullcone4): %}
